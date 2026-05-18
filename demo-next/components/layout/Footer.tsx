@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 export default function Footer() {
+    const [showScrollTop, setShowScrollTop] = useState(false);
     return (
         <footer
             style={{
@@ -8,6 +10,16 @@ export default function Footer() {
                 borderTop: "2px solid #c4a84f",
             }}
         >
+            {/* Logic để hiển thị nút Back to Top */}
+            {useEffect(() => {
+                const handleScroll = () => {
+                    setShowScrollTop(window.scrollY > 300);
+                };
+                window.addEventListener("scroll", handleScroll);
+                return () => window.removeEventListener("scroll", handleScroll);
+            }, [])}
+
+
             <div
                 style={{
                     maxWidth: 1280,
@@ -105,6 +117,35 @@ export default function Footer() {
                 <p style={{ fontSize: 15, color: "#a08060", margin: 0 }}>© 2026 Noritake Vietnam. All rights reserved.</p>
                 <p style={{ fontSize: 15, color: "#a08060", margin: 0 }}>Thương hiệu sứ cao cấp số 1 Nhật Bản</p>
             </div>
+
+            {/* Back to Top Button */}
+            <button
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                style={{
+                    position: "fixed",
+                    bottom: "40px",
+                    right: "40px",
+                    width: "46px",
+                    height: "46px",
+                    borderRadius: "50%",
+                    background: "#c4a84f",
+                    color: "#fff",
+                    border: "none",
+                    cursor: "pointer",
+                    display: showScrollTop ? "flex" : "none",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "20px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                    zIndex: 99,
+                    transition: "all 0.3s ease",
+                    opacity: showScrollTop ? 1 : 0,
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#a8893a")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#c4a84f")}
+            >
+                ↑
+            </button>
         </footer>
     );
 }
