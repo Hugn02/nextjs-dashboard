@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react";
 export default function Footer() {
     const [showScrollTop, setShowScrollTop] = useState(false);
+
+    // Di chuyển useEffect ra khỏi phần return
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowScrollTop(window.scrollY > 300);
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
     return (
         <footer
             style={{
@@ -10,16 +20,6 @@ export default function Footer() {
                 borderTop: "2px solid #c4a84f",
             }}
         >
-            {/* Logic để hiển thị nút Back to Top */}
-            {useEffect(() => {
-                const handleScroll = () => {
-                    setShowScrollTop(window.scrollY > 300);
-                };
-                window.addEventListener("scroll", handleScroll);
-                return () => window.removeEventListener("scroll", handleScroll);
-            }, [])}
-
-
             <div
                 style={{
                     maxWidth: 1280,

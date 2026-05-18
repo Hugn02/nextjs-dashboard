@@ -4,6 +4,7 @@ export default function GiftSection() {
         desc: string;
         href: string;
         image?: string; // Optional for image URL
+        icon?: string;  // Thêm icon vào interface để tránh lỗi TypeScript
     }
 
     const gifts: Gift[] = [
