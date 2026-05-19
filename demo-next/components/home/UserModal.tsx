@@ -3,155 +3,58 @@
 import ModalWrapper from "./ModalWrapper";
 
 export default function UserModal({ onClose }: { onClose: () => void }) {
-    return (
-        <ModalWrapper title="Đăng nhập tài khoản" onClose={onClose} width={480}>
-            {/* Subtitle */}
-            <p
-                style={{
-                    textAlign: "center",
-                    fontSize: 14,
-                    color: "#666",
-                    marginBottom: 28,
-                    fontFamily: "'Cormorant Garamond', Georgia, serif",
-                }}
-            >
-                Nhập email và mật khẩu của bạn:
-            </p>
+  return (
+    <ModalWrapper title="Đăng nhập tài khoản" onClose={onClose} width={480}>
+      <p className="text-center text-sm text-[#666] mb-7 font-['Cormorant_Garamond',_serif]">
+        Nhập email và mật khẩu của bạn:
+      </p>
 
-            {/* Email */}
-            <input
-                type="email"
-                placeholder="Email"
-                style={{
-                    width: "100%",
-                    padding: "16px 18px",
-                    fontSize: 15,
-                    border: "1px solid #ddd",
-                    borderRadius: 8,
-                    marginBottom: 14,
-                    outline: "none",
-                    fontFamily: "inherit",
-                    boxSizing: "border-box",
-                    color: "#333",
-                    background: "#fff",
-                }}
-                onFocus={(e) =>
-                    ((e.currentTarget as HTMLElement).style.borderColor = "#c4a84f")
-                }
-                onBlur={(e) =>
-                    ((e.currentTarget as HTMLElement).style.borderColor = "#ddd")
-                }
-            />
+      <input
+        type="email"
+        placeholder="Email"
+        className="w-full p-[16px_18px] text-[15px] border border-[#ddd] rounded-lg mb-3.5 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+      />
 
-            {/* Mật khẩu */}
-            <input
-                type="password"
-                placeholder="Mật khẩu"
-                style={{
-                    width: "100%",
-                    padding: "16px 18px",
-                    fontSize: 15,
-                    border: "1px solid #ddd",
-                    borderRadius: 8,
-                    marginBottom: 14,
-                    outline: "none",
-                    fontFamily: "inherit",
-                    boxSizing: "border-box",
-                    color: "#333",
-                    background: "#fff",
-                }}
-                onFocus={(e) =>
-                    ((e.currentTarget as HTMLElement).style.borderColor = "#c4a84f")
-                }
-                onBlur={(e) =>
-                    ((e.currentTarget as HTMLElement).style.borderColor = "#ddd")
-                }
-            />
+      <input
+        type="password"
+        placeholder="Mật khẩu"
+        className="w-full p-[16px_18px] text-[15px] border border-[#ddd] rounded-lg mb-3.5 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+      />
 
-            {/* reCAPTCHA note */}
-            <p
-                style={{
-                    fontSize: 12,
-                    color: "#888",
-                    marginBottom: 20,
-                    lineHeight: 1.6,
-                    fontFamily: "sans-serif",
-                }}
-            >
-                This site is protected by reCAPTCHA and the Google{" "}
-                <a href="#" style={{ color: "#1a73e8", textDecoration: "none" }}>
-                    Privacy Policy
-                </a>{" "}
-                and{" "}
-                <a href="#" style={{ color: "#1a73e8", textDecoration: "none" }}>
-                    Terms of Service
-                </a>{" "}
-                apply.
-            </p>
+      <p className="text-[12px] text-[#888] mb-5 leading-[1.6] font-sans">
+        This site is protected by reCAPTCHA and the Google{" "}
+        <a href="#" className="text-[#1a73e8] no-underline">
+          Privacy Policy
+        </a>{" "}
+        and{" "}
+        <a href="#" className="text-[#1a73e8] no-underline">
+          Terms of Service
+        </a>{" "}
+        apply.
+      </p>
 
-            {/* Nút đăng nhập — vàng đậm như ảnh */}
-            <button
-                style={{
-                    width: "100%",
-                    padding: "16px",
-                    background: "#c4a84f",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    fontSize: 15,
-                    fontWeight: 700,
-                    letterSpacing: 2,
-                    textTransform: "uppercase",
-                    fontFamily: "'Cormorant Garamond', Georgia, serif",
-                    marginBottom: 20,
-                    transition: "background 0.2s",
-                }}
-                onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLElement).style.background = "#a8893a")
-                }
-                onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLElement).style.background = "#c4a84f")
-                }
-            >
-                Đăng nhập
-            </button>
+      <button className="w-full p-4 bg-[#c4a84f] text-white border-none rounded-lg cursor-pointer text-[15px] font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] mb-5 transition-colors hover:bg-[#a8893a]">
+        Đăng nhập
+      </button>
 
-            {/* Link phụ */}
-            <p
-                style={{
-                    textAlign: "center",
-                    fontSize: 13,
-                    color: "#666",
-                    margin: "0 0 8px",
-                    fontFamily: "sans-serif",
-                }}
-            >
-                Khách hàng mới?{" "}
-                <a
-                    href="/account/register"
-                    style={{ color: "#c4a84f", textDecoration: "none", fontWeight: 600 }}
-                >
-                    Tạo tài khoản
-                </a>
-            </p>
-            <p
-                style={{
-                    textAlign: "center",
-                    fontSize: 13,
-                    color: "#666",
-                    margin: 0,
-                    fontFamily: "sans-serif",
-                }}
-            >
-                Quên mật khẩu?{" "}
-                <a
-                    href="/account/login#recover"
-                    style={{ color: "#c4a84f", textDecoration: "none", fontWeight: 600 }}
-                >
-                    Khôi phục mật khẩu
-                </a>
-            </p>
-        </ModalWrapper>
-    );
+      <p className="text-center text-[13px] text-[#666] mb-2 font-sans">
+        Khách hàng mới?{" "}
+        <a
+          href="/account/register"
+          className="text-[#c4a84f] no-underline font-semibold"
+        >
+          Tạo tài khoản
+        </a>
+      </p>
+      <p className="text-center text-[13px] text-[#666] m-0 font-sans">
+        Quên mật khẩu?{" "}
+        <a
+          href="/account/login#recover"
+          className="text-[#c4a84f] no-underline font-semibold"
+        >
+          Khôi phục mật khẩu
+        </a>
+      </p>
+    </ModalWrapper>
+  );
 }

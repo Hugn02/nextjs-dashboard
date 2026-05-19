@@ -1,151 +1,130 @@
 import { useState, useEffect } from "react";
+
 export default function Footer() {
-    const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
-    // Di chuyển useEffect ra khỏi phần return
-    useEffect(() => {
-        const handleScroll = () => {
-            setShowScrollTop(window.scrollY > 300);
-        };
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-    return (
-        <footer
-            style={{
-                background: "#1a0d00",
-                color: "#d4b896",
-                padding: "60px 0 32px",
-                borderTop: "2px solid #c4a84f",
-            }}
-        >
-            <div
-                style={{
-                    maxWidth: 1280,
-                    margin: "0 auto",
-                    padding: "0 24px",
-                    display: "grid",
-                    gridTemplateColumns: "2fr 1fr 1fr 1fr",
-                    gap: 40,
-                }}
-            >
-                <div>
-                    <img
-                        src="https://file.hstatic.net/200000296482/file/logo_1c90af075f3541399f3f74a35237f63c.png"
-                        alt="Noritake"
-                        style={{ height: 40, marginBottom: 16 }}
-                    />
-                    <p style={{ fontSize: 13, lineHeight: 1.8, color: "#a08060", margin: "0 0 20px", maxWidth: 280 }}>
-                        Website chính thức của Noritake tại Việt Nam — Thương hiệu sứ cao cấp danh tiếng số 1 Nhật Bản.
-                    </p>
-                    {/* Social Media Icons */}
-                    <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-                        {[
-                            { src: "https://file.hstatic.net/200000296482/file/instagram_-_footer_d01f0a0d01324ee0b54dda8d829a9ecc_small.png", alt: "Facebook", href: "#" },
-                            { src: "https://file.hstatic.net/200000296482/file/zalo_-_footer_d622bdb0640c465ea6fd753d0a985bf1_small.png", alt: "Instagram", href: "#" },
-                            { src: "https://file.hstatic.net/200000296482/file/youtube_-_footer_91ab502f46b34d4e9377dfdcfddd1024_small.png", alt: "YouTube", href: "#" },
-                        ].map((social, i) => (
-                            <a
-                                key={i}
-                                href={social.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    width: 36,
-                                    height: 36,
-                                    borderRadius: "50%",
-                                    background: "rgba(196,168,79,0.15)",
-                                    border: "1px solid rgba(196,168,79,0.3)",
-                                    transition: "background 0.2s ease",
-                                }}
-                                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(196,168,79,0.3)")}
-                                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(196,168,79,0.15)")}
-                            >
-                                <img
-                                    src={social.src}
-                                    alt={social.alt}
-                                    style={{ width: "60%", height: "60%", objectFit: "contain" }}
-                                />
-                            </a>
-                        ))}
-                    </div>
-                </div>
+  return (
+    <footer className="bg-[#1a0d00] text-[#d4b896] pt-[60px] pb-8 border-t-2 border-[#c4a84f]">
+      <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-10">
+        <div>
+          <img
+            src="https://file.hstatic.net/200000296482/file/logo_1c90af075f3541399f3f74a35237f63c.png"
+            alt="Noritake"
+            className="h-10 mb-4"
+          />
+          <p className="text-[13px] leading-[1.8] text-[#a08060] mb-5 max-w-[280px]">
+            Website chính thức của Noritake tại Việt Nam — Thương hiệu sứ cao
+            cấp danh tiếng số 1 Nhật Bản.
+          </p>
+          <div className="flex gap-3 mt-5">
+            {[
+              {
+                src: "https://file.hstatic.net/200000296482/file/instagram_-_footer_d01f0a0d01324ee0b54dda8d829a9ecc_small.png",
+                alt: "Facebook",
+                href: "#",
+              },
+              {
+                src: "https://file.hstatic.net/200000296482/file/zalo_-_footer_d622bdb0640c465ea6fd753d0a985bf1_small.png",
+                alt: "Instagram",
+                href: "#",
+              },
+              {
+                src: "https://file.hstatic.net/200000296482/file/youtube_-_footer_91ab502f46b34d4e9377dfdcfddd1024_small.png",
+                alt: "YouTube",
+                href: "#",
+              },
+            ].map((social, i) => (
+              <a
+                key={i}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-[#c4a84f]/15 border border-[#c4a84f]/30 transition-colors hover:bg-[#c4a84f]/30"
+              >
+                <img
+                  src={social.src}
+                  alt={social.alt}
+                  className="w-3/5 h-3/5 object-contain"
+                />
+              </a>
+            ))}
+          </div>
+        </div>
 
-                {[
-                    { title: "Sản phẩm", links: ["Bộ ấm trà cao cấp", "Bộ bát đĩa", "Cốc sứ", "Bình hoa", "Quà tặng"] },
-                    { title: "Hỗ trợ", links: ["Chính sách đổi trả", "Giao hàng", "Hướng dẫn mua hàng", "Hệ thống cửa hàng"] },
-                    { title: "Liên hệ", links: ["📞 0901 234 567", "✉️ info@noritake.vn", "📍 TP. Hồ Chí Minh", "📍 Hà Nội"] },
-                ].map((col) => (
-                    <div key={col.title}>
-                        <h4 style={{ fontSize: 12, letterSpacing: 2, color: "#c4a84f", textTransform: "uppercase", margin: "0 0 16px" }}>
-                            {col.title}
-                        </h4>
-                        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                            {col.links.map((link) => (
-                                <li key={link} style={{ marginBottom: 8 }}>
-                                    <a
-                                        href="#"
-                                        style={{ color: "#a08060", textDecoration: "none", fontSize: 13, transition: "color 0.2s" }}
-                                        onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#c4a84f")}
-                                        onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "#a08060")}
-                                    >
-                                        {link}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
-            </div>
+        {[
+          {
+            title: "Sản phẩm",
+            links: [
+              "Bộ ấm trà cao cấp",
+              "Bộ bát đĩa",
+              "Cốc sứ",
+              "Bình hoa",
+              "Quà tặng",
+            ],
+          },
+          {
+            title: "Hỗ trợ",
+            links: [
+              "Chính sách đổi trả",
+              "Giao hàng",
+              "Hướng dẫn mua hàng",
+              "Hệ thống cửa hàng",
+            ],
+          },
+          {
+            title: "Liên hệ",
+            links: [
+              "📞 0901 234 567",
+              "✉️ info@noritake.vn",
+              "📍 TP. Hồ Chí Minh",
+              "📍 Hà Nội",
+            ],
+          },
+        ].map((col) => (
+          <div key={col.title}>
+            <h4 className="text-[12px] tracking-[2px] text-[#c4a84f] uppercase mb-4">
+              {col.title}
+            </h4>
+            <ul className="list-none p-0 m-0">
+              {col.links.map((link) => (
+                <li key={link} className="mb-2">
+                  <a
+                    href="#"
+                    className="text-[#a08060] no-underline text-[13px] transition-colors hover:text-[#c4a84f]"
+                  >
+                    {link}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
 
-            <div
-                style={{
-                    maxWidth: 1280,
-                    margin: "40px auto 0",
-                    padding: "20px 24px 0",
-                    borderTop: "1px solid rgba(196,168,79,0.15)",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 8,
-                }}
-            >
-                <p style={{ fontSize: 15, color: "#a08060", margin: 0 }}>© 2026 Noritake Vietnam. All rights reserved.</p>
-                <p style={{ fontSize: 15, color: "#a08060", margin: 0 }}>Thương hiệu sứ cao cấp số 1 Nhật Bản</p>
-            </div>
+      <div className="max-w-[1280px] mx-auto mt-10 pt-5 px-6 border-t border-[#c4a84f]/15 flex justify-between flex-wrap gap-2">
+        <p className="text-[15px] text-[#a08060] m-0">
+          © 2026 Noritake Vietnam. All rights reserved.
+        </p>
+        <p className="text-[15px] text-[#a08060] m-0">
+          Thương hiệu sứ cao cấp số 1 Nhật Bản
+        </p>
+      </div>
 
-            {/* Back to Top Button */}
-            <button
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                style={{
-                    position: "fixed",
-                    bottom: "40px",
-                    right: "40px",
-                    width: "46px",
-                    height: "46px",
-                    borderRadius: "50%",
-                    background: "#c4a84f",
-                    color: "#fff",
-                    border: "none",
-                    cursor: "pointer",
-                    display: showScrollTop ? "flex" : "none",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "20px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                    zIndex: 99,
-                    transition: "all 0.3s ease",
-                    opacity: showScrollTop ? 1 : 0,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#a8893a")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#c4a84f")}
-            >
-                ↑
-            </button>
-        </footer>
-    );
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className={`fixed bottom-10 right-10 w-[46px] h-[46px] rounded-full bg-[#c4a84f] text-white border-none cursor-pointer items-center justify-center text-xl shadow-lg z-[99] transition-all duration-300 hover:bg-[#a8893a] 
+                    ${showScrollTop ? "flex opacity-100" : "hidden opacity-0"}`}
+      >
+        ↑
+      </button>
+    </footer>
+  );
 }
