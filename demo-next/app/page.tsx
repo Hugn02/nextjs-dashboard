@@ -7,6 +7,7 @@ import HeroSlider from "@/components/home/HeroSlider";
 import TrustBar from "@/components/home/TrustBar";
 import QuickCategories from "@/components/home/QuickCategories";
 import ProductSection from "@/components/home/ProductSection";
+import ArtOfWhite from "@/components/home/ArtOfWhite";
 import FeaturedCollections from "@/components/home/FeaturedCollections";
 import BrandStory from "@/components/home/BrandStory";
 import GiftSection from "@/components/home/GiftSection";
@@ -45,6 +46,7 @@ export default function HomePage() {
         <TrustBar />
         <QuickCategories />
         <ProductSection />
+        <ArtOfWhite />
         <FeaturedCollections />
         <BrandStory />
         <GiftSection />

@@ -1,0 +1,67 @@
+"use client";
+
+import Image from "next/image";
+
+export default function ArtOfWhite() {
+  return (
+    <section className="bg-[#f2eee5] py-16 md:py-24 px-6 md:px-12 border-t border-[#ede0c4]">
+      {/* Import the elegant cursive font for this section */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&display=swap');
+      `}</style>
+
+      <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
+        {/* Left Column: Text Content */}
+        <div className="flex flex-col justify-center">
+          {/* Cursive Title */}
+          <div className="mb-3">
+            <span className="font-['Alex_Brush',_cursive] text-[48px] md:text-[68px] text-[#4a3f35] leading-none block">
+              The Art of White
+            </span>
+          </div>
+
+          {/* Subtitle with Gold Vertical Bar */}
+          <div className="flex gap-3 mb-8 items-stretch">
+            <div className="w-[3px] bg-[#c4a84f] shrink-0" />
+            <h3 className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] font-sans font-bold tracking-[2px] text-[#2c1a00] uppercase leading-tight sm:whitespace-nowrap">
+              Nghệ thuật của sứ màu trắng không họa tiết
+            </h3>
+          </div>
+
+          {/* Paragraph and Action Button */}
+          <div className="flex flex-col items-center">
+            <p className="text-center text-[#554433] text-[15px] md:text-[16px] leading-[1.8] mb-8 font-sans max-w-[480px]">
+              Được thiết kế chuyên biệt để sử dụng trong các nhà hàng, khách sạn 5 sao
+              trên toàn thế giới. Nhiệt độ nung lên tới 1.460°C giúp loại bỏ hoàn toàn
+              kim loại nặng như chì và cadimi. Tiện sử dụng hàng ngày với máy rửa chén
+              và lò vi sóng.
+            </p>
+
+            <a
+              href="/collections/su-trang-khong-hoa-tiet"
+              className="inline-block bg-[#c4a84f] hover:bg-[#b0923a] text-white font-sans text-[11px] tracking-[2px] font-bold px-9 py-3.5 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            >
+              XEM THÊM NGAY
+            </a>
+          </div>
+        </div>
+
+        {/* Right Column: Premium Image Mockup */}
+        <div className="relative group w-full flex justify-center p-4 md:p-6">
+          <div
+            className="relative w-full max-w-[500px] aspect-square rounded-[2px]"
+            style={{ boxShadow: "12px 18px 35px rgba(0, 0, 0, 0.5)" }}
+          >
+            <div className="w-full h-full overflow-hidden rounded-[2px]">
+              <img
+                src="https://file.hstatic.net/200000296482/file/z4999272063081_1341d74c3c35039f69242f1886a3ef27_32a4c74f6c4a47d9a2ad3a6efd281a49.jpg"
+                alt="The Art of White Porcelain Tableware"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
