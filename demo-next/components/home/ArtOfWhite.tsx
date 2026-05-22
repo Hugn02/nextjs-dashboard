@@ -48,10 +48,7 @@ export default function ArtOfWhite() {
 
         {/* Right Column: Premium Image Mockup */}
         <div className="relative group w-full flex justify-center p-4 md:p-6">
-          <div
-            className="relative w-full max-w-[500px] aspect-square rounded-[2px]"
-            style={{ boxShadow: "12px 18px 35px rgba(0, 0, 0, 0.5)" }}
-          >
+          <div className="relative w-full max-w-[500px] aspect-square rounded-[2px] shadow-[12px_18px_35px_rgba(0,0,0,0.5)]">
             <div className="w-full h-full overflow-hidden rounded-[2px]">
               <img
                 src="https://file.hstatic.net/200000296482/file/z4999272063081_1341d74c3c35039f69242f1886a3ef27_32a4c74f6c4a47d9a2ad3a6efd281a49.jpg"
