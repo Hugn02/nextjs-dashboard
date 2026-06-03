@@ -11,7 +11,7 @@ interface Product {
   imageUrl: string;
 }
 
-// const API_URL = "http://localhost:3000/products";
+// const API_URL = "http://localhost:3002/products";
 const API_URL = "https://project-nestjs-hawx.onrender.com/products";
 
 // Helper format tiền

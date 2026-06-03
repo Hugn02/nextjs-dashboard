@@ -46,16 +46,18 @@ export default function ArtOfWhite() {
           </div>
         </div>
 
-        {/* Right Column: Premium Image Mockup */}
+        {/* Right Column: Embedded YouTube Video */}
         <div className="relative group w-full flex justify-center p-4 md:p-6">
-          <div className="relative w-full max-w-[500px] aspect-square rounded-[2px] shadow-[12px_18px_35px_rgba(0,0,0,0.5)]">
-            <div className="w-full h-full overflow-hidden rounded-[2px]">
-              <img
-                src="https://file.hstatic.net/200000296482/file/z4999272063081_1341d74c3c35039f69242f1886a3ef27_32a4c74f6c4a47d9a2ad3a6efd281a49.jpg"
-                alt="The Art of White Porcelain Tableware"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-            </div>
+          <div className="relative w-full max-w-[560px] aspect-video rounded-[2px] shadow-[12px_18px_35px_rgba(0,0,0,0.5)]">
+            <iframe
+              className="w-full h-full rounded-[2px]"
+              src="https://www.youtube.com/embed/R-EeXOLH8RM?si=oCgG0AoTLk78W2C2"
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            ></iframe>
           </div>
         </div>
       </div>
