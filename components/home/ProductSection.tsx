@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 interface Product {
-  id: number;
+  id: string | number;
   productName: string;
   brandName: string;
   newPrice: number;
@@ -29,6 +29,7 @@ function ProductCard({ product }: { product: Product }) {
           src={product.imageUrl}
           alt={product.productName}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+          loading="lazy"
         />
         {discount && discount > 0 && (
           <div className="absolute top-2.5 left-2.5 bg-[#c4a84f] text-white text-[11px] font-bold px-2 py-0.5 rounded-[2px]">
@@ -46,7 +47,7 @@ function ProductCard({ product }: { product: Product }) {
         <h3 className="text-[13px] text-[#2c1a00] font-semibold leading-[1.5] mb-3 line-clamp-2">
           {product.productName}
         </h3>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 whitespace-nowrap overflow-hidden">
           <span className="text-base font-bold text-[#8b2500]">
             {formatPrice(product.newPrice)}
           </span>
@@ -65,15 +66,20 @@ export default function ProductSection() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
-  const itemsPerPage = 8;
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const [totalCount, setTotalCount] = useState(0);
+  const itemsPerPage = 8; // Ở trang chủ thường để cố định số lượng đẹp (với lưới 4 cột)
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch(API_URL);
+        // Fetch thêm tham số để lấy đủ sản phẩm cho trang chủ nếu cần
+        const res = await fetch(`${API_URL}?limit=24`);
         const result = await res.json();
-        if (result.statusCode === 200) setProducts(result.data);
+        if (result.statusCode === 200 && result.data) {
+          setProducts(result.data.products);
+          setTotalCount(result.data.totalCount);
+        }
       } catch (err) {
         console.error("Lỗi khi lấy dữ liệu sản phẩm:", err);
       } finally {

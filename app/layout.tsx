@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "Website chính thức Noritake tại Việt Nam",
 };
 
+import ChatWidget from "@/components/layout/ChatWidget";
+
 export default function RootLayout({
   children,
 }: {
@@ -22,7 +24,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <ChatWidget />
+      </body>
     </html>
   );
 }

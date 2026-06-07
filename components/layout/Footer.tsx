@@ -120,7 +120,7 @@ export default function Footer() {
 
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className={`fixed bottom-10 right-10 w-[46px] h-[46px] rounded-full bg-[#c4a84f] text-white border-none cursor-pointer items-center justify-center text-xl shadow-lg z-[99] transition-all duration-300 hover:bg-[#a8893a] 
+        className={`fixed bottom-28 right-[33px] w-[46px] h-[46px] rounded-full bg-[#c4a84f] text-white border-none cursor-pointer items-center justify-center text-xl shadow-lg z-[99] transition-all duration-300 hover:bg-[#a8893a] 
                     ${showScrollTop ? "flex opacity-100" : "hidden opacity-0"}`}
       >
         ↑
