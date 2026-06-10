@@ -70,6 +70,13 @@ export default function Navbar() {
   const [activeModal, setActiveModal] = useState<
     "search" | "user" | "cart" | null
   >(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Kiểm tra xem đã đăng nhập chưa để thay đổi trạng thái icon
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, [activeModal]); // Re-check mỗi khi modal đóng/mở
 
   useEffect(() => {
     const handleScroll = () => {
@@ -142,9 +149,10 @@ export default function Navbar() {
             onClick={() =>
               setActiveModal(activeModal === "user" ? null : "user")
             }
-            className={`bg-none border-none cursor-pointer w-7 text-center transition-all duration-300 ${activeModal === "user" ? "text-2xl text-[#c4a84f] rotate-90" : "text-[20px] text-[#3d2b00]"}`}
+            className={`bg-none border-none cursor-pointer w-7 text-center transition-all duration-300 ${activeModal === "user" ? "text-2xl text-[#c4a84f] rotate-90" : isLoggedIn ? "text-[20px] text-[#c4a84f]" : "text-[20px] text-[#3d2b00]"}`}
+            title={isLoggedIn ? "Tài khoản của tôi" : "Đăng nhập"}
           >
-            {activeModal === "user" ? "✕" : "👤"}
+            {activeModal === "user" ? "✕" : isLoggedIn ? "👤" : "👤"}
           </button>
 
           <button
