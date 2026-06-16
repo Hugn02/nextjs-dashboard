@@ -3,8 +3,11 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-const AUTH_API = "https://project-nestjs-hawx.onrender.com/auth"; // Hoặc URL của bạn
-// const AUTH_API = "http://localhost:3002/auth";
+// const AUTH_API = "https://project-nestjs-hawx.onrender.com/auth"; // Hoặc URL của bạn
+const AUTH_API = "http://localhost:3002/auth";
+
+// Định nghĩa URL trang Admin (Sử dụng biến môi trường nếu có, nếu không thì dùng localhost)
+const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
 
 export default function UserModal({ onClose }: { onClose: () => void }) {
   // Sử dụng state để chuyển đổi giữa 'login' và 'register'
@@ -128,7 +131,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             {/* Hiển thị link Admin nếu role là admin */}
             {user.role === 'admin' && (
               <a
-                href="https://demo-fe-nextjs.vercel.app/"
+                href={`${ADMIN_URL}/?token=${localStorage.getItem('token')}&user=${encodeURIComponent(JSON.stringify(user))}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group no-underline"
