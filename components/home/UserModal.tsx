@@ -4,7 +4,7 @@ import { useState, useEffect, ChangeEvent } from "react";
 import ModalWrapper from "./ModalWrapper";
 
 // const AUTH_API = "https://project-nestjs-hawx.onrender.com/auth"; // Hoặc URL của bạn
-const AUTH_API = process.env.AUTH_API_URL || "http://localhost:3002/auth";
+const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:3002/auth";
 
 // Định nghĩa URL trang Admin (Sử dụng biến môi trường nếu có, nếu không thì dùng localhost)
 const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
