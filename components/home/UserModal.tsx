@@ -48,7 +48,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
           return;
         }
 
-        const res = await fetch(`${AUTH_API}/register`, {
+        const res = await fetch(`${AUTH_API}/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -65,7 +65,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
           setMessage({ text: result.message || "Đăng ký thất bại", type: 'error' });
         }
       } else {
-        const res = await fetch(`${AUTH_API}/login`, {
+        const res = await fetch(`${AUTH_API}/signin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
