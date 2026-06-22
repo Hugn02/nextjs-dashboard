@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import ModalWrapper from "./ModalWrapper";
+import ModalWrapper from "@/src/components/ui/ModalWrapper";
 
 export default function SearchModal({ onClose }: { onClose: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -13,7 +13,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
 
   return (
     <ModalWrapper title="Tìm kiếm sản phẩm" onClose={onClose} width={480}>
-      <p className="text-center text-sm text-[#666] mb-6 font-['Cormorant_Garamond',_serif]">
+      <p className="text-center text-xs md:text-sm text-[#666] mb-4 md:mb-6 font-['Cormorant_Garamond',_serif]">
         Nhập tên sản phẩm hoặc bộ sưu tập:
       </p>
 
@@ -22,7 +22,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
           ref={inputRef}
           type="text"
           placeholder="Tìm kiếm sản phẩm..."
-          className="w-full p-[16px_50px_16px_18px] text-[15px] border border-[#ddd] rounded-lg outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+          className="w-full p-[12px_45px_12px_15px] md:p-[16px_50px_16px_18px] text-[14px] md:text-[15px] border border-[#ddd] rounded-lg outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
         />
         <button className="absolute right-3.5 top-1/2 -translate-y-1/2 bg-none border-none cursor-pointer text-[18px] text-[#c4a84f] p-0">
           🔍
@@ -38,7 +38,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
             (tag) => (
               <button
                 key={tag}
-                className="px-3.5 py-1.5 border border-[#e0d0b0] rounded-[20px] bg-[#fdf8ef] text-[#8b6914] text-[13px] cursor-pointer font-['Cormorant_Garamond',_serif] transition-all duration-200 hover:bg-[#c4a84f] hover:text-white hover:border-[#c4a84f]"
+                className="px-3 md:px-3.5 py-1 md:py-1.5 border border-[#e0d0b0] rounded-[20px] bg-[#fdf8ef] text-[#8b6914] text-[12px] md:text-[13px] cursor-pointer font-['Cormorant_Garamond',_serif] transition-all duration-200 hover:bg-[#c4a84f] hover:text-white hover:border-[#c4a84f]"
                 onClick={() => {
                   if (inputRef.current) {
                     inputRef.current.value = tag;

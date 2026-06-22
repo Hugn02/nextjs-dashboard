@@ -54,7 +54,7 @@ const QUICK_CATEGORIES: Category[] = [
 
 export default function QuickCategories() {
   return (
-    <section className="bg-white pt-[60px] pb-10">
+    <section className="bg-white pt-10 md:pt-[60px] pb-10 mt-[88px] md:mt-0">
       <div className="max-w-[1280px] mx-auto px-6">
         <div className="text-center mb-10">
           <p className="text-[11px] tracking-[4px] text-[#c4a84f] font-['Cormorant_Garamond',_serif] uppercase mb-2">

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent } from "react";
-import ModalWrapper from "./ModalWrapper";
+import ModalWrapper from "@/src/components/ui/ModalWrapper";
+import { User } from "@/src/features/auth/types/auth.types";
 
 // const AUTH_API = "https://project-nestjs-hawx.onrender.com/auth"; // Hoặc URL của bạn
 const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:3002/auth";
@@ -12,7 +13,7 @@ const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
 export default function UserModal({ onClose }: { onClose: () => void }) {
   // Sử dụng state để chuyển đổi giữa 'login' và 'register'
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null); // Sử dụng interface User
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -27,7 +28,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        setUser(JSON.parse(savedUser) as User); // Ép kiểu sang User
       } catch (e) {
         setUser(null);
       }
@@ -108,23 +109,23 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
     >
       {user ? (
         /* Giao diện khi đã đăng nhập thành công */
-        <div className="flex flex-col gap-6 py-4">
+        <div className="flex flex-col gap-4 md:gap-6 py-2 md:py-4">
           <div className="text-center">
-            <div className="w-20 h-20 bg-[#f7f3eb] rounded-full flex items-center justify-center mx-auto mb-4 border border-[#c4a84f]/20 shadow-inner">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-[#f7f3eb] rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 border border-[#c4a84f]/20 shadow-inner">
               <span className="text-3xl">👤</span>
             </div>
-            <h3 className="text-xl font-['Cormorant_Garamond',_serif] font-bold text-[#2c1a00] uppercase tracking-wider">
+            <h3 className="text-lg md:text-xl font-['Cormorant_Garamond',_serif] font-bold text-[#2c1a00] uppercase tracking-wider">
               {user.fullName}
             </h3>
-            <p className="text-sm text-[#888] font-sans mt-1">{user.email}</p>
+            <p className="text-xs md:text-sm text-[#888] font-sans mt-0.5 md:mt-1">{user.email}</p>
             <div className="inline-block mt-2 px-3 py-1 bg-[#c4a84f]/10 text-[#c4a84f] text-[10px] font-bold uppercase tracking-widest rounded">
               {user.role === 'admin' ? 'Quản trị viên' : 'Thành viên'}
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 border-t border-[#eee] pt-6">
-            <button className="w-full p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group">
-              <span className="text-sm font-semibold text-[#3d2b00] font-sans uppercase tracking-wider">Thông tin tài khoản</span>
+          <div className="flex flex-col gap-1 md:gap-2 border-t border-[#eee] pt-4 md:pt-6">
+            <button className="w-full p-3 md:p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group">
+              <span className="text-xs md:text-sm font-semibold text-[#3d2b00] font-sans uppercase tracking-wider">Thông tin tài khoản</span>
               <span className="text-[#c4a84f] group-hover:translate-x-1 transition-transform">→</span>
             </button>
 
@@ -134,22 +135,22 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
                 href={`${ADMIN_URL}/?token=${localStorage.getItem('token')}&user=${encodeURIComponent(JSON.stringify(user))}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group no-underline"
+                className="w-full p-3 md:p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group no-underline"
               >
-                <span className="text-sm font-semibold text-[#8b2500] font-sans uppercase tracking-wider">Trang quản trị sản phẩm</span>
+                <span className="text-xs md:text-sm font-semibold text-[#8b2500] font-sans uppercase tracking-wider">Trang quản trị sản phẩm</span>
                 <span className="text-[#c4a84f] group-hover:translate-x-1 transition-transform">→</span>
               </a>
             )}
 
-            <button className="w-full p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group">
-              <span className="text-sm font-semibold text-[#3d2b00] font-sans uppercase tracking-wider">Lịch sử đơn hàng</span>
+            <button className="w-full p-3 md:p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group">
+              <span className="text-xs md:text-sm font-semibold text-[#3d2b00] font-sans uppercase tracking-wider">Lịch sử đơn hàng</span>
               <span className="text-[#c4a84f] group-hover:translate-x-1 transition-transform">→</span>
             </button>
           </div>
 
           <button
             onClick={handleLogout}
-            className="w-full p-4 mt-4 border border-[#c4a84f] text-[#c4a84f] rounded-lg cursor-pointer text-[13px] font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] transition-all hover:bg-[#c4a84f] hover:text-white"
+            className="w-full p-3 md:p-4 mt-2 md:mt-4 border border-[#c4a84f] text-[#c4a84f] rounded-lg cursor-pointer text-[12px] md:text-[13px] font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] transition-all hover:bg-[#c4a84f] hover:text-white"
           >
             Đăng xuất
           </button>
@@ -157,7 +158,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
       ) : mode === 'login' ? (
         /* Form Đăng nhập cũ */
         <>
-          <p className="text-center text-sm text-[#666] mb-7 font-['Cormorant_Garamond',_serif]">
+          <p className="text-center text-xs md:text-sm text-[#666] mb-5 md:mb-7 font-['Cormorant_Garamond',_serif]">
             Nhập email và mật khẩu của bạn:
           </p>
 
@@ -173,7 +174,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             placeholder="Email"
             value={formData.email}
             onChange={handleInputChange}
-            className="w-full p-[16px_18px] text-[15px] border border-[#ddd] rounded-lg mb-3.5 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+            className="w-full p-[12px_15px] md:p-[16px_18px] text-[14px] md:text-[15px] border border-[#ddd] rounded-lg mb-3 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
           />
 
           <input
@@ -182,7 +183,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             placeholder="Mật khẩu"
             value={formData.password}
             onChange={handleInputChange}
-            className="w-full p-[16px_18px] text-[15px] border border-[#ddd] rounded-lg mb-3.5 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+            className="w-full p-[12px_15px] md:p-[16px_18px] text-[14px] md:text-[15px] border border-[#ddd] rounded-lg mb-3.5 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
           />
 
           <p className="text-[12px] text-[#888] mb-5 leading-[1.6] font-sans">
@@ -193,7 +194,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
           <button
             disabled={loading}
             onClick={handleSubmit}
-            className="w-full p-4 bg-[#c4a84f] text-white border-none rounded-lg cursor-pointer text-[15px] font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] mb-5 transition-colors hover:bg-[#a8893a] disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full p-3.5 md:p-4 bg-[#c4a84f] text-white border-none rounded-lg cursor-pointer text-[14px] md:text-[15px] font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] mb-5 transition-colors hover:bg-[#a8893a] disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {loading ? "Đang xử lý..." : "Đăng nhập"}
           </button>

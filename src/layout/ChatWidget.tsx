@@ -53,34 +53,52 @@ export default function ChatWidget() {
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
+    // Tạo một tin nhắn bot trống để chuẩn bị nhận stream
+    const botMsgId = `bot-${Date.now()}`;
+    const botMsg: Message = {
+      id: botMsgId,
+      sender: "bot",
+      text: "",
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, botMsg]);
+
     try {
       const response = await fetch("http://localhost:3002/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
       });
-      
-      const result = await response.json();
-      const botReply = result?.data?.reply || "Xin lỗi Quý khách, hệ thống đang gặp gián đoạn. Vui lòng thử lại sau.";
-      
-      const botMsg: Message = {
-        id: `bot-${Date.now()}`,
-        sender: "bot",
-        text: botReply,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, botMsg]);
+
+      if (!response.body) throw new Error("No body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+
+        setMessages((prev) =>
+          prev.map((m) => (m.id === botMsgId ? { ...m, text: fullText } : m))
+        );
+      }
     } catch (error) {
       console.error("Chat API connection error:", error);
       const botMsg: Message = {
-        id: `bot-${Date.now()}`,
+        id: `bot-err-${Date.now()}`,
         sender: "bot",
         text: "Hiện tại tôi đang gặp khó khăn khi kết nối với máy chủ. Xin Quý khách vui lòng thử lại sau giây lát! 🌸",
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, botMsg]);
+      // Cập nhật tin nhắn placeholder cũ bằng nội dung lỗi thay vì thêm tin mới
+      setMessages((prev) =>
+        prev.map((m) => (m.id === botMsgId ? botMsg : m))
+      );
     } finally {
       setIsLoading(false);
     }
@@ -105,19 +123,19 @@ export default function ChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="relative group flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-[#8b6914] via-[#c4a84f] to-[#8b6914] text-white shadow-[0_8px_30px_rgb(196,168,79,0.4)] cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 hover:rotate-12"
+          className="relative group flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-tr from-[#8b6914] via-[#c4a84f] to-[#8b6914] text-white shadow-[0_8px_30px_rgb(196,168,79,0.4)] cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 hover:rotate-12"
           aria-label="Mở cửa sổ Chat"
         >
           {/* Vòng tròn hiệu ứng sóng phát ra xung quanh */}
           <span className="absolute inset-0 rounded-full bg-[#c4a84f]/30 animate-ping opacity-75"></span>
-          
+
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.8}
             stroke="currentColor"
-            className="w-8 h-8 relative z-10"
+            className="w-7 h-7 md:w-8 md:h-8 relative z-10"
           >
             <path
               strokeLinecap="round"
@@ -130,21 +148,21 @@ export default function ChatWidget() {
 
       {/* Cửa sổ Chat (Chat Window) */}
       {isOpen && (
-        <div className="flex flex-col w-[380px] max-w-[calc(100vw-2rem)] h-[580px] bg-white rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-[#b49664]/20 overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+        <div className="flex flex-col w-[380px] max-w-[calc(100vw-2rem)] h-[480px] md:h-[580px] bg-white rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-[#b49664]/20 overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 bg-[#2c1a00] text-white border-b border-[#c4a84f]/20">
+          <div className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 bg-[#2c1a00] text-white border-b border-[#c4a84f]/20">
             <div className="flex items-center gap-3">
               {/* Avatar thiết kế mạ vàng sang trọng */}
-              <div className="relative flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-tr from-[#8b6914] to-[#c4a84f] p-[1px] shadow-md">
+              <div className="relative flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-[#8b6914] to-[#c4a84f] p-[1px] shadow-md">
                 <div className="flex items-center justify-center w-full h-full rounded-full bg-[#2c1a00]">
-                  <span className="text-[15px] font-bold text-[#c4a84f] tracking-wider">N</span>
+                  <span className="text-[12px] md:text-[15px] font-bold text-[#c4a84f] tracking-wider">N</span>
                 </div>
                 {/* Dấu chấm xanh Online */}
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#2c1a00] rounded-full"></span>
               </div>
-              
+
               <div>
-                <h3 className="text-sm font-semibold tracking-wider uppercase text-[#c4a84f]">
+                <h3 className="text-xs md:text-sm font-semibold tracking-wider uppercase text-[#c4a84f]">
                   Noritake Assistant
                 </h3>
                 <p className="text-[11px] text-[#faf7f2]/70 font-sans tracking-wide">
@@ -188,19 +206,17 @@ export default function ChatWidget() {
 
                 {/* Bong bóng tin nhắn */}
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed shadow-sm transition-all duration-200 ${
-                    msg.sender === "user"
-                      ? "bg-[#c4a84f] text-white rounded-br-sm font-sans"
-                      : "bg-white text-[#2c1a00] border border-[#b49664]/10 rounded-bl-sm font-sans"
-                  }`}
+                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed shadow-sm transition-all duration-200 ${msg.sender === "user"
+                    ? "bg-[#c4a84f] text-white rounded-br-sm font-sans"
+                    : "bg-white text-[#2c1a00] border border-[#b49664]/10 rounded-bl-sm font-sans"
+                    }`}
                 >
                   <p className="whitespace-pre-line">{msg.text}</p>
-                  
+
                   {/* Thời gian gửi tin nhắn */}
                   <span
-                    className={`block text-[9px] mt-1 text-right ${
-                      msg.sender === "user" ? "text-white/70" : "text-gray-400"
-                    }`}
+                    className={`block text-[9px] mt-1 text-right ${msg.sender === "user" ? "text-white/70" : "text-gray-400"
+                      }`}
                   >
                     {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
@@ -248,13 +264,12 @@ export default function ChatWidget() {
               placeholder="Hỏi Noritake Assistant..."
               className="flex-1 px-4 py-2.5 bg-[#faf7f2] border border-[#b49664]/20 rounded-full text-sm font-sans focus:outline-none focus:border-[#c4a84f] focus:bg-white text-[#2c1a00] placeholder-gray-400 transition-all duration-200"
             />
-            
+
             <button
               onClick={() => handleSend()}
               disabled={!inputMessage.trim()}
-              className={`flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-tr from-[#8b6914] to-[#c4a84f] text-white shadow-md cursor-pointer transition-all duration-200 ${
-                !inputMessage.trim() ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
-              }`}
+              className={`flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-tr from-[#8b6914] to-[#c4a84f] text-white shadow-md cursor-pointer transition-all duration-200 ${!inputMessage.trim() ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
+                }`}
               aria-label="Gửi tin nhắn"
             >
               <svg

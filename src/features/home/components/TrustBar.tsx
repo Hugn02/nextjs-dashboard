@@ -7,7 +7,7 @@ const TRUST_BADGES = [
 
 export default function TrustBar() {
   return (
-    <div className="bg-[#fdf8ef] border-y border-[#e8d9bb] overflow-hidden">
+    <div className="hidden md:block bg-[#fdf8ef] border-y border-[#e8d9bb] overflow-hidden">
       <div className="flex whitespace-nowrap animate-[marquee_18s_linear_infinite]">
         {[...TRUST_BADGES, ...TRUST_BADGES].map((b, i) => (
           <div

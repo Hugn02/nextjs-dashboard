@@ -12,7 +12,9 @@ interface Product {
 }
 
 // const API_URL = "http://localhost:3002/products";
-const API_URL = "https://project-nestjs-hawx.onrender.com/products";
+// const API_URL = "https://project-nestjs-hawx.onrender.com/products";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/products"}`;
+
 
 // Helper format tiền
 const formatPrice = (amount: number) => {
@@ -88,6 +90,17 @@ export default function ProductSection() {
     };
     fetchProducts();
   }, []);
+
+  // Hiệu ứng tự động chuyển trang (Auto-slide)
+  useEffect(() => {
+    if (totalPages <= 1 || loading) return;
+
+    const timer = setInterval(() => {
+      setCurrentPage((prev) => (prev + 1) % totalPages);
+    }, 5000); // Tự động chuyển trang sau mỗi 5 giây
+
+    return () => clearInterval(timer);
+  }, [totalPages, loading, currentPage]);
 
   // Lấy danh sách sản phẩm của trang hiện tại
   const currentProducts = products.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);

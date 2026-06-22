@@ -42,12 +42,11 @@ export default function ModalWrapper({
 
   return (
     <>
-      <div className="fixed top-[114px] inset-0 z-[199] bg-transparent" />
+      <div className="fixed top-[88px] md:top-[114px] inset-0 z-[199] bg-black/10 md:bg-transparent" />
 
       <div
         ref={panelRef}
-        style={{ width }}
-        className="fixed top-[114px] right-0 max-h-[calc(100vh-114px)] overflow-y-auto bg-white z-[200] shadow-[-2px_4px_24px_rgba(0,0,0,0.13)] border-l border-b border-[#eee] p-[36px_40px_40px] flex flex-col gap-0 animate-[dropDown_0.22s_ease]"
+        className="fixed top-[88px] md:top-[114px] right-0 w-full md:w-[480px] max-h-[calc(100vh-88px)] md:max-h-[calc(100vh-114px)] overflow-y-auto bg-white z-[200] shadow-[-2px_4px_24px_rgba(0,0,0,0.13)] border-l border-b border-[#eee] p-6 md:p-[36px_40px_40px] flex flex-col gap-0 animate-[dropDown_0.22s_ease]"
       >
         {title && (
           <div className="mb-1.5 text-center">

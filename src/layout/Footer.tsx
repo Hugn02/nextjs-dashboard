@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 
 export default function Footer() {
@@ -13,18 +15,18 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#1a0d00] text-[#d4b896] pt-[60px] pb-8 border-t-2 border-[#c4a84f]">
-      <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-10">
-        <div>
+      <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr] gap-x-5 gap-y-10">
+        <div className="flex flex-col items-start text-left">
           <img
             src="https://file.hstatic.net/200000296482/file/logo_1c90af075f3541399f3f74a35237f63c.png"
             alt="Noritake"
-            className="h-10 mb-4"
+            className="h-8 md:h-10 mb-4"
           />
-          <p className="text-[13px] leading-[1.8] text-[#a08060] mb-5 max-w-[280px]">
+          <p className="text-[11px] md:text-[13px] leading-[1.6] md:leading-[1.8] text-[#a08060] mb-4">
             Website chính thức của Noritake tại Việt Nam — Thương hiệu sứ cao
             cấp danh tiếng số 1 Nhật Bản.
           </p>
-          <div className="flex gap-3 mt-5">
+          <div className="flex gap-3 mt-2 md:mt-5">
             {[
               {
                 src: "https://file.hstatic.net/200000296482/file/instagram_-_footer_d01f0a0d01324ee0b54dda8d829a9ecc_small.png",
@@ -89,7 +91,7 @@ export default function Footer() {
             ],
           },
         ].map((col) => (
-          <div key={col.title}>
+          <div key={col.title} className="text-left">
             <h4 className="text-[12px] tracking-[2px] text-[#c4a84f] uppercase mb-4">
               {col.title}
             </h4>
@@ -109,22 +111,24 @@ export default function Footer() {
         ))}
       </div>
 
-      <div className="max-w-[1280px] mx-auto mt-10 pt-5 px-6 border-t border-[#c4a84f]/15 flex justify-between flex-wrap gap-2">
-        <p className="text-[15px] text-[#a08060] m-0">
+      <div className="max-w-[1280px] mx-auto mt-10 pt-5 px-6 border-t border-[#c4a84f]/15 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
+        <p className="text-[13px] md:text-[15px] text-[#a08060] m-0">
           © 2026 Noritake Vietnam. All rights reserved.
         </p>
-        <p className="text-[15px] text-[#a08060] m-0">
+        <p className="text-[13px] md:text-[15px] text-[#a08060] m-0">
           Thương hiệu sứ cao cấp số 1 Nhật Bản
         </p>
       </div>
 
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className={`fixed bottom-28 right-[33px] w-[46px] h-[46px] rounded-full bg-[#c4a84f] text-white border-none cursor-pointer items-center justify-center text-xl shadow-lg z-[99] transition-all duration-300 hover:bg-[#a8893a] 
-                    ${showScrollTop ? "flex opacity-100" : "hidden opacity-0"}`}
-      >
-        ↑
-      </button>
+      <div className="fixed bottom-24 right-6 md:bottom-28 md:right-[33px] z-[99]">
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className={`w-[40px] h-[40px] md:w-[46px] md:h-[46px] rounded-full bg-[#c4a84f] text-white border-none cursor-pointer items-center justify-center text-xl shadow-lg transition-all duration-300 hover:bg-[#a8893a] 
+                      ${showScrollTop ? "flex opacity-100" : "hidden opacity-0"}`}
+        >
+          ↑
+        </button>
+      </div>
     </footer>
   );
 }
