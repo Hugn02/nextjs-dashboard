@@ -4,6 +4,12 @@ import UserModal from "../features/auth/components/UserModal";
 import CartModal from "../features/cart/components/CartModal";
 import SearchModal from "../features/search/components/SearchModal";
 
+type Category = {
+  _id: string;
+  name: string;
+  slug: string;
+};
+
 type SubMenuItem = {
   label: string;
   href?: string;
@@ -15,7 +21,7 @@ type MenuItem = {
   children?: SubMenuItem[];
 };
 
-const menuItems: MenuItem[] = [
+const initialMenuItems: MenuItem[] = [
   {
     label: "Bộ sưu tập",
     children: [
@@ -30,12 +36,7 @@ const menuItems: MenuItem[] = [
   },
   {
     label: "Loại sản phẩm",
-    children: [
-      { label: "Bộ bát đĩa", href: "#" },
-      { label: "Bộ ấm trà", href: "#" },
-      { label: "Cốc / Ly sứ", href: "#" },
-      { label: "Bình hoa", href: "#" },
-    ],
+    children: [], // Sẽ được điền dữ liệu từ API
   },
   {
     label: "Chức năng",
@@ -71,9 +72,51 @@ export default function Navbar() {
     "search" | "user" | "cart" | null
   >(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const response = await res.json();
+
+        // API có thể trả về: [...], { data: [...] }, hoặc { data: { categories: [...] } }
+        // Đoạn code này sẽ kiểm tra và lấy đúng mảng categories
+        const categories: Category[] = Array.isArray(response) ? response : (response.data?.categories || response.data);
+
+        if (!Array.isArray(categories)) {
+          throw new Error("Dữ liệu categories trả về không phải là một mảng.");
+        }
+
+        const categoryChildren: SubMenuItem[] = categories.map((cat) => ({
+          label: cat.name,
+          href: `/collections/${cat.slug}`
+        }));
+
+        setMenuItems(prevItems => {
+          const newItems = [...prevItems];
+          const productTypeIndex = newItems.findIndex(item => item.label === "Loại sản phẩm");
+          if (productTypeIndex !== -1) {
+            newItems[productTypeIndex].children = categoryChildren;
+          }
+          return newItems;
+        });
+
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error("Lỗi khi lấy danh mục sản phẩm:", error.message);
+        } else {
+          console.error("Lỗi không xác định khi lấy danh mục sản phẩm:", error);
+        }
+      }
+    };
+
+    fetchCategories();
+
     // Kiểm tra xem đã đăng nhập chưa để thay đổi trạng thái icon
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);

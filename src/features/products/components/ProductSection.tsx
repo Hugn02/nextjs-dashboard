@@ -1,19 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-interface Product {
-  id: string | number;
-  productName: string;
-  brandName: string;
-  newPrice: number;
-  oldPrice?: number;
-  imageUrl: string;
-}
-
-// const API_URL = "http://localhost:3002/products";
-// const API_URL = "https://project-nestjs-hawx.onrender.com/products";
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/products"}`;
+import { fetchProducts } from "../services/product.service";
+import { Product } from "../types/product.type";
 
 
 // Helper format tiền
@@ -23,16 +12,27 @@ const formatPrice = (amount: number) => {
 
 function ProductCard({ product }: { product: Product }) {
   const discount = product.oldPrice ? Math.round(((product.oldPrice - product.newPrice) / product.oldPrice) * 100) : null;
+  const [isHovered, setIsHovered] = useState(false);
+
+  const firstImage = product.imageUrl?.[0] || 'https://placehold.co/400x400/faf7f2/c4a84f?text=No+Image';
+  const secondImage = product.imageUrl?.[1];
 
   return (
-    <div className="group bg-white border border-[#ede0c4] rounded-[2px] overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(0,0,0,0.1)] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+    <div
+      className="group bg-white border border-[#ede0c4] rounded-[2px] overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(0,0,0,0.1)] shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div className="relative aspect-square overflow-hidden bg-[#faf7f2]">
         <img
-          src={product.imageUrl}
+          src={firstImage}
           alt={product.productName}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+          className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-[1.06] ${isHovered && secondImage ? 'opacity-0' : 'opacity-100'}`}
           loading="lazy"
         />
+        {secondImage && (
+          <img src={secondImage} alt={`${product.productName} - ảnh 2`} className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-[1.06] ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
+        )}
         {discount && discount > 0 && (
           <div className="absolute top-2.5 left-2.5 bg-[#c4a84f] text-white text-[11px] font-bold px-2 py-0.5 rounded-[2px]">
             -{discount}%
@@ -73,22 +73,23 @@ export default function ProductSection() {
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const loadProducts = async () => {
       try {
-        // Fetch thêm tham số để lấy đủ sản phẩm cho trang chủ nếu cần
-        const res = await fetch(`${API_URL}?limit=24`);
-        const result = await res.json();
-        if (result.statusCode === 200 && result.data) {
-          setProducts(result.data.products);
-          setTotalCount(result.data.totalCount);
-        }
+        // Sử dụng service dùng chung để gọi API
+        const { products, totalCount } = await fetchProducts({
+          category: 'bo-am-chen-uong-tra',
+          limit: 24,
+          status: 'active'
+        });
+        setProducts(products);
+        setTotalCount(totalCount);
       } catch (err) {
-        console.error("Lỗi khi lấy dữ liệu sản phẩm:", err);
+        console.error("Lỗi khi lấy dữ liệu sản phẩm trong ProductSection:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    loadProducts();
   }, []);
 
   // Hiệu ứng tự động chuyển trang (Auto-slide)
