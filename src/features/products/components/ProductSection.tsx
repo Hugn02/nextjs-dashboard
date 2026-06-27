@@ -77,7 +77,7 @@ export default function ProductSection() {
       try {
         // Sử dụng service dùng chung để gọi API
         const { products, totalCount } = await fetchProducts({
-          category: 'bo-am-chen-uong-tra',
+          slug: 'bo-am-chen-uong-tra',
           limit: 24,
           status: 'active'
         });

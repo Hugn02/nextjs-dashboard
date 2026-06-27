@@ -1,6 +1,7 @@
 import { Product } from "../types/product.type";
 
 export interface FetchProductsQuery {
+    slug?: string;
     category?: string;
     limit?: number;
     page?: number;
@@ -37,6 +38,10 @@ const mapProductData = (p: any): Product => ({
 
 export const fetchProducts = async (query: FetchProductsQuery): Promise<FetchProductsResponse> => {
     const params = new URLSearchParams();
+
+    // API backend có thể đang mong đợi 'category' để lọc theo slug của danh mục.
+    // Nếu có slug, chúng ta sẽ gửi nó dưới dạng tham số 'category'.
+    if (query.slug) params.append('slug', query.slug);
 
     if (query.category) params.append('category', query.category);
     if (query.limit) params.append('limit', String(query.limit));
