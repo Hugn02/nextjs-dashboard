@@ -77,7 +77,7 @@ export default function ProductSection() {
       try {
         // Sử dụng service dùng chung để gọi API
         const { products, totalCount } = await fetchProducts({
-          slug: 'bo-am-chen-uong-tra',
+          // slug: 'bo-am-chen-uong-tra',
           limit: 24,
           status: 'active'
         });
@@ -119,12 +119,12 @@ export default function ProductSection() {
             </h2>
             <div className="w-20 h-px bg-gradient-to-r from-[#c4a84f] to-transparent mt-3.5" />
           </div>
-          <a
+          {/* <a
             href="/collections/bo-am-chen-uong-tra"
             className="text-[12px] text-[#8b6914] no-underline tracking-[2px] uppercase border border-[#c4a84f] px-6 py-2.5 transition-all hover:bg-[#c4a84f] hover:text-white"
           >
             Xem tất cả →
-          </a>
+          </a> */}
         </div>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-5">
           {loading ? (
