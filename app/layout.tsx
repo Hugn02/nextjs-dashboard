@@ -5,8 +5,8 @@ import "./globals.css";
 import ChatWidget from "@/src/layout/ChatWidget";
 
 export const metadata: Metadata = {
-  title: "Noritake Vietnam — Sứ Cao Cấp Số 1 Nhật Bản",
-  description: "Website chính thức Noritake tại Việt Nam",
+  title: "Bát Tràng Vietnam — Sứ Cao Cấp Số 1 Việt Nam",
+  description: "Website chính thức Bát Tràng tại Việt Nam",
 };
 
 

@@ -1,0 +1,379 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { fetchProductBySlug, fetchRelatedProducts, fetchProducts } from "../services/product.service";
+import { Product } from "../types/product.type";
+import ProductCard from "./ProductCard";
+
+
+interface ProductDetailPageProps {
+    slug: string;
+}
+
+// ─── Helper: Format Price ───────────────────────────────────────────────────
+function formatPrice(n: number) {
+    return n.toLocaleString("vi-VN") + "₫";
+}
+
+// ─── Main Detail Page Component ──────────────────────────────────────────────
+export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
+    const [product, setProduct] = useState<Product | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const [quantity, setQuantity] = useState(1);
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
+    const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+    const [descExpanded, setDescExpanded] = useState(false);
+
+    // Fetch product details
+    useEffect(() => {
+        if (!slug) return;
+
+        const loadProductData = async () => {
+            try {
+                setLoading(true);
+                const fetchedProduct = await fetchProductBySlug(slug);
+                if (fetchedProduct) {
+                    setProduct(fetchedProduct);
+                    setError(null);
+
+                    // Fetch related products with fallback logic
+                    try {
+                        let related = await fetchRelatedProducts({
+                            brand: fetchedProduct.brandName,
+                            limit: 5
+                        });
+                        let filteredRelated = related.filter(item => item.id !== fetchedProduct.id);
+
+                        // Fallback 1: products in the same category
+                        if (filteredRelated.length === 0 && fetchedProduct.category) {
+                            related = await fetchRelatedProducts({
+                                category: fetchedProduct.category,
+                                limit: 5
+                            });
+                            filteredRelated = related.filter(item => item.id !== fetchedProduct.id);
+                        }
+
+                        // Fallback 2: general active products
+                        if (filteredRelated.length === 0) {
+                            const allActiveRes = await fetchProducts({
+                                limit: 5,
+                                status: "active"
+                            });
+                            filteredRelated = allActiveRes.products.filter(item => item.id !== fetchedProduct.id);
+                        }
+
+                        setRelatedProducts(filteredRelated.slice(0, 4));
+                    } catch (relatedErr) {
+                        console.error("Failed to fetch related products:", relatedErr);
+                    }
+                } else {
+                    setError("Không tìm thấy sản phẩm");
+                }
+            } catch (err: any) {
+                console.error("Error loading product:", err);
+                setError(err.message || "Đã xảy ra lỗi khi tải thông tin sản phẩm");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadProductData();
+        setQuantity(1);
+        setActiveImageIndex(0);
+    }, [slug]);
+
+    // Quantity handlers
+    const incrementQty = () => {
+        if (product && product.stock && quantity >= product.stock) return;
+        setQuantity(prev => prev + 1);
+    };
+
+    const decrementQty = () => {
+        if (quantity > 1) {
+            setQuantity(prev => prev - 1);
+        }
+    };
+
+    // Add to cart toast display
+    const handleAddToCart = () => {
+        if (!product) return;
+        setToastMessage(`Đã thêm ${quantity} sản phẩm vào giỏ hàng thành công!`);
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
+    if (loading) {
+        return (
+            <div className="mx-auto max-w-[1280px] px-6 pt-[140px] pb-20 min-h-[70vh] flex flex-col justify-center items-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#c4a84f]"></div>
+                <p className="mt-4 font-['Cormorant_Garamond',_serif] text-lg text-[#888]">Đang tải dữ liệu sản phẩm...</p>
+            </div>
+        );
+    }
+
+    if (error || !product) {
+        return (
+            <div className="mx-auto max-w-[1280px] px-6 pt-[140px] pb-20 min-h-[70vh] text-center">
+                <h2 className="font-['Cormorant_Garamond',_serif] text-2xl text-[#8b2500] mb-4">Lỗi xảy ra</h2>
+                <p className="text-gray-600 mb-6">{error || "Sản phẩm không tồn tại hoặc đã ngừng kinh doanh."}</p>
+                <Link href="/collections" className="inline-block bg-[#c4a84f] text-white px-6 py-2.5 rounded-[2px] uppercase text-xs tracking-wider no-underline transition-colors hover:bg-[#a8893a]">
+                    Quay lại danh sách sản phẩm
+                </Link>
+            </div>
+        );
+    }
+
+    // Determine current display image
+    const imagesList = product.images && product.images.length > 0 ? product.images : [
+        `https://placehold.co/600x600/faf7f2/c4a84f?text=${encodeURIComponent(product.name.slice(0, 15))}`
+    ];
+    const currentDisplayImage = imagesList[activeImageIndex] || imagesList[0];
+
+    return (
+        <>
+            <style jsx global>{`
+                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
+            `}</style>
+
+            {/* Toast Notification */}
+            {toastMessage && (
+                <div className="fixed top-24 right-6 z-[9999] bg-[#3d2b00] text-white py-3 px-6 rounded-[2px] border border-[#c4a84f] shadow-lg animate-fade-in flex items-center gap-3">
+                    <span className="text-[#c4a84f] font-bold">✓</span>
+                    <span className="font-['Cormorant_Garamond',_serif] text-[15px] tracking-wide">{toastMessage}</span>
+                </div>
+            )}
+
+            <main className="min-h-screen bg-white pb-20 pt-[120px]">
+                <div className="mx-auto max-w-[1280px] px-6">
+                    {/* Breadcrumbs */}
+                    <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-8 border-b border-[#f0e8d6] py-4 text-xs tracking-wider text-[#888]">
+                        <Link href="/" className="text-[#888] no-underline hover:text-[#c4a84f]">
+                            Trang chủ
+                        </Link>
+                        <span className="mx-2">›</span>
+                        <Link href="/collections" className="text-[#888] no-underline hover:text-[#c4a84f]">
+                            Các bộ sưu tập
+                        </Link>
+                        <span className="mx-2">›</span>
+                        <span className="text-[#888] uppercase">{product.brandName}</span>
+                        <span className="mx-2">›</span>
+                        <span className="text-[#2c1a00] font-medium">{product.name}</span>
+                    </nav>
+
+                    {/* Main Layout Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+
+                        {/* ── Left Side: Images Gallery (Vertical thumbnails + Big view) ── */}
+                        <div className="lg:col-span-7 flex flex-col md:flex-row gap-4">
+
+                            {/* Thumbnails stack on desktop (left of main), row on mobile (bottom or side) */}
+                            {imagesList.length > 1 && (
+                                <div className="order-2 md:order-1 flex md:flex-col gap-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 min-w-[80px]">
+                                    {imagesList.map((img, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setActiveImageIndex(idx)}
+                                            className={`relative aspect-square w-16 md:w-20 flex-shrink-0 cursor-pointer overflow-hidden bg-[#faf7f2] border transition-all duration-200 ${activeImageIndex === idx
+                                                ? "border-[#c4a84f] shadow-sm"
+                                                : "border-[#ede0c4] hover:border-[#c4a84f]"
+                                                }`}
+                                        >
+                                            <Image
+                                                src={img}
+                                                alt={`${product.name} thumbnail ${idx + 1}`}
+                                                fill
+                                                sizes="80px"
+                                                className="object-cover"
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Big preview image */}
+                            <div className="order-1 md:order-2 flex-1 relative aspect-[4/5] md:aspect-square w-full overflow-hidden bg-[#faf7f2] border border-[#ede0c4] rounded-[2px]">
+                                <Image
+                                    src={currentDisplayImage}
+                                    alt={product.name}
+                                    fill
+                                    priority
+                                    sizes="(max-width: 768px) 100vw, 55vw"
+                                    className="object-cover transition-transform duration-500 hover:scale-105"
+                                />
+                            </div>
+                        </div>
+
+                        {/* ── Right Side: Meta and Purchasing options ── */}
+                        <div className="lg:col-span-5 flex flex-col gap-6">
+                            <div>
+                                {/* Brand/Collection Name */}
+                                <p className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 mb-1.5 text-xs uppercase tracking-[2px] text-[#c4a84f]">
+                                    {product.brandName}
+                                </p>
+
+                                {/* Product Title */}
+                                <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 text-xl lg:text-2xl font-semibold leading-snug text-[#2c1a00]">
+                                    {product.name}
+                                </h1>
+
+                                {/* SKU Code */}
+                                {product.sku && (
+                                    <p className="m-0 mt-2 text-[11px] text-[#888] font-mono tracking-wider uppercase">
+                                        Mã SP: {product.sku}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Pricing */}
+                            <div className="flex flex-wrap items-baseline gap-3 border-b border-[#f0e8d6] pb-4">
+                                {product.isContact ? (
+                                    <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-2xl font-bold text-[#8b6914]">
+                                        Liên hệ đặt hàng
+                                    </span>
+                                ) : (
+                                    <>
+                                        <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-2xl lg:text-3xl font-bold text-[#8b2500]">
+                                            {formatPrice(product.price)}
+                                        </span>
+                                        {product.originalPrice && (
+                                            <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-sm text-[#aaa] line-through">
+                                                {formatPrice(product.originalPrice)}
+                                            </span>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Availability status */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs uppercase text-[#888] tracking-widest font-['Cormorant_Garamond',_serif]">Tình trạng:</span>
+                                <span className={`text-[13px] font-semibold ${product.inStock ? "text-[#c4a84f]" : "text-red-500"}`}>
+                                    {product.inStock ? "Còn hàng" : "Hết hàng"}
+                                </span>
+                            </div>
+
+                            {/* Quantity and Cart Button */}
+                            {!product.isContact && product.inStock && (
+                                <div className="flex flex-col sm:flex-row gap-4 items-stretch mt-2">
+                                    {/* Quantity selector */}
+                                    <div className="flex items-center justify-between border border-[#ede0c4] rounded-[2px] bg-white h-[46px] w-full sm:w-[130px] px-3">
+                                        <button
+                                            onClick={decrementQty}
+                                            className="bg-transparent border-none text-[#3d2b00] text-lg font-light cursor-pointer select-none px-2 h-full flex items-center justify-center hover:text-[#c4a84f]"
+                                        >
+                                            -
+                                        </button>
+                                        <span className="font-['Cormorant_Garamond',_serif] text-base font-semibold text-[#3d2b00] select-none">
+                                            {quantity}
+                                        </span>
+                                        <button
+                                            onClick={incrementQty}
+                                            className="bg-transparent border-none text-[#3d2b00] text-lg font-light cursor-pointer select-none px-2 h-full flex items-center justify-center hover:text-[#c4a84f]"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+
+                                    {/* Action button */}
+                                    <button
+                                        onClick={handleAddToCart}
+                                        className="flex-1 cursor-pointer rounded-[2px] border-none bg-[#c4a84f] text-white py-3 text-[12px] font-bold uppercase tracking-[2px] transition-colors duration-200 hover:bg-[#a8893a] font-['Cormorant_Garamond',_serif]"
+                                    >
+                                        Thêm vào giỏ hàng
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Contact Purchase option */}
+                            {(product.isContact || !product.inStock) && (
+                                <button
+                                    className="w-full cursor-pointer rounded-[2px] border border-[#c4a84f] bg-white py-3.5 text-[12px] font-bold uppercase tracking-[2px] text-[#8b6914] transition-all duration-200 hover:bg-[#c4a84f] hover:text-white font-['Cormorant_Garamond',_serif]"
+                                >
+                                    Liên hệ đặt hàng
+                                </button>
+                            )}
+
+                            {/* Basic description */}
+                            {(product.shortDescription || product.description) && (
+                                <div className="border-t border-[#f0e8d6] pt-6 flex flex-col gap-3">
+                                    <h3 className="m-0 text-xs font-bold uppercase tracking-widest text-[#3d2b00] font-['Cormorant_Garamond',_serif]">
+                                        Thông tin cơ bản
+                                    </h3>
+                                    <div className="font-['Cormorant_Garamond',_serif] text-[#555] text-[14px] leading-relaxed flex flex-col gap-2.5">
+                                        {product.shortDescription && (
+                                            <p className="m-0 font-medium text-[#2c1a00]">{product.shortDescription}</p>
+                                        )}
+                                        {product.description && (
+                                            <div className="relative">
+                                                <p className={`m-0 text-justify ${!descExpanded ? "line-clamp-4" : ""}`}>
+                                                    {product.description}
+                                                </p>
+                                                {product.description.length > 200 && (
+                                                    <button
+                                                        onClick={() => setDescExpanded(!descExpanded)}
+                                                        className="mt-1 bg-none border-none text-[#c4a84f] font-semibold text-xs cursor-pointer hover:underline p-0"
+                                                    >
+                                                        {descExpanded ? "Thu gọn..." : "Xem thêm..."}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Specifications dynamic table */}
+                            {product.specifications && product.specifications.length > 0 && (
+                                <div className="border-t border-[#f0e8d6] pt-6 flex flex-col gap-3">
+                                    <h3 className="m-0 text-xs font-bold uppercase tracking-widest text-[#3d2b00] font-['Cormorant_Garamond',_serif]">
+                                        Thông tin chi tiết
+                                    </h3>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse mt-2 text-[13px] font-['Cormorant_Garamond',_serif]">
+                                            <tbody>
+                                                <tr className="border-b border-[#f0e8d6]">
+                                                    <td className="py-2.5 font-semibold text-[#3d2b00] w-1/3">Thương hiệu</td>
+                                                    <td className="py-2.5 text-[#555]">{product.brandName}</td>
+                                                </tr>
+                                                {product.sku && (
+                                                    <tr className="border-b border-[#f0e8d6]">
+                                                        <td className="py-2.5 font-semibold text-[#3d2b00]">Mã sản phẩm</td>
+                                                        <td className="py-2.5 text-[#555] font-mono">{product.sku}</td>
+                                                    </tr>
+                                                )}
+                                                {product.specifications.map((spec, index) => (
+                                                    <tr key={index} className="border-b border-[#f0e8d6]">
+                                                        <td className="py-2.5 font-semibold text-[#3d2b00]">{spec.label}</td>
+                                                        <td className="py-2.5 text-[#555]">{spec.value}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ── Bottom Section: Cùng bộ sưu tập (Related Products) ── */}
+                    {relatedProducts.length > 0 && (
+                        <div className="mt-20 border-t border-[#f0e8d6] pt-14">
+                            <h2 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 mb-8 text-center font-light uppercase tracking-[3px] text-[#2c1a00]" style={{ fontSize: "clamp(20px, 2.5vw, 26px)" }}>
+                                CÙNG BỘ SƯU TẬP
+                            </h2>
+
+                            <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">
+                                {relatedProducts.map((p) => (
+                                    <ProductCard key={p.id} product={p} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </>
+    );
+}

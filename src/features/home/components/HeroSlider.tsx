@@ -6,7 +6,7 @@ const HERO_SLIDES = [
   {
     id: 1,
     image:
-      "https://theme.hstatic.net/200000296482/1001063914/14/slideshow_2.jpg?v=5943",
+      "https://theme.hstatic.net/200000296482/1001063914/14/slideshow_2.jpg?v=6038",
     href: "https://noritake.vn/collections/summer-living-sale-of-12",
     alt: "Summer Living Sale",
   },

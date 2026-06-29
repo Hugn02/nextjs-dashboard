@@ -51,7 +51,7 @@ export default function ArtOfWhite() {
           <div className="relative w-full max-w-[560px] aspect-video rounded-[2px] shadow-[12px_18px_35px_rgba(0,0,0,0.5)]">
             <iframe
               className="w-full h-full rounded-[2px]"
-              src="https://www.youtube.com/embed/R-EeXOLH8RM?si=oCgG0AoTLk78W2C2"
+              src="https://www.youtube.com/embed/zznr9ZZWQ48?si=A3HzC7FyA0MzOo2n"
               title="YouTube video player"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

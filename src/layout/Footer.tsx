@@ -18,13 +18,13 @@ export default function Footer() {
       <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr] gap-x-5 gap-y-10">
         <div className="flex flex-col items-start text-left">
           <img
-            src="https://file.hstatic.net/200000296482/file/logo_1c90af075f3541399f3f74a35237f63c.png"
-            alt="Noritake"
+            src="/assets/logo.png"
+            alt="Bát Tràng"
             className="h-8 md:h-10 mb-4"
           />
           <p className="text-[11px] md:text-[13px] leading-[1.6] md:leading-[1.8] text-[#a08060] mb-4">
-            Website chính thức của Noritake tại Việt Nam — Thương hiệu sứ cao
-            cấp danh tiếng số 1 Nhật Bản.
+            Website chính thức của Bát Tràng tại Việt Nam — Thương hiệu sứ cao
+            cấp danh tiếng số 1 Việt Nam.
           </p>
           <div className="flex gap-3 mt-2 md:mt-5">
             {[
@@ -85,7 +85,7 @@ export default function Footer() {
             title: "Liên hệ",
             links: [
               "📞 0901 234 567",
-              "✉️ info@noritake.vn",
+              "✉️ info@battrang.vn",
               "📍 TP. Hồ Chí Minh",
               "📍 Hà Nội",
             ],
@@ -113,10 +113,10 @@ export default function Footer() {
 
       <div className="max-w-[1280px] mx-auto mt-10 pt-5 px-6 border-t border-[#c4a84f]/15 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
         <p className="text-[13px] md:text-[15px] text-[#a08060] m-0">
-          © 2026 Noritake Vietnam. All rights reserved.
+          © 2026 Bát Tràng Vietnam. All rights reserved.
         </p>
         <p className="text-[13px] md:text-[15px] text-[#a08060] m-0">
-          Thương hiệu sứ cao cấp số 1 Nhật Bản
+          Thương hiệu sứ cao cấp số 1 Việt Nam
         </p>
       </div>
 

@@ -137,7 +137,7 @@ export default function Navbar() {
             ${scrolled ? "bg-white shadow-lg" : "bg-white/92 shadow-none"}`}
       >
         <div className="bg-gradient-to-r from-[#8b6914] via-[#c4a84f] to-[#8b6914] text-white text-center text-[10px] md:text-[12px] tracking-[1px] md:tracking-[2px] py-1.5 font-['Cormorant_Garamond',_serif] px-4">
-          ✦ NORITAKE VIETNAM — THƯƠNG HIỆU SỐ 1 NHẬT BẢN ✦
+          ✦ NGHỆ NHÂN BÁT TRÀNG VIETNAM — THƯƠNG HIỆU SỐ 1 VIỆT NAM ✦
         </div>
 
         <nav className="max-w-[1600px] mx-auto px-4 md:px-8 flex lg:grid lg:grid-cols-[220px_1fr_140px] items-center justify-between gap-4 md:gap-8 h-[60px] md:h-[88px]">
@@ -154,8 +154,8 @@ export default function Navbar() {
             className="flex items-center justify-center lg:justify-start no-underline lg:w-[220px] shrink-0"
           >
             <img
-              src="https://file.hstatic.net/200000296482/file/logo_1c90af075f3541399f3f74a35237f63c.png"
-              alt="Noritake Vietnam"
+              src="/assets/logo.png"
+              alt="Bát Tràng"
               className="h-[36px] md:h-[54px] w-auto object-contain"
             />
           </a>
@@ -275,7 +275,7 @@ export default function Navbar() {
             </div>
           ))}
           <div className="py-12 text-center text-[10px] tracking-[3px] text-[#c4a84f] font-bold uppercase opacity-50">
-            ✦ Noritake Vietnam ✦
+            ✦ Bát Tràng Vietnam ✦
           </div>
         </div>
       </div>

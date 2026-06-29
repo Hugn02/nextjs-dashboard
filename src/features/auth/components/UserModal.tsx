@@ -262,7 +262,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
           />
 
           <p className="text-[12px] text-[#888] mb-5 leading-[1.6] font-sans italic">
-            Bằng việc tạo tài khoản, bạn đồng ý với các chính sách bảo mật của Noritake Vietnam.
+            Bằng việc tạo tài khoản, bạn đồng ý với các chính sách bảo mật của Bát Tràng Vietnam.
           </p>
 
           <button

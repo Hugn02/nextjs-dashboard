@@ -17,7 +17,7 @@ export default function ChatWidget() {
     {
       id: "welcome",
       sender: "bot",
-      text: "Kính chào Quý khách! 🌸 Tôi là Trợ lý ảo Noritake Vietnam. Tôi có thể giúp Quý khách tìm kiếm các bộ ấm chén, bát đĩa sứ xương cao cấp Nhật Bản hoặc giải đáp các thắc mắc về chính sách. Quý khách cần hỗ trợ thông tin gì hôm nay ạ?",
+      text: "Kính chào Quý khách! 🌸 Tôi là Trợ lý ảo Bát Tràng Vietnam. Tôi có thể giúp Quý khách tìm kiếm các bộ ấm chén, bát đĩa sứ xương cao cấp Nhật Bản hoặc giải đáp các thắc mắc về chính sách. Quý khách cần hỗ trợ thông tin gì hôm nay ạ?",
       timestamp: new Date(),
     },
   ]);
@@ -114,7 +114,7 @@ export default function ChatWidget() {
     { label: "Ấm trà bán chạy ☕", value: "Cho tôi xem các bộ ấm trà bán chạy nhất" },
     { label: "Sứ xương là gì? 🦴", value: "Sứ xương là gì và tại sao nó lại đắt?" },
     { label: "Quà tặng dưới 2 triệu 🎁", value: "Tìm sản phẩm làm quà tặng dưới 2 triệu đồng" },
-    { label: "Chính sách đổi trả 🔄", value: "Chính sách đổi trả hàng của Noritake như thế nào?" },
+    { label: "Chính sách đổi trả 🔄", value: "Chính sách đổi trả hàng của Bát Tràng như thế nào?" },
   ];
 
   return (
@@ -163,7 +163,7 @@ export default function ChatWidget() {
 
               <div>
                 <h3 className="text-xs md:text-sm font-semibold tracking-wider uppercase text-[#c4a84f]">
-                  Noritake Assistant
+                  Bát Tràng Assistant
                 </h3>
                 <p className="text-[11px] text-[#faf7f2]/70 font-sans tracking-wide">
                   Đang hoạt động • Trợ lý ảo cao cấp
@@ -261,7 +261,7 @@ export default function ChatWidget() {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyDown={handleKeyPress}
-              placeholder="Hỏi Noritake Assistant..."
+              placeholder="Hỏi Bát Tràng Assistant..."
               className="flex-1 px-4 py-2.5 bg-[#faf7f2] border border-[#b49664]/20 rounded-full text-sm font-sans focus:outline-none focus:border-[#c4a84f] focus:bg-white text-[#2c1a00] placeholder-gray-400 transition-all duration-200"
             />
 

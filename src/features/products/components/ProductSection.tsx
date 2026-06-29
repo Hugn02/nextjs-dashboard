@@ -1,68 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { fetchProducts } from "../services/product.service";
 import { Product } from "../types/product.type";
-
+import ProductCard from "../pages/ProductCard"; // Import ProductCard chung
 
 // Helper format tiền
 const formatPrice = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
-
-function ProductCard({ product }: { product: Product }) {
-  const discount = product.oldPrice ? Math.round(((product.oldPrice - product.newPrice) / product.oldPrice) * 100) : null;
-  const [isHovered, setIsHovered] = useState(false);
-
-  const firstImage = product.imageUrl?.[0] || 'https://placehold.co/400x400/faf7f2/c4a84f?text=No+Image';
-  const secondImage = product.imageUrl?.[1];
-
-  return (
-    <div
-      className="group bg-white border border-[#ede0c4] rounded-[2px] overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(0,0,0,0.1)] shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="relative aspect-square overflow-hidden bg-[#faf7f2]">
-        <img
-          src={firstImage}
-          alt={product.productName}
-          className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-[1.06] ${isHovered && secondImage ? 'opacity-0' : 'opacity-100'}`}
-          loading="lazy"
-        />
-        {secondImage && (
-          <img src={secondImage} alt={`${product.productName} - ảnh 2`} className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-[1.06] ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
-        )}
-        {discount && discount > 0 && (
-          <div className="absolute top-2.5 left-2.5 bg-[#c4a84f] text-white text-[11px] font-bold px-2 py-0.5 rounded-[2px]">
-            -{discount}%
-          </div>
-        )}
-        <div className="absolute bottom-0 left-0 right-0 bg-[#2c1a00]/88 text-white text-center p-3 text-xs uppercase opacity-0 translate-y-full transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
-          Xem chi tiết →
-        </div>
-      </div>
-      <div className="p-4">
-        <p className="text-[10px] text-[#c4a84f] tracking-[1.5px] uppercase mb-1.5">
-          {product.brandName}
-        </p>
-        <h3 className="text-[13px] text-[#2c1a00] font-semibold leading-[1.5] mb-3 line-clamp-2">
-          {product.productName}
-        </h3>
-        <div className="flex items-center gap-2 whitespace-nowrap overflow-hidden">
-          <span className="text-base font-bold text-[#8b2500]">
-            {formatPrice(product.newPrice)}
-          </span>
-          {product.oldPrice && (
-            <span className="text-[12px] text-[#aaa] line-through">
-              {formatPrice(product.oldPrice)}
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ProductSection() {
   const [products, setProducts] = useState<Product[]>([]);

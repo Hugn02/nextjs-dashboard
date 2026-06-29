@@ -15,4 +15,12 @@ export interface Product {
     isContact?: boolean;
     badge?: string;
     inStock: boolean;
+    sku?: string;
+    description?: string;
+    shortDescription?: string;
+    stock?: number;
+    status?: string;
+    isFeatured?: boolean;
+    category?: string;
+    specifications?: { label: string; value: string }[];
 }

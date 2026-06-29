@@ -34,6 +34,14 @@ const mapProductData = (p: any): Product => ({
     isContact: p.stock === 0,
     badge: p.oldPrice && p.newPrice < p.oldPrice ? `-${Math.round(((p.oldPrice - p.newPrice) / p.oldPrice) * 100)}%` : (p.stock === 0 ? 'Hết hàng' : undefined),
     inStock: p.stock > 0,
+    sku: p.sku || '',
+    description: p.description || '',
+    shortDescription: p.shortDescription || '',
+    stock: p.stock ?? 0,
+    status: p.status || 'active',
+    isFeatured: !!p.isFeatured,
+    category: p.category || '',
+    specifications: Array.isArray(p.specifications) ? p.specifications : [],
 });
 
 export const fetchProducts = async (query: FetchProductsQuery): Promise<FetchProductsResponse> => {
@@ -66,4 +74,45 @@ export const fetchProducts = async (query: FetchProductsQuery): Promise<FetchPro
     const formattedProducts: Product[] = rawProducts.map(mapProductData);
 
     return { products: formattedProducts, totalCount };
+};
+
+export const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
+    const params = new URLSearchParams();
+    params.append('slug', slug);
+    const url = `${API_URL}?${params.toString()}`;
+    console.log("Fetching product by slug from:", url);
+
+    const res = await fetch(url);
+    if (!res.ok) {
+        throw new Error(`Failed to fetch product by slug: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    const rawProducts = Array.isArray(data) ? data : data.data?.products || data.data || [];
+    
+    const product = rawProducts.find((p: any) => p.slug === slug);
+    if (!product && rawProducts.length > 0) {
+        return mapProductData(rawProducts[0]);
+    }
+    return product ? mapProductData(product) : null;
+};
+
+export const fetchRelatedProducts = async (query: { category?: string; brand?: string; limit?: number }): Promise<Product[]> => {
+    const params = new URLSearchParams();
+    if (query.category) params.append('category', query.category);
+    if (query.brand) params.append('brand', query.brand);
+    if (query.limit) params.append('limit', String(query.limit));
+    params.append('status', 'active');
+
+    const url = `${API_URL}?${params.toString()}`;
+    console.log("Fetching related products from:", url);
+
+    const res = await fetch(url);
+    if (!res.ok) {
+        throw new Error(`Failed to fetch related products: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    const rawProducts = Array.isArray(data) ? data : data.data?.products || data.data || [];
+    return rawProducts.map(mapProductData);
 };
