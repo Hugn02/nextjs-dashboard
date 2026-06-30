@@ -29,6 +29,10 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     const [quantityError, setQuantityError] = useState<string | null>(null);
     const [descExpanded, setDescExpanded] = useState(false);
 
+    const [isDragging, setIsDragging] = useState(false);
+    const [startY, setStartY] = useState(0);
+    const [dragOffset, setDragOffset] = useState(0);
+    const [useTransition, setUseTransition] = useState(true);
     // Fetch product details
     useEffect(() => {
         if (!slug) return;
@@ -114,6 +118,101 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
         setTimeout(() => setToastMessage(null), 3000);
     };
 
+    // ─── Image Drag/Swipe Handlers ──────────────────────────────────────────────
+    const DRAG_THRESHOLD = 50; // pixels
+
+    const resetDragState = () => {
+        setIsDragging(false);
+        setDragOffset(0);
+        setStartY(0);
+    };
+
+    const showNextImage = () => {
+        if (!product || imagesList.length <= 1) return;
+        setUseTransition(true);
+        const isAtEnd = activeImageIndex === imagesList.length - 1;
+        if (isAtEnd) {
+            // Animate to a "fake" next slide
+            setActiveImageIndex(prev => prev + 1);
+            // After transition, silently jump back to the real first slide
+            setTimeout(() => {
+                setUseTransition(false); // Disable transition for the jump
+                setActiveImageIndex(0); // Jump to the real first slide
+                // Re-enable transition for future interactions
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => setUseTransition(true));
+                });
+            }, 300); // Must match CSS transition duration
+        } else {
+            setActiveImageIndex(prev => prev + 1);
+        }
+    };
+
+    const showPrevImage = () => {
+        if (!product || imagesList.length <= 1) return;
+        setUseTransition(true);
+        const isAtStart = activeImageIndex === 0;
+        if (isAtStart) {
+            // Animate to a "fake" previous slide
+            setActiveImageIndex(prev => prev - 1);
+            // After transition, silently jump back to the real last slide
+            setTimeout(() => {
+                setUseTransition(false); // Disable transition for the jump
+                setActiveImageIndex(imagesList.length - 1); // Jump to the real last slide
+                // Re-enable transition for future interactions
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => setUseTransition(true));
+                });
+            }, 300); // Must match CSS transition duration
+        } else {
+            setActiveImageIndex(prev => prev - 1);
+        }
+    };
+
+    const handleDragStart = (y: number) => {
+        if (imagesList.length <= 1) return;
+        setUseTransition(true); // Ensure transition is on for snapping back
+        setIsDragging(true);
+        setStartY(y);
+    };
+
+    const handleDragMove = (y: number) => {
+        if (!isDragging) return;
+        const deltaY = y - startY;
+        setDragOffset(deltaY);
+    };
+
+    const handleDragEnd = (y: number) => {
+        if (!isDragging) return;
+        const deltaY = y - startY;
+
+        if (deltaY > DRAG_THRESHOLD) {
+            showPrevImage();
+        } else if (deltaY < -DRAG_THRESHOLD) {
+            showNextImage();
+        }
+        resetDragState();
+    };
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        handleDragStart(e.pageY);
+    };
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (isDragging) handleDragMove(e.pageY);
+    };
+    const handleMouseUp = (e: React.MouseEvent) => {
+        if (isDragging) handleDragEnd(e.pageY);
+    };
+    const handleTouchStart = (e: React.TouchEvent) => {
+        handleDragStart(e.touches[0].pageY);
+    };
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        handleDragEnd(e.changedTouches[0].pageY);
+    };
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (isDragging) handleDragMove(e.touches[0].pageY);
+    };
+
     if (loading) {
         return (
             <div className="mx-auto max-w-[1280px] px-6 pt-[140px] pb-20 min-h-[70vh] flex flex-col justify-center items-center">
@@ -139,7 +238,6 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     const imagesList = product.images && product.images.length > 0 ? product.images : [
         `https://placehold.co/600x600/faf7f2/c4a84f?text=${encodeURIComponent(product.name.slice(0, 15))}`
     ];
-    const currentDisplayImage = imagesList[activeImageIndex] || imagesList[0];
 
     return (
         <>
@@ -203,15 +301,60 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                             )}
 
                             {/* Big preview image */}
-                            <div className="order-1 md:order-2 flex-1 relative aspect-[4/5] md:aspect-square w-full overflow-hidden bg-[#faf7f2] border border-[#ede0c4] rounded-[2px]">
-                                <Image
-                                    src={currentDisplayImage}
-                                    alt={product.name}
-                                    fill
-                                    priority
-                                    sizes="(max-width: 768px) 100vw, 55vw"
-                                    className="object-cover transition-transform duration-500 hover:scale-105"
-                                />
+                            <div
+                                className={`order-1 md:order-2 flex-1 relative aspect-[4/5] md:aspect-square w-full overflow-hidden bg-[#faf7f2] border border-[#ede0c4] rounded-[2px] touch-none
+                                    ${imagesList.length > 1 ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
+                                onMouseDown={handleMouseDown}
+                                onMouseMove={handleMouseMove}
+                                onMouseUp={handleMouseUp}
+                                onMouseLeave={handleMouseUp} // End drag if mouse leaves
+                                onTouchStart={handleTouchStart}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={handleTouchEnd}
+                            >
+                                <div
+                                    className={`h-full w-full ${useTransition && !isDragging ? 'transition-transform duration-300 ease-out' : ''}`}
+                                    style={{
+                                        transform: `translateY(${-activeImageIndex * 100}%) translateY(${dragOffset}px)`,
+                                    }}
+                                >
+                                    {/* Render all images in a single column */}
+                                    {imagesList.map((img, idx) => (
+                                        <div key={img + idx} className="absolute inset-0 h-full w-full" style={{ transform: `translateY(${idx * 100}%)` }}>
+                                            <Image
+                                                src={img}
+                                                alt={`${product.name} - ảnh ${idx + 1}`}
+                                                fill
+                                                priority={idx === 0} // Prioritize first image
+                                                sizes="(max-width: 768px) 100vw, 55vw"
+                                                className="object-cover pointer-events-none"
+                                            />
+                                        </div>
+                                    ))}
+                                    {/* Add clones for seamless looping */}
+                                    {imagesList.length > 1 && (
+                                        <Image
+                                            src={imagesList[0]}
+                                            alt={`${product.name} - ảnh lặp`}
+                                            fill
+                                            priority={false}
+                                            sizes="(max-width: 768px) 100vw, 55vw"
+                                            className="absolute object-cover pointer-events-none"
+                                            style={{ top: `${imagesList.length * 100}%`, left: 0 }}
+                                        />
+                                    )}
+                                    {imagesList.length > 1 && (
+                                        <Image
+                                            src={imagesList[imagesList.length - 1]}
+                                            alt={`${product.name} - ảnh lặp`}
+                                            fill
+                                            priority={false}
+                                            sizes="(max-width: 768px) 100vw, 55vw"
+                                            className="absolute object-cover pointer-events-none"
+                                            style={{ top: `-100%`, left: 0 }}
+                                        />
+                                    )}
+                                </div>
                             </div>
                         </div>
 
