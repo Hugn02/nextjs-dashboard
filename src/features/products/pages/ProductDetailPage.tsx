@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { fetchProductBySlug, fetchRelatedProducts, fetchProducts } from "../services/product.service";
 import { Product } from "../types/product.type";
-import ProductCard from "./ProductCard";
+import ProductCard from "../components/ProductCard";
 
 
 interface ProductDetailPageProps {

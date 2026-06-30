@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { fetchProducts } from "../services/product.service";
 import { Product } from "../types/product.type";
-import ProductCard from "../pages/ProductCard"; // Import ProductCard chung
+import ProductCard from "./ProductCard"; // Import ProductCard chung
 
 // Helper format tiền
 const formatPrice = (amount: number) => {
