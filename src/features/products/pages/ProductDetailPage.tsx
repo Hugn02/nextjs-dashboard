@@ -333,19 +333,9 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                     </h3>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse mt-2 text-[13px] font-['Cormorant_Garamond',_serif]">
-                                            <tbody>
-                                                <tr className="border-b border-[#f0e8d6]">
-                                                    <td className="py-2.5 font-semibold text-[#3d2b00] w-1/3">Thương hiệu</td>
-                                                    <td className="py-2.5 text-[#555]">{product.brandName}</td>
-                                                </tr>
-                                                {product.sku && (
-                                                    <tr className="border-b border-[#f0e8d6]">
-                                                        <td className="py-2.5 font-semibold text-[#3d2b00]">Mã sản phẩm</td>
-                                                        <td className="py-2.5 text-[#555] font-mono">{product.sku}</td>
-                                                    </tr>
-                                                )}
+                                            <tbody className="divide-y divide-[#f0e8d6]">
                                                 {product.specifications.map((spec, index) => (
-                                                    <tr key={index} className="border-b border-[#f0e8d6]">
+                                                    <tr key={index}>
                                                         <td className="py-2.5 font-semibold text-[#3d2b00]">{spec.label}</td>
                                                         <td className="py-2.5 text-[#555]">{spec.value}</td>
                                                     </tr>
