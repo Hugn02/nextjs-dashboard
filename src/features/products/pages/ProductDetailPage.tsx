@@ -26,6 +26,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     const [quantity, setQuantity] = useState(1);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+    const [quantityError, setQuantityError] = useState<string | null>(null);
     const [descExpanded, setDescExpanded] = useState(false);
 
     // Fetch product details
@@ -83,16 +84,24 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
 
         loadProductData();
         setQuantity(1);
+        setQuantityError(null);
         setActiveImageIndex(0);
     }, [slug]);
 
     // Quantity handlers
     const incrementQty = () => {
-        if (product && product.stock && quantity >= product.stock) return;
+        if (product && product.stock) {
+            if (quantity >= product.stock) {
+                setQuantityError(`Số lượng tồn kho chỉ còn ${product.stock} sản phẩm.`);
+                return;
+            }
+        }
+        setQuantityError(null);
         setQuantity(prev => prev + 1);
     };
 
     const decrementQty = () => {
+        setQuantityError(null);
         if (quantity > 1) {
             setQuantity(prev => prev - 1);
         }
@@ -257,33 +266,41 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
 
                             {/* Quantity and Cart Button */}
                             {!product.isContact && product.inStock && (
-                                <div className="flex flex-col sm:flex-row gap-4 items-stretch mt-2">
-                                    {/* Quantity selector */}
-                                    <div className="flex items-center justify-between border border-[#ede0c4] rounded-[2px] bg-white h-[46px] w-full sm:w-[130px] px-3">
+                                <div className={`relative mt-2 ${quantityError ? 'pb-5' : ''}`}>
+                                    <div className="flex flex-col sm:flex-row gap-4 items-stretch">
+                                        {/* Quantity selector */}
+                                        <div className={`flex items-center justify-between border rounded-[2px] bg-white h-[46px] w-full sm:w-[130px] px-3 ${quantityError ? 'border-red-500' : 'border-[#ede0c4]'}`}>
+                                            <button
+                                                onClick={decrementQty}
+                                                className="bg-transparent border-none text-[#3d2b00] text-lg font-light cursor-pointer select-none px-2 h-full flex items-center justify-center hover:text-[#c4a84f]"
+                                            >
+                                                -
+                                            </button>
+                                            <span className="font-['Cormorant_Garamond',_serif] text-base font-semibold text-[#3d2b00] select-none">
+                                                {quantity}
+                                            </span>
+                                            <button
+                                                onClick={incrementQty}
+                                                className="bg-transparent border-none text-[#3d2b00] text-lg font-light cursor-pointer select-none px-2 h-full flex items-center justify-center hover:text-[#c4a84f]"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+
+                                        {/* Action button */}
                                         <button
-                                            onClick={decrementQty}
-                                            className="bg-transparent border-none text-[#3d2b00] text-lg font-light cursor-pointer select-none px-2 h-full flex items-center justify-center hover:text-[#c4a84f]"
+                                            onClick={handleAddToCart}
+                                            className="group relative flex-1 cursor-pointer overflow-hidden rounded-[30px] border border-[#d29f13] bg-[#d29f13] py-[15px] px-[25px] text-[13px] font-semibold uppercase tracking-[1px] transition-colors duration-300 ease-out"
                                         >
-                                            -
-                                        </button>
-                                        <span className="font-['Cormorant_Garamond',_serif] text-base font-semibold text-[#3d2b00] select-none">
-                                            {quantity}
-                                        </span>
-                                        <button
-                                            onClick={incrementQty}
-                                            className="bg-transparent border-none text-[#3d2b00] text-lg font-light cursor-pointer select-none px-2 h-full flex items-center justify-center hover:text-[#c4a84f]"
-                                        >
-                                            +
+                                            <span className="absolute top-0 left-1/2 h-full w-0 -translate-x-1/2 bg-white transition-all duration-300 ease-out group-hover:w-[105%]"></span>
+                                            <span className="relative text-white transition-colors duration-300 ease-out group-hover:text-[#d29f13]">Thêm vào giỏ hàng</span>
                                         </button>
                                     </div>
-
-                                    {/* Action button */}
-                                    <button
-                                        onClick={handleAddToCart}
-                                        className="flex-1 cursor-pointer rounded-[2px] border-none bg-[#c4a84f] text-white py-3 text-[12px] font-bold uppercase tracking-[2px] transition-colors duration-200 hover:bg-[#a8893a] font-['Cormorant_Garamond',_serif]"
-                                    >
-                                        Thêm vào giỏ hàng
-                                    </button>
+                                    {quantityError && (
+                                        <p className="absolute left-0 bottom-0 m-0 text-red-600 text-[11px] font-['Cormorant_Garamond',_serif] w-full sm:w-auto">
+                                            {quantityError}
+                                        </p>
+                                    )}
                                 </div>
                             )}
 
