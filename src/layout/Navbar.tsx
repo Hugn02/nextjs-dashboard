@@ -8,6 +8,7 @@ type Category = {
   _id: string;
   name: string;
   slug: string;
+  isActive?: boolean;
 };
 
 type SubMenuItem = {
@@ -78,21 +79,24 @@ export default function Navbar() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
+        // Chỉ lấy category đang active để hiển thị trong Navbar
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories?isActive=true`);
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         const response = await res.json();
 
-        // API có thể trả về: [...], { data: [...] }, hoặc { data: { categories: [...] } }
-        // Đoạn code này sẽ kiểm tra và lấy đúng mảng categories
-        const categories: Category[] = Array.isArray(response) ? response : (response.data?.categories || response.data);
+        // API trả về { success: true, data: [...] }
+        const categories: Category[] = Array.isArray(response) ? response : (response.data?.categories || response.data || []);
 
         if (!Array.isArray(categories)) {
           throw new Error("Dữ liệu categories trả về không phải là một mảng.");
         }
 
-        const categoryChildren: SubMenuItem[] = categories.map((cat) => ({
+        // Chỉ hiển thị category isActive=true (backend đã lọc, đây là guard thêm)
+        const activeCategories = categories.filter((cat) => cat.isActive !== false);
+
+        const categoryChildren: SubMenuItem[] = activeCategories.map((cat) => ({
           label: cat.name,
           href: `/collections/${cat.slug}`
         }));
@@ -137,7 +141,7 @@ export default function Navbar() {
             ${scrolled ? "bg-white shadow-lg" : "bg-white/92 shadow-none"}`}
       >
         <div className="bg-gradient-to-r from-[#8b6914] via-[#c4a84f] to-[#8b6914] text-white text-center text-[10px] md:text-[12px] tracking-[1px] md:tracking-[2px] py-1.5 font-['Cormorant_Garamond',_serif] px-4">
-          ✦ NGHỆ NHÂN BÁT TRÀNG VIETNAM — THƯƠNG HIỆU SỐ 1 VIỆT NAM ✦
+          ✦ NGHỆ NHÂN BÁT TRÀNG — CHUYÊN NUNG CỦI ✦
         </div>
 
         <nav className="max-w-[1600px] mx-auto px-4 md:px-8 flex lg:grid lg:grid-cols-[220px_1fr_140px] items-center justify-between gap-4 md:gap-8 h-[60px] md:h-[88px]">

@@ -14,6 +14,8 @@ interface Category {
     slug: string;
     description?: string;
     bannerImage?: string;
+    isActive?: boolean;
+    image?: string;
 }
 
 interface CollectionsPageProps {
@@ -53,6 +55,7 @@ const filterSections = [
 export default function CollectionsPage({ slug }: CollectionsPageProps) {
     console.log("slug received:", slug); // DEBUG: Kiểm tra slug nhận được
     const [category, setCategory] = useState<Category | null>(null);
+    const [categoryInactive, setCategoryInactive] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [sortBy, setSortBy] = useState("productName-asc");
@@ -69,17 +72,22 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
                 if (!res.ok) throw new Error('Failed to fetch categories');
 
-                // API có thể trả về object dạng { data: [...] } hoặc { categories: [...] }
                 const responseData = await res.json();
-                // Lấy mảng categories từ response, giả sử nó nằm trong thuộc tính 'data' hoặc là chính response
                 const categories: Category[] = Array.isArray(responseData) ? responseData : responseData.data || [];
 
                 const currentCategory = categories.find((cat: Category) => cat.slug === slug);
 
                 if (currentCategory) {
-                    setCategory(currentCategory);
+                    if (currentCategory.isActive === false) {
+                        // Danh mục đã bị vô hiệu hóa
+                        setCategoryInactive(true);
+                        setCategory(currentCategory);
+                    } else {
+                        setCategoryInactive(false);
+                        setCategory(currentCategory);
+                    }
                 } else {
-                    // Fallback nếu không tìm thấy, vẫn hiển thị slug để debug
+                    // Fallback nếu không tìm thấy
                     setCategory({ _id: slug, name: slug.replace(/-/g, " ").toUpperCase(), slug: slug });
                 }
             } catch (err) {
@@ -119,6 +127,30 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
     }, [slug, sortBy]);
 
     const categoryName = category?.name || (slug || "").replace(/-/g, " ").toUpperCase();
+
+    // Nếu category bị vô hiệu hóa → hiển thị thông báo thay vì nội dung
+    if (categoryInactive) {
+        return (
+            <main className="min-h-screen bg-white flex flex-col items-center justify-center mt-[88px]">
+                <div className="text-center max-w-md px-6 py-16">
+                    <div className="text-6xl mb-6">🚫</div>
+                    <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] text-2xl font-light text-[#2c1a00] tracking-[2px] mb-3 uppercase">
+                        {categoryName}
+                    </h1>
+                    <p className="text-[#888] text-sm leading-relaxed mb-8 font-['Cormorant_Garamond',_Georgia,_serif]">
+                        Danh mục này hiện không còn hoạt động.<br />
+                        Vui lòng khám phá các bộ sưu tập khác của chúng tôi.
+                    </p>
+                    <Link
+                        href="/collections"
+                        className="inline-block bg-[#c4a84f] text-white px-8 py-3 text-xs uppercase tracking-[2px] font-['Cormorant_Garamond',_Georgia,_serif] no-underline hover:bg-[#a8893d] transition-colors"
+                    >
+                        Xem tất cả bộ sưu tập
+                    </Link>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <>

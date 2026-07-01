@@ -5,15 +5,13 @@ import { useState, useEffect } from "react";
 const HERO_SLIDES = [
   {
     id: 1,
-    image:
-      "https://cdn.hstatic.net/files/200000296482/file/cuu-ngu.jpg",
-    alt: "Summer Living Sale",
+    image: "/assets/slide3.png",
+    alt: "Bộ sưu tập Cửu Ngư",
   },
   {
     id: 2,
-    image:
-      "https://theme.hstatic.net/200000296482/1001063914/14/slideshow_3.jpg?v=5943",
-    alt: "Bình Tài Lộc 2025",
+    image: "/assets/slide4.png",
+    alt: "Bình Tài Lộc 2026",
   },
 ];
 
@@ -38,7 +36,7 @@ export default function HeroSlider() {
           <img
             src={slide.image}
             alt={slide.alt}
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover object-top"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#1e0f00]/35 to-transparent" />
         </div>
