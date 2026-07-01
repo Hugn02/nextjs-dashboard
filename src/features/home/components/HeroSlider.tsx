@@ -7,14 +7,12 @@ const HERO_SLIDES = [
     id: 1,
     image:
       "https://cdn.hstatic.net/files/200000296482/file/cuu-ngu.jpg",
-    href: "https://noritake.vn/collections/summer-living-sale-of-12",
     alt: "Summer Living Sale",
   },
   {
     id: 2,
     image:
       "https://theme.hstatic.net/200000296482/1001063914/14/slideshow_3.jpg?v=5943",
-    href: "https://noritake.vn/collections/flared-vase-limited-collection",
     alt: "Bình Tài Lộc 2025",
   },
 ];
@@ -34,9 +32,8 @@ export default function HeroSlider() {
       {HERO_SLIDES.map((slide, i) => (
         <div
           key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-900 ease-in-out cursor-pointer 
+          className={`absolute inset-0 transition-opacity duration-900 ease-in-out 
                         ${i === current ? "opacity-100" : "opacity-0"}`}
-          onClick={() => window.open(slide.href, "_blank")}
         >
           <img
             src={slide.image}
