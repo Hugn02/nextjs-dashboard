@@ -74,7 +74,7 @@ export default function QuickCategories() {
         </div>
 
         {loading && categories.length === 0 ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
             {Array.from({ length: 8 }).map((_, idx) => (
               <div
                 key={idx}
@@ -86,7 +86,7 @@ export default function QuickCategories() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
             {displayCategories.map((cat) => (
               <a
                 key={cat.slug}
