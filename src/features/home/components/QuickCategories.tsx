@@ -90,7 +90,7 @@ export default function QuickCategories() {
             {displayCategories.map((cat) => (
               <a
                 key={cat.slug}
-                href={`/collections/${cat.slug}`}
+                href={`/categories/${cat.slug}`}
                 className="flex flex-col items-center gap-2.5 px-3 py-5 rounded border border-[#ede0c4] no-underline bg-[#fdfaf4] transition-all duration-[250ms] cursor-pointer hover:bg-[#fff8e8] hover:border-[#c4a84f] hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(196,168,79,0.15)]"
               >
                 <img
