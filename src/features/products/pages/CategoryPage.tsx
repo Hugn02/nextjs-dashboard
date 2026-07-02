@@ -111,7 +111,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
     }, [slug, sortBy]);
 
     const categoryName = category?.name || (slug || "").replace(/-/g, " ").toUpperCase();
-    const categoryBanner = "/assets/category.jpg";
+    const categoryBanner = "/assets/category2.png";
 
     if (categoryInactive) {
         return (
@@ -148,7 +148,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                     src={categoryBanner}
                     alt={categoryName}
                     fill
-                    className="object-cover object-top"
+                    className="object-cover object-center"
                     priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />

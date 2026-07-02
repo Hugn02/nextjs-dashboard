@@ -126,7 +126,7 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
 
     const collectionName = collection?.name || (slug || "").replace(/-/g, " ").toUpperCase();
 
-    const collectionBanner = "/assets/collection.jpg";
+    const collectionBanner = "/assets/collection.png";
 
 
     // Nếu collection bị vô hiệu hóa → hiển thị thông báo thay vì nội dung
