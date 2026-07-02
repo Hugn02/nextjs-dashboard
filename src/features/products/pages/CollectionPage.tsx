@@ -8,14 +8,15 @@ import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
 import Image from "next/image";
 
-interface Category {
-    _id: string;
+interface Collection {
+    id: string;
+    _id?: string;
     name: string;
     slug: string;
     description?: string;
-    bannerImage?: string;
-    isActive?: boolean;
     image?: string;
+    banner?: string;
+    isActive?: boolean;
 }
 
 interface CollectionsPageProps {
@@ -53,53 +54,50 @@ const filterSections = [
 ];
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function CollectionsPage({ slug }: CollectionsPageProps) {
-    console.log("slug received:", slug); // DEBUG: Kiểm tra slug nhận được
-    const [category, setCategory] = useState<Category | null>(null);
-    const [categoryInactive, setCategoryInactive] = useState(false);
+    const [collection, setCollection] = useState<Collection | null>(null);
+    const [collectionInactive, setCollectionInactive] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [sortBy, setSortBy] = useState("productName-asc");
     const [filterOpen, setFilterOpen] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
 
-    // Fetch category info
+    // Fetch collection info by slug
     useEffect(() => {
-        if (!slug) return; // Chỉ fetch khi có slug
+        if (!slug) return;
 
-        // Thay vì giả lập category, ta sẽ fetch toàn bộ danh sách và tìm category hiện tại
-        const fetchCategory = async () => {
+        const fetchCollection = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
-                if (!res.ok) throw new Error('Failed to fetch categories');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections`);
+                if (!res.ok) throw new Error('Failed to fetch collections');
 
                 const responseData = await res.json();
-                const categories: Category[] = Array.isArray(responseData) ? responseData : responseData.data || [];
+                const collections: Collection[] = Array.isArray(responseData) ? responseData : responseData.data || [];
 
-                const currentCategory = categories.find((cat: Category) => cat.slug === slug);
+                const currentCollection = collections.find((col: Collection) => col.slug === slug);
 
-                if (currentCategory) {
-                    if (currentCategory.isActive === false) {
-                        // Danh mục đã bị vô hiệu hóa
-                        setCategoryInactive(true);
-                        setCategory(currentCategory);
+                if (currentCollection) {
+                    if (currentCollection.isActive === false) {
+                        setCollectionInactive(true);
+                        setCollection(currentCollection);
                     } else {
-                        setCategoryInactive(false);
-                        setCategory(currentCategory);
+                        setCollectionInactive(false);
+                        setCollection(currentCollection);
                     }
                 } else {
-                    // Fallback nếu không tìm thấy
-                    setCategory({ _id: slug, name: slug.replace(/-/g, " ").toUpperCase(), slug: slug });
+                    // Fallback
+                    setCollection({ id: slug, name: slug.replace(/-/g, " ").toUpperCase(), slug });
                 }
             } catch (err) {
-                console.error("Lỗi fetch category:", err);
+                console.error("Lỗi fetch collection:", err);
             }
         };
-        fetchCategory();
+        fetchCollection();
     }, [slug]);
 
-    // Fetch products theo slug
+    // Fetch products by collection slug
     useEffect(() => {
-        if (!slug) return; // Chỉ fetch khi có slug
+        if (!slug) return;
 
         const loadProducts = async () => {
             setLoading(true);
@@ -107,7 +105,7 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
 
             try {
                 const { products, totalCount } = await fetchProducts({
-                    category: slug,
+                    collection: slug,
                     sortBy: sortField === 'newest' ? 'createdAt' : sortField,
                     sortOrder: sortField === 'newest' ? 'desc' : (sortDirection as 'asc' | 'desc'),
                     limit: 20,
@@ -126,19 +124,22 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
         loadProducts();
     }, [slug, sortBy]);
 
-    const categoryName = category?.name || (slug || "").replace(/-/g, " ").toUpperCase();
+    const collectionName = collection?.name || (slug || "").replace(/-/g, " ").toUpperCase();
 
-    // Nếu category bị vô hiệu hóa → hiển thị thông báo thay vì nội dung
-    if (categoryInactive) {
+    const collectionBanner = "/assets/collection.jpg";
+
+
+    // Nếu collection bị vô hiệu hóa → hiển thị thông báo thay vì nội dung
+    if (collectionInactive) {
         return (
             <main className="min-h-screen bg-white flex flex-col items-center justify-center mt-[88px]">
                 <div className="text-center max-w-md px-6 py-16">
                     <div className="text-6xl mb-6">🚫</div>
                     <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] text-2xl font-light text-[#2c1a00] tracking-[2px] mb-3 uppercase">
-                        {categoryName}
+                        {collectionName}
                     </h1>
                     <p className="text-[#888] text-sm leading-relaxed mb-8 font-['Cormorant_Garamond',_Georgia,_serif]">
-                        Danh mục này hiện không còn hoạt động.<br />
+                        Bộ sưu tập này hiện không còn hoạt động.<br />
                         Vui lòng khám phá các bộ sưu tập khác của chúng tôi.
                     </p>
                     <Link
@@ -158,27 +159,24 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap');
             `}</style>
 
-            {/* ── Banner ảnh collection ─────────────────────────────── */}
-            <div className="relative mt-[120px] h-[420px] w-full overflow-hidden">
+            {/* ── Banner ảnh collection ───────────────────────────────────────── */}
+            <div className="relative mt-[120px] h-[420px] w-full overflow-hidden hidden lg:block">
                 <Image
-                    src={category?.bannerImage || "/assets/collection.jpg"}
-                    alt={categoryName}
+                    src={collectionBanner}
+                    alt={collectionName}
                     fill
                     className="object-cover object-center"
                     priority
                 />
 
-                {/* Overlay tối hơn một chút để tạo cảm giác sang trọng */}
+                {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />
-
-                {/* Optional: Lớp overlay gradient nhẹ từ dưới lên nếu cần chữ */}
-                {/* <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" /> */}
             </div>
 
 
             {/* ── Main content ─────────────────────────────────────── */}
             {/* Banner luôn hiển thị nên không cần margin top ở đây nữa */}
-            <main className="min-h-[80vh] bg-white pb-20 mt-0">
+            <main className="min-h-[80vh] bg-white pb-20 mt-[120px] lg:mt-0">
                 <div className="mx-auto max-w-[1280px] px-6">
 
                     {/* Breadcrumb */}
@@ -188,15 +186,15 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                         </Link>
                         <span className="mx-2">›</span>
                         <Link href="/collections" className="text-[#888] no-underline">
-                            Các bộ sưu tập
+                            Bộ sưu tập
                         </Link>
                         <span className="mx-2">›</span>
-                        <span className="text-[#2c1a00]">{categoryName}</span>
+                        <span className="text-[#2c1a00]">{collectionName}</span>
                     </nav>
 
-                    {/* Tiêu đề danh mục */}
+                    {/* Tiêu đề bộ sưu tập */}
                     <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 mb-8 text-center font-light uppercase tracking-[3px] text-[#2c1a00]" style={{ fontSize: "clamp(22px, 3vw, 32px)" }}>
-                        {categoryName}
+                        {collectionName}
                     </h1>
 
                     {/* Toolbar: đếm SP + bộ lọc + sắp xếp */}

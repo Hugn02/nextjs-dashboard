@@ -28,6 +28,8 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
     const [quantityError, setQuantityError] = useState<string | null>(null);
     const [descExpanded, setDescExpanded] = useState(false);
+    const [categoryInfo, setCategoryInfo] = useState<{ name: string; slug: string } | null>(null);
+    const [collectionInfo, setCollectionInfo] = useState<{ name: string; slug: string } | null>(null);
 
     const [isDragging, setIsDragging] = useState(false);
     const [startY, setStartY] = useState(0);
@@ -45,35 +47,48 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                     setProduct(fetchedProduct);
                     setError(null);
 
-                    // Fetch related products with fallback logic
-                    try {
-                        let related = await fetchRelatedProducts({
-                            brand: fetchedProduct.brandName,
-                            limit: 5
-                        });
-                        let filteredRelated = related.filter(item => item.id !== fetchedProduct.id);
+                    // Resolve category name and slug
+                    if (fetchedProduct.category) {
+                        try {
+                            const catRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
+                            if (catRes.ok) {
+                                const catData = await catRes.json();
+                                const cats = Array.isArray(catData) ? catData : (catData.data || []);
+                                const found = cats.find((c: any) => c.id === fetchedProduct.category || c._id === fetchedProduct.category);
+                                if (found) setCategoryInfo({ name: found.name, slug: found.slug });
+                            }
+                        } catch { /* ignore */ }
+                    }
 
-                        // Fallback 1: products in the same category
-                        if (filteredRelated.length === 0 && fetchedProduct.category) {
-                            related = await fetchRelatedProducts({
-                                category: fetchedProduct.category,
+                    // Resolve collection name and slug
+                    if (fetchedProduct.collection) {
+                        try {
+                            const colRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections`);
+                            if (colRes.ok) {
+                                const colData = await colRes.json();
+                                const cols = Array.isArray(colData) ? colData : (colData.data || []);
+                                const found = cols.find((c: any) => c.id === fetchedProduct.collection || c._id === fetchedProduct.collection);
+                                if (found) setCollectionInfo({ name: found.name, slug: found.slug });
+                            }
+                        } catch { /* ignore */ }
+                    }
+
+                    // Fetch related products: only from the same collection
+                    try {
+                        let relatedProducts: Product[] = [];
+                        if (fetchedProduct.collection) {
+                            const related = await fetchRelatedProducts({
+                                collection: fetchedProduct.collection,
                                 limit: 5
                             });
-                            filteredRelated = related.filter(item => item.id !== fetchedProduct.id);
+                            const filteredRelated = related.filter(item => item.id !== fetchedProduct.id);
+                            relatedProducts = filteredRelated.slice(0, 4);
                         }
-
-                        // Fallback 2: general active products
-                        if (filteredRelated.length === 0) {
-                            const allActiveRes = await fetchProducts({
-                                limit: 5,
-                                status: "active"
-                            });
-                            filteredRelated = allActiveRes.products.filter(item => item.id !== fetchedProduct.id);
-                        }
-
-                        setRelatedProducts(filteredRelated.slice(0, 4));
+                        setRelatedProducts(relatedProducts);
                     } catch (relatedErr) {
                         console.error("Failed to fetch related products:", relatedErr);
+                        // In case of an error, ensure related products are empty
+                        setRelatedProducts([]);
                     }
                 } else {
                     setError("Không tìm thấy sản phẩm");
@@ -257,15 +272,15 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                 <div className="mx-auto max-w-[1280px] px-6">
                     {/* Breadcrumbs */}
                     <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-8 border-b border-[#f0e8d6] py-4 text-xs tracking-wider text-[#888]">
-                        <Link href="/" className="text-[#888] no-underline hover:text-[#c4a84f]">
-                            Trang chủ
-                        </Link>
+                        <Link href="/" className="text-[#888] no-underline hover:text-[#c4a84f]">Trang chủ</Link>
                         <span className="mx-2">›</span>
-                        <Link href="/collections" className="text-[#888] no-underline hover:text-[#c4a84f]">
-                            Các bộ sưu tập
-                        </Link>
-                        <span className="mx-2">›</span>
-                        <span className="text-[#888] uppercase">{product.brandName}</span>
+                        {categoryInfo ? (
+                            <Link href={`/categories/${categoryInfo.slug}`} className="text-[#888] no-underline hover:text-[#c4a84f]">
+                                {categoryInfo.name}
+                            </Link>
+                        ) : (
+                            <span className="text-[#888]">Sản phẩm</span>
+                        )}
                         <span className="mx-2">›</span>
                         <span className="text-[#2c1a00] font-medium">{product.name}</span>
                     </nav>
@@ -377,6 +392,26 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                         Mã SP: {product.sku}
                                     </p>
                                 )}
+
+                                {/* Category & Collection Info */}
+                                <div className="mt-3 flex flex-col gap-1.5">
+                                    {categoryInfo && (
+                                        <p className="m-0 text-[12px] text-[#888] font-['Cormorant_Garamond',_serif]">
+                                            <span className="font-semibold text-[#3d2b00]">Loại sản phẩm:</span>{" "}
+                                            <Link href={`/categories/${categoryInfo.slug}`} className="text-[#c4a84f] no-underline hover:underline">
+                                                {categoryInfo.name}
+                                            </Link>
+                                        </p>
+                                    )}
+                                    {collectionInfo && (
+                                        <p className="m-0 text-[12px] text-[#888] font-['Cormorant_Garamond',_serif]">
+                                            <span className="font-semibold text-[#3d2b00]">Bộ sưu tập:</span>{" "}
+                                            <Link href={`/collections/${collectionInfo.slug}`} className="text-[#c4a84f] no-underline hover:underline">
+                                                {collectionInfo.name}
+                                            </Link>
+                                        </p>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Pricing */}

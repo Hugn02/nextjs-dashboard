@@ -25,15 +25,7 @@ type MenuItem = {
 const initialMenuItems: MenuItem[] = [
   {
     label: "Bộ sưu tập",
-    children: [
-      { label: "Sứ xương", href: "#" },
-      { label: "Sứ trắng cao cấp", href: "#" },
-      { label: "Sứ trắng", href: "#" },
-      { label: "Sứ tái chế (Made in Japan)", href: "#" },
-      { label: "Pha lê - Thủy tinh", href: "#" },
-      { label: "Gỗ sơn mài", href: "#" },
-      { label: "Thép không gỉ", href: "#" },
-    ],
+    children: [], // Sẽ được điền dữ liệu từ API
   },
   {
     label: "Loại sản phẩm",
@@ -79,52 +71,58 @@ export default function Navbar() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        // Chỉ lấy category đang active để hiển thị trong Navbar
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories?isActive=true`);
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const response = await res.json();
-
-        // API trả về { success: true, data: [...] }
         const categories: Category[] = Array.isArray(response) ? response : (response.data?.categories || response.data || []);
-
-        if (!Array.isArray(categories)) {
-          throw new Error("Dữ liệu categories trả về không phải là một mảng.");
-        }
-
-        // Chỉ hiển thị category isActive=true (backend đã lọc, đây là guard thêm)
+        if (!Array.isArray(categories)) throw new Error("Dữ liệu categories trả về không phải là một mảng.");
         const activeCategories = categories.filter((cat) => cat.isActive !== false);
-
         const categoryChildren: SubMenuItem[] = activeCategories.map((cat) => ({
           label: cat.name,
-          href: `/collections/${cat.slug}`
+          href: `/categories/${cat.slug}`
         }));
-
         setMenuItems(prevItems => {
           const newItems = [...prevItems];
           const productTypeIndex = newItems.findIndex(item => item.label === "Loại sản phẩm");
           if (productTypeIndex !== -1) {
-            newItems[productTypeIndex].children = categoryChildren;
+            newItems[productTypeIndex] = { ...newItems[productTypeIndex], children: categoryChildren };
           }
           return newItems;
         });
-
       } catch (error) {
-        if (error instanceof Error) {
-          console.error("Lỗi khi lấy danh mục sản phẩm:", error.message);
-        } else {
-          console.error("Lỗi không xác định khi lấy danh mục sản phẩm:", error);
-        }
+        console.error("Lỗi khi lấy danh mục sản phẩm:", error instanceof Error ? error.message : error);
+      }
+    };
+
+    const fetchCollections = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections?isActive=true`);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const response = await res.json();
+        const collections: Category[] = Array.isArray(response) ? response : (response.data || []);
+        const collectionChildren: SubMenuItem[] = collections.map((col) => ({
+          label: col.name,
+          href: `/collections/${col.slug}`
+        }));
+        setMenuItems(prevItems => {
+          const newItems = [...prevItems];
+          const collectionIndex = newItems.findIndex(item => item.label === "Bộ sưu tập");
+          if (collectionIndex !== -1) {
+            newItems[collectionIndex] = { ...newItems[collectionIndex], children: collectionChildren };
+          }
+          return newItems;
+        });
+      } catch (error) {
+        console.error("Lỗi khi lấy bộ sưu tập:", error instanceof Error ? error.message : error);
       }
     };
 
     fetchCategories();
+    fetchCollections();
 
-    // Kiểm tra xem đã đăng nhập chưa để thay đổi trạng thái icon
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
-  }, [activeModal]); // Re-check mỗi khi modal đóng/mở
+  }, [activeModal]);
 
   useEffect(() => {
     const handleScroll = () => {

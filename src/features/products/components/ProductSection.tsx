@@ -11,6 +11,21 @@ const formatPrice = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
 
+// ─── Skeleton loader ──────────────────────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div className="overflow-hidden rounded-[2px] border border-[#ede0c4] bg-white">
+      <div className="aspect-square animate-shimmer bg-[linear-gradient(90deg,#f0e8d6_25%,#faf7f2_50%,#f0e8d6_75%)] bg-[length:200%_100%]" />
+      <div className="p-3.5">
+        <div className="mb-2 h-2.5 w-2/5 rounded bg-[#f0e8d6]" />
+        <div className="mb-1.5 h-3 rounded bg-[#f0e8d6]" />
+        <div className="mb-1.5 h-3 w-4/5 rounded bg-[#f0e8d6]" />
+        <div className="mt-3 h-4 w-1/2 rounded bg-[#f0e8d6]" />
+      </div>
+      <style jsx>{`@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`}</style>
+    </div>
+  );
+}
 export default function ProductSection() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,10 +35,10 @@ export default function ProductSection() {
       try {
         // Lấy các sản phẩm nổi bật thuộc danh mục "Đồ pha trà"
         const { products } = await fetchProducts({
-          category: 'do-pha-tra',
+          category: 'bo-am-chen',
           isFeatured: true,
           status: 'active',
-          limit: 8, // Hiển thị tối đa 8 sản phẩm nổi bật
+          // limit: 8, // Hiển thị tối đa 8 sản phẩm nổi bật
           sortBy: 'createdAt',
           sortOrder: 'desc'
         });
@@ -59,7 +74,9 @@ export default function ProductSection() {
         </div>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-5">
           {loading ? (
-            <p className="text-center col-span-full">Đang tải sản phẩm...</p>
+            Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))
           ) : (
             products.map((p) => (
               <ProductCard key={p.id} product={p} />

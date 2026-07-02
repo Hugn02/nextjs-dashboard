@@ -10,7 +10,16 @@ export interface Product {
     oldPrice?: number;
     images: string[];
     imageUrl: string[];
+    /** Collection ID from backend */
     collection?: string;
+    /** Collection display name (resolved client-side) */
+    collectionName?: string;
+    /** Collection slug (resolved client-side for linking) */
+    collectionSlug?: string;
+    /** Category display name (resolved client-side) */
+    categoryName?: string;
+    /** Category slug (resolved client-side for linking) */
+    categorySlug?: string;
     brandName: string;
     isContact?: boolean;
     badge?: string;

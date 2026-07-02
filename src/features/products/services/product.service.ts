@@ -3,6 +3,7 @@ import { Product } from "../types/product.type";
 export interface FetchProductsQuery {
     slug?: string;
     category?: string;
+    collection?: string;
     limit?: number;
     page?: number;
     sortBy?: string;
@@ -30,7 +31,7 @@ const mapProductData = (p: any): Product => ({
     oldPrice: p.oldPrice,
     images: Array.isArray(p.imageUrl) ? p.imageUrl : (p.imageUrl ? [p.imageUrl] : []),
     imageUrl: Array.isArray(p.imageUrl) ? p.imageUrl : (p.imageUrl ? [p.imageUrl] : []),
-    collection: p.brandName,
+    collection: p.collection || '',
     brandName: p.brandName,
     isContact: p.stock === 0,
     badge: p.oldPrice && p.newPrice < p.oldPrice ? `-${Math.round(((p.oldPrice - p.newPrice) / p.oldPrice) * 100)}%` : (p.stock === 0 ? 'Hết hàng' : undefined),
@@ -53,6 +54,7 @@ export const fetchProducts = async (query: FetchProductsQuery): Promise<FetchPro
     if (query.slug) params.append('slug', query.slug);
 
     if (query.category) params.append('category', query.category);
+    if (query.collection) params.append('collection', query.collection);
     if (query.limit) params.append('limit', String(query.limit));
     if (query.page) params.append('page', String(query.page));
     if (query.sortBy) params.append('sortBy', query.sortBy);
@@ -99,9 +101,10 @@ export const fetchProductBySlug = async (slug: string): Promise<Product | null> 
     return product ? mapProductData(product) : null;
 };
 
-export const fetchRelatedProducts = async (query: { category?: string; brand?: string; limit?: number }): Promise<Product[]> => {
+export const fetchRelatedProducts = async (query: { category?: string; collection?: string; brand?: string; limit?: number }): Promise<Product[]> => {
     const params = new URLSearchParams();
-    if (query.category) params.append('category', query.category);
+    if (query.collection) params.append('collection', query.collection);
+    else if (query.category) params.append('category', query.category);
     if (query.brand) params.append('brand', query.brand);
     if (query.limit) params.append('limit', String(query.limit));
     params.append('status', 'active');
