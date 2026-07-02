@@ -35,7 +35,7 @@ export default function ProductSection() {
       try {
         // Lấy các sản phẩm nổi bật thuộc danh mục "Đồ pha trà"
         const { products } = await fetchProducts({
-          category: 'bo-am-chen',
+          // category: 'bo-am-chen',
           isFeatured: true,
           status: 'active',
           // limit: 8, // Hiển thị tối đa 8 sản phẩm nổi bật
@@ -61,12 +61,12 @@ export default function ProductSection() {
               Nổi bật
             </p>
             <h2 className="text-[clamp(26px,3.5vw,38px)] font-['Cormorant_Garamond',_serif] font-light text-[#2c1a00] tracking-[2px] m-0">
-              ĐỒ PHA TRÀ NỔI BẬT
+              BỘ ẤM CHÉN TRÀ NỔI BẬT
             </h2>
             <div className="w-20 h-px bg-gradient-to-r from-[#c4a84f] to-transparent mt-3.5" />
           </div>
           <a
-            href="/collections/do-pha-tra"
+            href="/categories/bo-am-chen"
             className="text-[12px] text-[#8b6914] no-underline tracking-[2px] uppercase border border-[#c4a84f] px-6 py-2.5 transition-all hover:bg-[#c4a84f] hover:text-white font-['Cormorant_Garamond',_serif]"
           >
             Xem tất cả →
