@@ -161,7 +161,7 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
             {/* ── Banner ảnh collection ─────────────────────────────── */}
             <div className="relative mt-[120px] h-[420px] w-full overflow-hidden">
                 <Image
-                    src={category?.bannerImage || "https://theme.hstatic.net/200000296482/1001063914/14/collection_banner.jpg?v=6037"}
+                    src={category?.bannerImage || "/assets/collection.jpg"}
                     alt={categoryName}
                     fill
                     className="object-cover object-center"
