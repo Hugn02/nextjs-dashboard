@@ -45,7 +45,8 @@ export default function ProductSection() {
             isFeatured: true,
             status: 'active',
             sortBy: 'createdAt',
-            sortOrder: 'desc'
+            sortOrder: 'desc',
+            limit: 8,
           }),
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections`)
         ]);
