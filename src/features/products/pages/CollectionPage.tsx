@@ -185,9 +185,7 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                             Trang chủ
                         </Link>
                         <span className="mx-2">›</span>
-                        <Link href="/collections" className="text-[#888] no-underline">
-                            Bộ sưu tập
-                        </Link>
+                        <span className="text-[#888]">Bộ sưu tập</span>
                         <span className="mx-2">›</span>
                         <span className="text-[#2c1a00]">{collectionName}</span>
                     </nav>

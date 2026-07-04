@@ -43,6 +43,16 @@ const sortOptions = [
     { value: "newest", label: "Mới nhất" },
 ];
 
+const filterSections = [
+    "Bộ sưu tập",
+    "Phong cách thiết kế",
+    "Chất liệu",
+    "Loại sản phẩm",
+    "Sản phẩm lẻ/Bộ",
+    "Mục đích sử dụng",
+    "Khoảng giá",
+];
+
 export default function CategoryPage({ slug }: CategoryPageProps) {
     const [category, setCategory] = useState<Category | null>(null);
     const [categoryInactive, setCategoryInactive] = useState(false);
@@ -181,10 +191,30 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                             <button
                                 onClick={() => setFilterOpen(!filterOpen)}
                                 className="font-['Cormorant_Garamond',_Georgia,_serif] flex cursor-pointer items-center gap-1.5 rounded-[2px] border border-[#ddd] bg-none px-4 py-2 text-[13px] text-[#3d2b00] transition-colors hover:border-[#c4a84f]"
+                                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#c4a84f")}
+                                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#ddd")}
                             >
                                 <span>Bộ lọc</span>
                                 <span className="text-[10px]">⇅</span>
                             </button>
+
+                            {filterOpen && (
+                                <div className="absolute top-full left-0 z-[999] mt-2 w-[200px] border border-[#e5e5e5] bg-white shadow-[0_8px_25px_rgba(0,0,0,.15)]">
+                                    {filterSections.map((title) => (
+                                        <div
+                                            key={title}
+                                            className="flex cursor-pointer justify-between border-b border-[#eee] px-4 py-3"
+                                        >
+                                            <span
+                                                className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] uppercase text-[#3d2b00]"
+                                            >
+                                                {title}
+                                            </span>
+                                            <span className="text-[#3d2b00]">+</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                             <div className="flex items-center gap-2">
                                 <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] text-[#888]">Sắp xếp:</span>

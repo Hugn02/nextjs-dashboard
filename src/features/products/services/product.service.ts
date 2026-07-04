@@ -73,7 +73,7 @@ export const fetchProducts = async (query: FetchProductsQuery): Promise<FetchPro
     const data = await res.json();
 
     const rawProducts = Array.isArray(data) ? data : data.data?.products || data.data || [];
-    const totalCount: number = data.totalCount || data.data?.totalCount || rawProducts.length;
+    const totalCount: number = data.totalCount || data.data?.totalCount || data.meta?.total || rawProducts.length;
 
     const formattedProducts: Product[] = rawProducts.map(mapProductData);
 

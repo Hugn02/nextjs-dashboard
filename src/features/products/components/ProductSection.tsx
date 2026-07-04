@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { fetchProducts } from "../services/product.service";
 import { Product } from "../types/product.type";
 import ProductCard from "./ProductCard"; // Import ProductCard chung
+
+interface Collection {
+  id: string;
+  _id?: string;
+  name: string;
+}
 
 // Helper format tiền
 const formatPrice = (amount: number) => {
@@ -28,21 +34,30 @@ function SkeletonCard() {
 }
 export default function ProductSection() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        // Lấy các sản phẩm nổi bật thuộc danh mục "Đồ pha trà"
-        const { products } = await fetchProducts({
-          // category: 'bo-am-chen',
-          isFeatured: true,
-          status: 'active',
-          // limit: 8, // Hiển thị tối đa 8 sản phẩm nổi bật
-          sortBy: 'createdAt',
-          sortOrder: 'desc'
-        });
-        setProducts(products);
+        const [productData, collectionsRes] = await Promise.all([
+          fetchProducts({
+            isFeatured: true,
+            status: 'active',
+            sortBy: 'createdAt',
+            sortOrder: 'desc'
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections`)
+        ]);
+
+        setProducts(productData.products);
+
+        if (collectionsRes.ok) {
+          const collectionsData = await collectionsRes.json();
+          const collectionsList = Array.isArray(collectionsData) ? collectionsData : (collectionsData.data || []);
+          setCollections(collectionsList);
+        }
+
       } catch (err) {
         console.error("Lỗi khi lấy dữ liệu sản phẩm trong ProductSection:", err);
       } finally {
@@ -51,6 +66,15 @@ export default function ProductSection() {
     };
     loadProducts();
   }, []);
+
+  const productsWithCollectionName = useMemo(() => {
+    if (!collections.length) return products;
+    const collectionMap = new Map(collections.map(c => [c.id || c._id, c.name]));
+    return products.map(p => ({
+      ...p,
+      collection: p.collection ? collectionMap.get(p.collection) || p.collection : undefined
+    }));
+  }, [products, collections]);
 
   return (
     <section className="bg-[#faf7f2] py-[60px]">
@@ -61,16 +85,16 @@ export default function ProductSection() {
               Nổi bật
             </p>
             <h2 className="text-[clamp(26px,3.5vw,38px)] font-['Cormorant_Garamond',_serif] font-light text-[#2c1a00] tracking-[2px] m-0">
-              BỘ ẤM CHÉN TRÀ NỔI BẬT
+              TOP SẢN PHẨM NỔI BẬT
             </h2>
             <div className="w-20 h-px bg-gradient-to-r from-[#c4a84f] to-transparent mt-3.5" />
           </div>
-          <a
-            href="/categories/bo-am-chen"
+          <Link
+            href="/products/all"
             className="text-[12px] text-[#8b6914] no-underline tracking-[2px] uppercase border border-[#c4a84f] px-6 py-2.5 transition-all hover:bg-[#c4a84f] hover:text-white font-['Cormorant_Garamond',_serif]"
           >
             Xem tất cả →
-          </a>
+          </Link>
         </div>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-5">
           {loading ? (
@@ -78,7 +102,7 @@ export default function ProductSection() {
               <SkeletonCard key={i} />
             ))
           ) : (
-            products.map((p) => (
+            productsWithCollectionName.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))
           )}
