@@ -1,10 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { fetchProducts } from "../services/product.service";
 import { Product } from "../types/product.type";
 import ProductCard from "./ProductCard"; // Import ProductCard chung
+
+// ─── Swiper Imports ───────────────────────────────────────────────────────────
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination, Autoplay } from 'swiper/modules';
+
+// ─── Swiper CSS ───────────────────────────────────────────────────────────────
+import 'swiper/css';
+import 'swiper/css/pagination';
 
 interface Collection {
   id: string;
@@ -33,7 +41,7 @@ function SkeletonCard() {
   );
 }
 export default function ProductSection() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]); // Không cần productsWithCollectionName nữa
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,7 +54,7 @@ export default function ProductSection() {
             status: 'active',
             sortBy: 'createdAt',
             sortOrder: 'desc',
-            limit: 8,
+            limit: 8, // Tải nhiều sản phẩm hơn để slider có nội dung
           }),
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections`)
         ]);
@@ -68,15 +76,6 @@ export default function ProductSection() {
     loadProducts();
   }, []);
 
-  const productsWithCollectionName = useMemo(() => {
-    if (!collections.length) return products;
-    const collectionMap = new Map(collections.map(c => [c.id || c._id, c.name]));
-    return products.map(p => ({
-      ...p,
-      collection: p.collection ? collectionMap.get(p.collection) || p.collection : undefined
-    }));
-  }, [products, collections]);
-
   return (
     <section className="bg-[#faf7f2] py-[60px]">
       <div className="max-w-[1280px] mx-auto px-6">
@@ -97,18 +96,58 @@ export default function ProductSection() {
             Xem tất cả →
           </Link>
         </div>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-5">
-          {loading ? (
-            Array.from({ length: 8 }).map((_, i) => (
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {Array.from({ length: 4 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))
-          ) : (
-            productsWithCollectionName.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))
-          )}
-        </div>
+            }
+          </div>
+        ) : (
+          <Swiper
+            modules={[Pagination, Autoplay]}
+            spaceBetween={20}
+            slidesPerView={1}
+            pagination={{
+              clickable: true,
+              el: '.swiper-pagination-custom', // Sử dụng một element tùy chỉnh cho pagination
+            }}
+            autoplay={{
+              delay: 4000,
+              disableOnInteraction: false,
+            }}
+            breakpoints={{
+              640: { slidesPerView: 2, spaceBetween: 20 },
+              768: { slidesPerView: 3, spaceBetween: 20 },
+              1024: { slidesPerView: 4, spaceBetween: 20 },
+            }}
+            className="!pb-12" // Thêm padding-bottom để chứa pagination
+          >
+            {products.map((p) => (
+              <SwiperSlide key={p.id}>
+                <ProductCard product={p} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
+        {/* Custom Pagination container */}
+        <div className="swiper-pagination-custom flex justify-center mt-6 gap-2" />
       </div>
+      <style jsx global>{`
+        .swiper-pagination-custom .swiper-pagination-bullet {
+          width: 8px;
+          height: 8px;
+          background-color: #d1c0a2;
+          opacity: 0.6;
+          transition: all 0.2s ease;
+        }
+        .swiper-pagination-custom .swiper-pagination-bullet-active {
+          width: 24px;
+          border-radius: 4px;
+          background-color: #c4a84f;
+          opacity: 1;
+        }
+      `}</style>
     </section>
   );
 }
