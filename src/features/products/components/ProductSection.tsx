@@ -54,7 +54,7 @@ export default function ProductSection() {
             status: 'active',
             sortBy: 'createdAt',
             sortOrder: 'desc',
-            limit: 8, // Tải nhiều sản phẩm hơn để slider có nội dung
+            limit: 12, // Tải nhiều sản phẩm hơn để slider có nội dung
           }),
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections`)
         ]);
