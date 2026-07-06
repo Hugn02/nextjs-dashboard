@@ -43,30 +43,21 @@ function SkeletonCard() {
 }
 export default function ProductSection() {
   const [products, setProducts] = useState<Product[]>([]); // Không cần productsWithCollectionName nữa
-  const [collections, setCollections] = useState<Collection[]>([]);
+  // const [collections, setCollections] = useState<Collection[]>([]); // Không cần thiết nữa
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const [productData, collectionsRes] = await Promise.all([
-          fetchProducts({
-            isFeatured: true,
-            status: 'active',
-            sortBy: 'createdAt',
-            sortOrder: 'desc',
-            limit: 15, // Tải 15 sản phẩm để phù hợp với 5 sản phẩm/slide
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections`)
-        ]);
+        const productData = await fetchProducts({
+          isFeatured: true, // Chỉ lấy sản phẩm nổi bật
+          status: 'active', // Chỉ lấy sản phẩm đang hoạt động
+          sortBy: 'createdAt', // Sắp xếp theo ngày tạo
+          sortOrder: 'desc', // Mới nhất trước
+          limit: 15,
+        });
 
         setProducts(productData.products);
-
-        if (collectionsRes.ok) {
-          const collectionsData = await collectionsRes.json();
-          const collectionsList = Array.isArray(collectionsData) ? collectionsData : (collectionsData.data || []);
-          setCollections(collectionsList);
-        }
 
       } catch (err) {
         console.error("Lỗi khi lấy dữ liệu sản phẩm trong ProductSection:", err);
@@ -76,18 +67,6 @@ export default function ProductSection() {
     };
     loadProducts();
   }, []);
-
-  // Ánh xạ ID bộ sưu tập sang tên bộ sưu tập cho mỗi sản phẩm
-  const productsWithCollectionName = useMemo(() => {
-    if (!collections.length || !products.length) return products;
-
-    const collectionMap = new Map(collections.map(c => [c.id || c._id, c.name]));
-
-    return products.map(p => ({
-      ...p,
-      collection: p.collection ? collectionMap.get(p.collection) || undefined : undefined
-    }));
-  }, [products, collections]);
 
   return (
     <section className="bg-[#faf7f2] py-[60px]">
@@ -136,7 +115,7 @@ export default function ProductSection() {
             }}
             className="!pb-12" // Thêm padding-bottom để chứa pagination
           >
-            {productsWithCollectionName.map((p) => (
+            {products.map((p) => (
               <SwiperSlide key={p.id}>
                 <ProductCard product={p} />
               </SwiperSlide>

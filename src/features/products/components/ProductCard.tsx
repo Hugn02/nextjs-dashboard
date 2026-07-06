@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from "../types/product.type";
@@ -10,11 +10,53 @@ function formatPrice(n: number) {
     return n.toLocaleString("vi-VN") + "₫";
 }
 
+// ─── Global cache for collections ─────────────────────────────────────────────
+let collectionsCache: Map<string, string> | null = null;
+let collectionsFetchPromise: Promise<Map<string, string>> | null = null;
+
+async function fetchAndCacheCollections(): Promise<Map<string, string>> {
+    // Nếu cache đã có, trả về ngay lập tức
+    if (collectionsCache) {
+        return collectionsCache;
+    }
+
+    // Nếu đang có một request đang chạy, trả về promise của request đó
+    if (collectionsFetchPromise) {
+        return collectionsFetchPromise;
+    }
+
+    // Nếu chưa có cache và cũng chưa có request nào, tạo một request mới
+    collectionsFetchPromise = (async () => {
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections?isActive=true`);
+            if (res.ok) {
+                const colData = await res.json();
+                const list = Array.isArray(colData) ? colData : colData.data || [];
+                collectionsCache = new Map(list.map((c: any) => [c._id || c.id, c.name]));
+                return collectionsCache;
+            }
+        } catch (error) {
+            console.error("Failed to fetch collections for ProductCard:", error);
+            collectionsFetchPromise = null; // Reset promise nếu có lỗi để có thể thử lại
+        }
+        return new Map(); // Trả về map rỗng nếu lỗi
+    })();
+
+    return collectionsFetchPromise;
+}
+
 // ─── ProductCard ──────────────────────────────────────────────────────────────
 export default function ProductCard({ product }: { product: Product }) {
     const [hovered, setHovered] = useState(false);
     const [imgError, setImgError] = useState(false);
     const [imgError2, setImgError2] = useState(false);
+    const [collectionName, setCollectionName] = useState<string | undefined>(() => {
+        // Nếu product.collection đã là string (đã được xử lý ở component cha), dùng luôn
+        if (typeof product.collection === 'string' && !product.collection.match(/^[0-9a-fA-F]{24}$/)) {
+            return product.collection;
+        }
+        return undefined;
+    });
 
     const firstImage =
         !imgError && product.images?.[0]
@@ -22,6 +64,22 @@ export default function ProductCard({ product }: { product: Product }) {
             : `https://placehold.co/400x400/faf7f2/c4a84f?text=${encodeURIComponent(product.name.slice(0, 12))}`;
 
     const secondImage = !imgError2 && product.images?.[1] ? product.images[1] : null;
+
+    useEffect(() => {
+        // Chỉ fetch nếu product.collection là một ID và chưa có collectionName
+        if (product.collection && typeof product.collection === 'string' && product.collection.match(/^[0-9a-fA-F]{24}$/) && !collectionName) {
+            let isMounted = true;
+            fetchAndCacheCollections().then(cache => {
+                if (isMounted && cache) {
+                    const name = cache.get(product.collection as string);
+                    if (name) {
+                        setCollectionName(name);
+                    }
+                }
+            });
+            return () => { isMounted = false; };
+        }
+    }, [product.collection, collectionName]);
 
     return (
         <Link href={`/products/${product.slug}`}
@@ -68,9 +126,9 @@ export default function ProductCard({ product }: { product: Product }) {
             {/* Thông tin sản phẩm */}
             <div className="flex flex-1 flex-col gap-1 p-[14px_14px_16px]">
                 {/* Tên collection nhỏ */}
-                {product.collection && (
+                {collectionName && (
                     <p className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 text-[10px] uppercase tracking-[1.5px] text-[#c4a84f]">
-                        {product.collection}
+                        {collectionName}
                     </p>
                 )}
 

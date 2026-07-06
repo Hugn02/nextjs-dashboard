@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 import { fetchProducts } from '../services/product.service';
-
 import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
 import Image from "next/image";
@@ -19,39 +18,47 @@ interface Collection {
     isActive?: boolean;
 }
 
-interface CollectionsPageProps {
+interface CategoryOption {
+    _id: string;
+    name: string;
     slug: string;
+    isActive?: boolean;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function formatPrice(n: number) {
-    return n.toLocaleString("vi-VN") + "₫";
+interface CollectionsPageProps {
+    slug: string;
 }
 
 // ─── Skeleton loader ──────────────────────────────────────────────────────────
 function SkeletonCard() {
     return (
         <div className="overflow-hidden rounded-[2px] border border-[#ede0c4] bg-white">
-            <div className="aspect-square animate-shimmer bg-[linear-gradient(90deg,#f0e8d6_25%,#faf7f2_50%,#f0e8d6_75%)] bg-[length:200%_100%]" />
+            <div className="aspect-square animate-pulse bg-[#f0e8d6]" />
             <div className="p-3.5">
                 <div className="mb-2 h-2.5 w-2/5 rounded bg-[#f0e8d6]" />
                 <div className="mb-1.5 h-3 rounded bg-[#f0e8d6]" />
                 <div className="mb-1.5 h-3 w-4/5 rounded bg-[#f0e8d6]" />
                 <div className="mt-3 h-4 w-1/2 rounded bg-[#f0e8d6]" />
             </div>
-            <style jsx>{`@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`}</style>
         </div>
     );
 }
-const filterSections = [
-    "Bộ sưu tập",
-    "Phong cách thiết kế",
-    "Chất liệu",
-    "Loại sản phẩm",
-    "Sản phẩm lẻ/Bộ",
-    "Mục đích sử dụng",
-    "Khoảng giá",
+
+const sortOptions = [
+    { value: "productName-asc", label: "Tên: A-Z" },
+    { value: "productName-desc", label: "Tên: Z-A" },
+    { value: "newPrice-asc", label: "Giá: Thấp → Cao" },
+    { value: "newPrice-desc", label: "Giá: Cao → Thấp" },
+    { value: "newest", label: "Mới nhất" },
 ];
+
+const PRICE_PRESETS = [
+    { label: "Dưới 500.000đ", min: 0, max: 500000 },
+    { label: "500.000đ – 1.000.000đ", min: 500000, max: 1000000 },
+    { label: "1.000.000đ – 2.000.000đ", min: 1000000, max: 2000000 },
+    { label: "Trên 2.000.000đ", min: 2000000, max: undefined },
+];
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function CollectionsPage({ slug }: CollectionsPageProps) {
     const [collection, setCollection] = useState<Collection | null>(null);
@@ -62,30 +69,70 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
     const [filterOpen, setFilterOpen] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
 
+    // ── Bộ lọc động ──────────────────────────────────────────────
+    const [collections, setCollections] = useState<Collection[]>([]);
+    const [categories, setCategories] = useState<CategoryOption[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [priceRange, setPriceRange] = useState<{ min?: number; max?: number } | null>(null);
+    const [customMin, setCustomMin] = useState<string>("");
+    const [customMax, setCustomMax] = useState<string>("");
+    const [expandedSection, setExpandedSection] = useState<string | null>("category");
+
+    const filterRef = useRef<HTMLDivElement>(null);
+
+    // Đóng filter khi click ra ngoài
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+                setFilterOpen(false);
+            }
+        };
+        if (filterOpen) document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [filterOpen]);
+
+    // Fetch danh sách bộ lọc (collections & categories)
+    useEffect(() => {
+        const loadFilterOptions = async () => {
+            try {
+                const [colRes, catRes] = await Promise.all([
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections?isActive=true`),
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories?isActive=true`),
+                ]);
+
+                if (colRes.ok) {
+                    const colData = await colRes.json();
+                    const list: Collection[] = Array.isArray(colData) ? colData : colData.data || [];
+                    setCollections(list.filter((c) => c.isActive !== false));
+                }
+                if (catRes.ok) {
+                    const catData = await catRes.json();
+                    const list: CategoryOption[] = Array.isArray(catData) ? catData : catData.data || [];
+                    setCategories(list.filter((c) => c.isActive !== false));
+                }
+            } catch (err) {
+                console.error("Lỗi fetch options bộ lọc:", err);
+            }
+        };
+        loadFilterOptions();
+    }, []);
+
     // Fetch collection info by slug
     useEffect(() => {
         if (!slug) return;
-
         const fetchCollection = async () => {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections`);
                 if (!res.ok) throw new Error('Failed to fetch collections');
 
                 const responseData = await res.json();
-                const collections: Collection[] = Array.isArray(responseData) ? responseData : responseData.data || [];
-
-                const currentCollection = collections.find((col: Collection) => col.slug === slug);
+                const allCollections: Collection[] = Array.isArray(responseData) ? responseData : responseData.data || [];
+                const currentCollection = allCollections.find((col: Collection) => col.slug === slug);
 
                 if (currentCollection) {
-                    if (currentCollection.isActive === false) {
-                        setCollectionInactive(true);
-                        setCollection(currentCollection);
-                    } else {
-                        setCollectionInactive(false);
-                        setCollection(currentCollection);
-                    }
+                    setCollectionInactive(currentCollection.isActive === false);
+                    setCollection(currentCollection);
                 } else {
-                    // Fallback
                     setCollection({ id: slug, name: slug.replace(/-/g, " ").toUpperCase(), slug });
                 }
             } catch (err) {
@@ -95,25 +142,25 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
         fetchCollection();
     }, [slug]);
 
-    // Fetch products by collection slug
+    // Fetch products by collection slug + active filters
     useEffect(() => {
         if (!slug) return;
-
         const loadProducts = async () => {
             setLoading(true);
             const [sortField, sortDirection] = sortBy.split('-');
-
             try {
-                const { products, totalCount } = await fetchProducts({
+                const { products: fetchedProducts, totalCount: count } = await fetchProducts({
                     collection: slug,
+                    category: selectedCategory || undefined,
+                    minPrice: priceRange?.min,
+                    maxPrice: priceRange?.max,
                     sortBy: sortField === 'newest' ? 'createdAt' : sortField,
                     sortOrder: sortField === 'newest' ? 'desc' : (sortDirection as 'asc' | 'desc'),
                     limit: 20,
-                    status: 'active'
+                    status: 'active',
                 });
-
-                setProducts(products);
-                setTotalCount(totalCount);
+                setProducts(fetchedProducts);
+                setTotalCount(count);
             } catch (err) {
                 console.error("Lỗi fetch products:", err);
                 setProducts([]);
@@ -122,12 +169,29 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
             }
         };
         loadProducts();
-    }, [slug, sortBy]);
+    }, [slug, sortBy, selectedCategory, priceRange]);
 
     const collectionName = collection?.name || (slug || "").replace(/-/g, " ").toUpperCase();
-
     const collectionBanner = "/assets/collection.png";
+    const hasActiveFilters = selectedCategory !== null || priceRange !== null;
 
+    const applyCustomPrice = () => {
+        const min = customMin ? parseInt(customMin) : undefined;
+        const max = customMax ? parseInt(customMax) : undefined;
+        if (min !== undefined || max !== undefined) {
+            setPriceRange({ min, max });
+        }
+    };
+
+    const clearAllFilters = () => {
+        setSelectedCategory(null);
+        setPriceRange(null);
+        setCustomMin("");
+        setCustomMax("");
+    };
+
+    const toggleSection = (section: string) =>
+        setExpandedSection((prev) => (prev === section ? null : section));
 
     // Nếu collection bị vô hiệu hóa → hiển thị thông báo thay vì nội dung
     if (collectionInactive) {
@@ -157,6 +221,13 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
         <>
             <style jsx global>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap');
+                .filter-accordion-content {
+                    animation: filterFadeIn 0.18s ease-out;
+                }
+                @keyframes filterFadeIn {
+                    from { opacity: 0; transform: translateY(-4px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
             `}</style>
 
             {/* ── Banner ảnh collection ───────────────────────────────────────── */}
@@ -168,20 +239,16 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                     className="object-cover object-center"
                     priority
                 />
-
-                {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />
             </div>
 
-
             {/* ── Main content ─────────────────────────────────────── */}
-            {/* Banner luôn hiển thị nên không cần margin top ở đây nữa */}
             <main className="min-h-[80vh] bg-white pb-20 mt-[120px] lg:mt-0">
                 <div className="mx-auto max-w-[1280px] px-6">
 
                     {/* Breadcrumb */}
                     <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-6 border-b border-[#f0e8d6] py-4 text-xs tracking-wider text-[#888]">
-                        <Link href="/" className="text-[#888] no-underline">
+                        <Link href="/" className="text-[#888] no-underline hover:text-[#c4a84f] transition-colors">
                             Trang chủ
                         </Link>
                         <span className="mx-2">›</span>
@@ -195,6 +262,32 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                         {collectionName}
                     </h1>
 
+                    {/* Active filter tags */}
+                    {hasActiveFilters && (
+                        <div className="mb-4 flex flex-wrap items-center gap-2">
+                            <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[11px] uppercase tracking-wider text-[#888]">Đang lọc:</span>
+                            {selectedCategory && (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c4a84f]/40 bg-[#c4a84f]/8 px-3 py-1 font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] text-[#8b6914]">
+                                    {categories.find(c => c.slug === selectedCategory)?.name || selectedCategory}
+                                    <button onClick={() => setSelectedCategory(null)} className="text-[#c4a84f] hover:text-[#8b6914] cursor-pointer bg-transparent border-none text-[14px] leading-none">×</button>
+                                </span>
+                            )}
+                            {priceRange && (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c4a84f]/40 bg-[#c4a84f]/8 px-3 py-1 font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] text-[#8b6914]">
+                                    {priceRange.min !== undefined && priceRange.max !== undefined
+                                        ? `${priceRange.min.toLocaleString('vi-VN')}đ – ${priceRange.max.toLocaleString('vi-VN')}đ`
+                                        : priceRange.max !== undefined
+                                            ? `Dưới ${priceRange.max.toLocaleString('vi-VN')}đ`
+                                            : `Trên ${priceRange.min?.toLocaleString('vi-VN')}đ`}
+                                    <button onClick={() => { setPriceRange(null); setCustomMin(""); setCustomMax(""); }} className="text-[#c4a84f] hover:text-[#8b6914] cursor-pointer bg-transparent border-none text-[14px] leading-none">×</button>
+                                </span>
+                            )}
+                            <button onClick={clearAllFilters} className="font-['Cormorant_Garamond',_Georgia,_serif] text-[11px] text-[#aaa] underline hover:text-[#c4a84f] cursor-pointer bg-transparent border-none transition-colors">
+                                Xóa tất cả
+                            </button>
+                        </div>
+                    )}
+
                     {/* Toolbar: đếm SP + bộ lọc + sắp xếp */}
                     <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-[#f0e8d6] pb-4">
                         {/* Đếm sản phẩm */}
@@ -202,34 +295,184 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                             {loading ? "Đang tải..." : `${totalCount} sản phẩm`}
                         </span>
 
-                        <div className="relative flex items-center gap-4">
+                        <div className="relative flex items-center gap-4" ref={filterRef}>
                             {/* Nút bộ lọc */}
                             <button
                                 onClick={() => setFilterOpen(!filterOpen)}
-                                className="font-['Cormorant_Garamond',_Georgia,_serif] flex cursor-pointer items-center gap-1.5 rounded-[2px] border border-[#ddd] bg-none px-4 py-2 text-[13px] text-[#3d2b00] transition-colors hover:border-[#c4a84f]"
-                                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#c4a84f")}
-                                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#ddd")}
+                                className={`font-['Cormorant_Garamond',_Georgia,_serif] flex cursor-pointer items-center gap-1.5 rounded-[2px] border px-4 py-2 text-[13px] text-[#3d2b00] transition-all ${filterOpen || hasActiveFilters ? 'border-[#c4a84f] bg-[#c4a84f]/5' : 'border-[#ddd] bg-transparent hover:border-[#c4a84f]'}`}
                             >
                                 <span>Bộ lọc</span>
-                                <span className="text-[10px]">⇅</span>
+                                {hasActiveFilters && (
+                                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#c4a84f] text-[9px] text-white font-bold">
+                                        {(selectedCategory ? 1 : 0) + (priceRange ? 1 : 0)}
+                                    </span>
+                                )}
+                                <span className={`text-[10px] transition-transform duration-200 ${filterOpen ? 'rotate-180' : ''}`}>▾</span>
                             </button>
 
+                            {/* Dropdown bộ lọc */}
                             {filterOpen && (
-                                <div className="absolute top-full left-0 z-[999] mt-2 w-[200px] border border-[#e5e5e5] bg-white shadow-[0_8px_25px_rgba(0,0,0,.15)]">
-                                    {filterSections.map((title) => (
-                                        <div
-                                            key={title}
-                                            className="flex cursor-pointer justify-between border-b border-[#eee] px-4 py-3"
-                                        >
-                                            <span
-                                                className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] uppercase text-[#3d2b00]"
-                                            >
-                                                {title}
-                                            </span>
+                                <div className="absolute right-0 sm:left-0 top-full z-[999] mt-2 w-[290px] border border-[#ede0c4] bg-white shadow-[0_12px_40px_rgba(196,168,79,0.15)] rounded-[3px]">
+                                    <div className="max-h-[70vh] overflow-y-auto">
 
-                                            <span className="text-[#3d2b00]">+</span>
+                                        {/* ── LOẠI SẢN PHẨM (lọc in-place) ── */}
+                                        <div className="border-b border-[#f0e8d6]">
+                                            <button
+                                                onClick={() => toggleSection("category")}
+                                                className="flex w-full items-center justify-between px-4 py-3 font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] font-semibold uppercase tracking-[1.5px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] transition-colors"
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    Loại sản phẩm
+                                                    {selectedCategory && <span className="h-1.5 w-1.5 rounded-full bg-[#c4a84f]" />}
+                                                </span>
+                                                <span className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${expandedSection === "category" ? "rotate-45" : ""}`}>+</span>
+                                            </button>
+                                            {expandedSection === "category" && (
+                                                <div className="filter-accordion-content px-4 pb-3 flex flex-col gap-1.5">
+                                                    <label className="flex cursor-pointer items-center gap-2.5 rounded-[2px] px-1 py-1.5 hover:bg-[#faf7f2] transition-colors">
+                                                        <input
+                                                            type="radio"
+                                                            name="filter-category"
+                                                            checked={selectedCategory === null}
+                                                            onChange={() => setSelectedCategory(null)}
+                                                            className="accent-[#c4a84f] w-3.5 h-3.5 cursor-pointer"
+                                                        />
+                                                        <span className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${selectedCategory === null ? "font-semibold text-[#c4a84f]" : "text-[#3d2b00]"}`}>
+                                                            Tất cả loại sản phẩm
+                                                        </span>
+                                                    </label>
+                                                    {categories.length === 0 ? (
+                                                        <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] text-[#bbb] py-1 px-1 italic">Đang tải...</p>
+                                                    ) : (
+                                                        categories.map((cat) => (
+                                                            <label key={cat._id || cat.slug} className="flex cursor-pointer items-center gap-2.5 rounded-[2px] px-1 py-1.5 hover:bg-[#faf7f2] transition-colors">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="filter-category"
+                                                                    checked={selectedCategory === cat.slug}
+                                                                    onChange={() => setSelectedCategory(cat.slug)}
+                                                                    className="accent-[#c4a84f] w-3.5 h-3.5 cursor-pointer"
+                                                                />
+                                                                <span className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${selectedCategory === cat.slug ? "font-semibold text-[#c4a84f]" : "text-[#3d2b00]"}`}>
+                                                                    {cat.name}
+                                                                </span>
+                                                            </label>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
-                                    ))}
+
+                                        {/* ── BỘ SƯU TẬP (chuyển trang) ── */}
+                                        <div className="border-b border-[#f0e8d6]">
+                                            <button
+                                                onClick={() => toggleSection("collection")}
+                                                className="flex w-full items-center justify-between px-4 py-3 font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] font-semibold uppercase tracking-[1.5px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] transition-colors"
+                                            >
+                                                <span>Bộ sưu tập</span>
+                                                <span className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${expandedSection === "collection" ? "rotate-45" : ""}`}>+</span>
+                                            </button>
+                                            {expandedSection === "collection" && (
+                                                <div className="filter-accordion-content px-4 pb-3 flex flex-col gap-0.5 max-h-[200px] overflow-y-auto">
+                                                    {collections.length === 0 ? (
+                                                        <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] text-[#bbb] py-1 px-1 italic">Đang tải...</p>
+                                                    ) : (
+                                                        collections.map((col) => (
+                                                            <Link
+                                                                key={col._id || col.id}
+                                                                href={`/collections/${col.slug}`}
+                                                                onClick={() => setFilterOpen(false)}
+                                                                className={`block rounded-[2px] px-2 py-1.5 font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] no-underline transition-all hover:bg-[#faf7f2] hover:translate-x-0.5 ${col.slug === slug ? "font-semibold text-[#c4a84f] bg-[#faf7f2]" : "text-[#3d2b00]"}`}
+                                                            >
+                                                                {col.slug === slug ? "✓ " : "○ "}{col.name}
+                                                            </Link>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* ── KHOẢNG GIÁ (lọc in-place) ── */}
+                                        <div className="border-b border-[#f0e8d6]">
+                                            <button
+                                                onClick={() => toggleSection("price")}
+                                                className="flex w-full items-center justify-between px-4 py-3 font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] font-semibold uppercase tracking-[1.5px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] transition-colors"
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    Khoảng giá
+                                                    {priceRange && <span className="h-1.5 w-1.5 rounded-full bg-[#c4a84f]" />}
+                                                </span>
+                                                <span className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${expandedSection === "price" ? "rotate-45" : ""}`}>+</span>
+                                            </button>
+                                            {expandedSection === "price" && (
+                                                <div className="filter-accordion-content px-4 pb-4 flex flex-col gap-1.5">
+                                                    <label className="flex cursor-pointer items-center gap-2.5 rounded-[2px] px-1 py-1.5 hover:bg-[#faf7f2] transition-colors">
+                                                        <input
+                                                            type="radio"
+                                                            name="filter-price"
+                                                            checked={priceRange === null}
+                                                            onChange={() => { setPriceRange(null); setCustomMin(""); setCustomMax(""); }}
+                                                            className="accent-[#c4a84f] w-3.5 h-3.5 cursor-pointer"
+                                                        />
+                                                        <span className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${priceRange === null ? "font-semibold text-[#c4a84f]" : "text-[#3d2b00]"}`}>Tất cả mức giá</span>
+                                                    </label>
+                                                    {PRICE_PRESETS.map((preset, i) => {
+                                                        const isActive = priceRange?.min === preset.min && priceRange?.max === preset.max;
+                                                        return (
+                                                            <label key={i} className="flex cursor-pointer items-center gap-2.5 rounded-[2px] px-1 py-1.5 hover:bg-[#faf7f2] transition-colors">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="filter-price"
+                                                                    checked={isActive}
+                                                                    onChange={() => { setPriceRange({ min: preset.min, max: preset.max }); setCustomMin(""); setCustomMax(""); }}
+                                                                    className="accent-[#c4a84f] w-3.5 h-3.5 cursor-pointer"
+                                                                />
+                                                                <span className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${isActive ? "font-semibold text-[#c4a84f]" : "text-[#3d2b00]"}`}>{preset.label}</span>
+                                                            </label>
+                                                        );
+                                                    })}
+
+                                                    {/* Tự nhập khoảng giá */}
+                                                    <div className="mt-2.5 border-t border-[#f0e8d6] pt-3">
+                                                        <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-[10px] uppercase tracking-[1.5px] text-[#888] mb-2">Tự chọn khoảng giá (đ)</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="number"
+                                                                placeholder="Từ"
+                                                                value={customMin}
+                                                                onChange={(e) => setCustomMin(e.target.value)}
+                                                                className="w-full rounded-[2px] border border-[#ddd] px-2 py-1.5 text-xs outline-none transition-colors focus:border-[#c4a84f] font-['Cormorant_Garamond',_Georgia,_serif]"
+                                                            />
+                                                            <span className="text-[#bbb] text-[10px]">—</span>
+                                                            <input
+                                                                type="number"
+                                                                placeholder="Đến"
+                                                                value={customMax}
+                                                                onChange={(e) => setCustomMax(e.target.value)}
+                                                                className="w-full rounded-[2px] border border-[#ddd] px-2 py-1.5 text-xs outline-none transition-colors focus:border-[#c4a84f] font-['Cormorant_Garamond',_Georgia,_serif]"
+                                                            />
+                                                        </div>
+                                                        <button
+                                                            onClick={applyCustomPrice}
+                                                            className="mt-2 w-full rounded-[2px] border border-[#c4a84f] bg-transparent py-1.5 font-['Cormorant_Garamond',_Georgia,_serif] text-[11px] uppercase tracking-[1.5px] text-[#8b6914] cursor-pointer transition-all hover:bg-[#c4a84f] hover:text-white"
+                                                        >
+                                                            Áp dụng
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* ── CÁC MỤC CHƯA TRIỂN KHAI ── */}
+                                        {["Phong cách thiết kế", "Chất liệu", "Sản phẩm lẻ/Bộ", "Mục đích sử dụng"].map((title) => (
+                                            <div key={title} className="border-b border-[#f0e8d6] last:border-b-0">
+                                                <div className="flex items-center justify-between px-4 py-3 opacity-40 cursor-not-allowed">
+                                                    <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] uppercase tracking-[1.5px] text-[#2c1a00]">{title}</span>
+                                                    <span className="text-[16px] text-[#c4a84f]">+</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
@@ -241,19 +484,15 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                                 <select
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value)}
-                                    className="font-['Cormorant_Garamond',_Georgia,_serif] min-w-[140px] cursor-pointer rounded-[2px] border border-[#ddd] bg-white px-3 py-2 text-[13px] text-[#3d2b00] outline-none"
-
+                                    className="font-['Cormorant_Garamond',_Georgia,_serif] min-w-[140px] cursor-pointer rounded-[2px] border border-[#ddd] bg-white px-3 py-2 text-[13px] text-[#3d2b00] outline-none hover:border-[#c4a84f] transition-colors"
                                 >
-                                    <option value="productName-asc">Tên: A-Z</option>
-                                    <option value="productName-desc">Tên: Z-A</option>
-                                    <option value="newPrice-asc">Giá: Thấp → Cao</option>
-                                    <option value="newPrice-desc">Giá: Cao → Thấp</option>
-                                    <option value="newest">Mới nhất</option>
+                                    {sortOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
                     </div>
-
 
                     {/* Grid sản phẩm */}
                     {loading ? (
@@ -263,14 +502,21 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                             ))}
                         </div>
                     ) : products.length === 0 ? (
-                        /* Empty state */
                         <div className="py-20 text-center">
-                            <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-lg tracking-wider text-[#aaa]">
-                                Chưa có sản phẩm trong danh mục này
+                            <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-lg tracking-wider text-[#aaa] mb-3">
+                                {hasActiveFilters ? "Không tìm thấy sản phẩm phù hợp với bộ lọc đã chọn" : "Chưa có sản phẩm trong bộ sưu tập này"}
                             </p>
+                            {hasActiveFilters && (
+                                <button
+                                    onClick={clearAllFilters}
+                                    className="font-['Cormorant_Garamond',_Georgia,_serif] mt-2 inline-block rounded-[2px] border border-[#c4a84f] px-6 py-2.5 text-[12px] uppercase tracking-[2px] text-[#8b6914] hover:bg-[#c4a84f] hover:text-white transition-all cursor-pointer bg-transparent mr-3"
+                                >
+                                    Xóa bộ lọc
+                                </button>
+                            )}
                             <Link
                                 href="/collections"
-                                className="font-['Cormorant_Garamond',_Georgia,_serif] mt-5 inline-block rounded-[2px] bg-[#c4a84f] px-8 py-3 text-[13px] uppercase tracking-[2px] text-white no-underline"
+                                className="font-['Cormorant_Garamond',_Georgia,_serif] mt-5 inline-block rounded-[2px] bg-[#c4a84f] px-8 py-3 text-[13px] uppercase tracking-[2px] text-white no-underline hover:bg-[#a8893d] transition-colors"
                             >
                                 Xem tất cả bộ sưu tập
                             </Link>

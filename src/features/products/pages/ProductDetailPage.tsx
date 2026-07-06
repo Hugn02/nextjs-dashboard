@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchProductBySlug, fetchRelatedProducts, fetchProducts } from "../services/product.service";
+import { fetchProductBySlug, fetchProducts } from "../services/product.service";
 import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
 
@@ -49,42 +49,40 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
 
                     // Resolve category name and slug
                     if (fetchedProduct.category) {
-                        try {
-                            const catRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
-                            if (catRes.ok) {
-                                const catData = await catRes.json();
-                                const cats = Array.isArray(catData) ? catData : (catData.data || []);
-                                const found = cats.find((c: any) => c.id === fetchedProduct.category || c._id === fetchedProduct.category);
-                                if (found) setCategoryInfo({ name: found.name, slug: found.slug });
-                            }
-                        } catch { /* ignore */ }
+                        fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${fetchedProduct.category}`)
+                            .then(res => res.ok ? res.json() : Promise.reject())
+                            .then(catData => {
+                                const category = catData.data || catData;
+                                if (category) setCategoryInfo({ name: category.name, slug: category.slug });
+                            })
+                            .catch(err => console.error("Failed to fetch category info:", err));
                     }
 
                     // Resolve collection name and slug
                     if (fetchedProduct.collection) {
-                        try {
-                            const colRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections`);
-                            if (colRes.ok) {
-                                const colData = await colRes.json();
-                                const cols = Array.isArray(colData) ? colData : (colData.data || []);
-                                const found = cols.find((c: any) => c.id === fetchedProduct.collection || c._id === fetchedProduct.collection);
-                                if (found) setCollectionInfo({ name: found.name, slug: found.slug });
-                            }
-                        } catch { /* ignore */ }
+                        fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections/${fetchedProduct.collection}`)
+                            .then(res => res.ok ? res.json() : Promise.reject())
+                            .then(colData => {
+                                const collection = colData.data || colData;
+                                if (collection) setCollectionInfo({ name: collection.name, slug: collection.slug });
+                            })
+                            .catch(err => console.error("Failed to fetch collection info:", err));
                     }
 
                     // Fetch related products: only from the same collection
                     try {
-                        let relatedProducts: Product[] = [];
                         if (fetchedProduct.collection) {
-                            const related = await fetchRelatedProducts({
+                            const { products: related } = await fetchProducts({
                                 collection: fetchedProduct.collection,
-                                limit: 5
+                                limit: 5, // Lấy 5 sản phẩm
+                                status: 'active'
                             });
+                            // Lọc sản phẩm hiện tại ra và chỉ lấy 4 sản phẩm
                             const filteredRelated = related.filter(item => item.id !== fetchedProduct.id);
-                            relatedProducts = filteredRelated.slice(0, 4);
+                            setRelatedProducts(filteredRelated.slice(0, 4));
+                        } else {
+                            setRelatedProducts([]);
                         }
-                        setRelatedProducts(relatedProducts);
                     } catch (relatedErr) {
                         console.error("Failed to fetch related products:", relatedErr);
                         // In case of an error, ensure related products are empty

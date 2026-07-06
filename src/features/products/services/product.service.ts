@@ -10,6 +10,8 @@ export interface FetchProductsQuery {
     isFeatured?: boolean;
     sortOrder?: 'asc' | 'desc';
     status?: 'active' | 'hidden';
+    minPrice?: number;
+    maxPrice?: number;
 }
 
 export interface FetchProductsResponse {
@@ -61,6 +63,8 @@ export const fetchProducts = async (query: FetchProductsQuery): Promise<FetchPro
     if (query.sortOrder) params.append('sortOrder', query.sortOrder);
     if (query.isFeatured !== undefined) params.append('isFeatured', String(query.isFeatured));
     if (query.status) params.append('status', query.status);
+    if (query.minPrice !== undefined) params.append('minPrice', String(query.minPrice));
+    if (query.maxPrice !== undefined) params.append('maxPrice', String(query.maxPrice));
 
     const url = `${API_URL}?${params.toString()}`;
     console.log("Fetching products from:", url);
@@ -99,25 +103,4 @@ export const fetchProductBySlug = async (slug: string): Promise<Product | null> 
         return mapProductData(rawProducts[0]);
     }
     return product ? mapProductData(product) : null;
-};
-
-export const fetchRelatedProducts = async (query: { category?: string; collection?: string; brand?: string; limit?: number }): Promise<Product[]> => {
-    const params = new URLSearchParams();
-    if (query.collection) params.append('collection', query.collection);
-    else if (query.category) params.append('category', query.category);
-    if (query.brand) params.append('brand', query.brand);
-    if (query.limit) params.append('limit', String(query.limit));
-    params.append('status', 'active');
-
-    const url = `${API_URL}?${params.toString()}`;
-    console.log("Fetching related products from:", url);
-
-    const res = await fetch(url);
-    if (!res.ok) {
-        throw new Error(`Failed to fetch related products: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    const rawProducts = Array.isArray(data) ? data : data.data?.products || data.data || [];
-    return rawProducts.map(mapProductData);
 };

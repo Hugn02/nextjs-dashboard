@@ -68,6 +68,7 @@ export default function Navbar() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Effect để lấy dữ liệu menu (chỉ chạy một lần khi component mount)
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -100,18 +101,8 @@ export default function Navbar() {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const response = await res.json();
         const collections: Category[] = Array.isArray(response) ? response : (response.data || []);
-        const collectionChildren: SubMenuItem[] = collections.map((col) => ({
-          label: col.name,
-          href: `/collections/${col.slug}`
-        }));
-        setMenuItems(prevItems => {
-          const newItems = [...prevItems];
-          const collectionIndex = newItems.findIndex(item => item.label === "Bộ sưu tập");
-          if (collectionIndex !== -1) {
-            newItems[collectionIndex] = { ...newItems[collectionIndex], children: collectionChildren };
-          }
-          return newItems;
-        });
+        const collectionChildren: SubMenuItem[] = collections.map((col) => ({ label: col.name, href: `/collections/${col.slug}` }));
+        setMenuItems(prevItems => prevItems.map(item => item.label === "Bộ sưu tập" ? { ...item, children: collectionChildren } : item));
       } catch (error) {
         console.error("Lỗi khi lấy bộ sưu tập:", error instanceof Error ? error.message : error);
       }
@@ -119,7 +110,10 @@ export default function Navbar() {
 
     fetchCategories();
     fetchCollections();
+  }, []); // Mảng rỗng đảm bảo effect này chỉ chạy một lần
 
+  useEffect(() => {
+    // Effect này chỉ để kiểm tra lại trạng thái đăng nhập khi modal thay đổi
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
   }, [activeModal]);
