@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { fetchProducts } from "../services/product.service";
 import { Product } from "../types/product.type";
 import ProductCard from "./ProductCard"; // Import ProductCard chung
@@ -17,6 +17,7 @@ import 'swiper/css/pagination';
 interface Collection {
   id: string;
   _id?: string;
+  slug: string;
   name: string;
 }
 
@@ -54,7 +55,7 @@ export default function ProductSection() {
             status: 'active',
             sortBy: 'createdAt',
             sortOrder: 'desc',
-            limit: 12, // Tải nhiều sản phẩm hơn để slider có nội dung
+            limit: 15, // Tải 15 sản phẩm để phù hợp với 5 sản phẩm/slide
           }),
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections`)
         ]);
@@ -75,6 +76,18 @@ export default function ProductSection() {
     };
     loadProducts();
   }, []);
+
+  // Ánh xạ ID bộ sưu tập sang tên bộ sưu tập cho mỗi sản phẩm
+  const productsWithCollectionName = useMemo(() => {
+    if (!collections.length || !products.length) return products;
+
+    const collectionMap = new Map(collections.map(c => [c.id || c._id, c.name]));
+
+    return products.map(p => ({
+      ...p,
+      collection: p.collection ? collectionMap.get(p.collection) || undefined : undefined
+    }));
+  }, [products, collections]);
 
   return (
     <section className="bg-[#faf7f2] py-[60px]">
@@ -97,8 +110,8 @@ export default function ProductSection() {
           </Link>
         </div>
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {Array.from({ length: 4 }).map((_, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+            {Array.from({ length: 5 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))
             }
@@ -119,11 +132,11 @@ export default function ProductSection() {
             breakpoints={{
               640: { slidesPerView: 2, spaceBetween: 20 },
               768: { slidesPerView: 3, spaceBetween: 20 },
-              1024: { slidesPerView: 4, spaceBetween: 20 },
+              1024: { slidesPerView: 5, spaceBetween: 20 },
             }}
             className="!pb-12" // Thêm padding-bottom để chứa pagination
           >
-            {products.map((p) => (
+            {productsWithCollectionName.map((p) => (
               <SwiperSlide key={p.id}>
                 <ProductCard product={p} />
               </SwiperSlide>
