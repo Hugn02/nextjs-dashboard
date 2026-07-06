@@ -108,8 +108,25 @@ export default function Navbar() {
       }
     };
 
+    const fetchFunctions = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/functions?isActive=true`);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const response = await res.json();
+        const functions: Category[] = Array.isArray(response) ? response : (response.data || []);
+        const functionChildren: SubMenuItem[] = functions.map((func) => ({
+          label: func.name,
+          href: `/functions/${func.slug}`
+        }));
+        setMenuItems(prevItems => prevItems.map(item => item.label === "Chức năng" ? { ...item, children: functionChildren } : item));
+      } catch (error) {
+        console.error("Lỗi khi lấy chức năng:", error instanceof Error ? error.message : error);
+      }
+    };
+
     fetchCategories();
     fetchCollections();
+    fetchFunctions();
   }, []); // Mảng rỗng đảm bảo effect này chỉ chạy một lần
 
   useEffect(() => {

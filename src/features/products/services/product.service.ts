@@ -4,6 +4,7 @@ export interface FetchProductsQuery {
     slug?: string;
     category?: string;
     collection?: string;
+    function?: string;
     limit?: number;
     page?: number;
     sortBy?: string;
@@ -57,6 +58,7 @@ export const fetchProducts = async (query: FetchProductsQuery): Promise<FetchPro
 
     if (query.category) params.append('category', query.category);
     if (query.collection) params.append('collection', query.collection);
+    if (query.function) params.append('function', query.function);
     if (query.limit) params.append('limit', String(query.limit));
     if (query.page) params.append('page', String(query.page));
     if (query.sortBy) params.append('sortBy', query.sortBy);

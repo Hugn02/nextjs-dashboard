@@ -31,5 +31,7 @@ export interface Product {
     status?: string;
     isFeatured?: boolean;
     category?: string;
+    /** Array of function IDs assigned to this product */
+    functions?: string[];
     specifications?: { label: string; value: string }[];
 }
