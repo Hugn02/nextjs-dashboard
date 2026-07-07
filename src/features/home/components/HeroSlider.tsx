@@ -5,12 +5,12 @@ import { useState, useEffect } from "react";
 const HERO_SLIDES = [
   {
     id: 1,
-    image: "/assets/slide3.png",
+    image: "/assets/slide1.png",
     alt: "Bộ sưu tập Cửu Ngư",
   },
   {
     id: 2,
-    image: "/assets/slide4.png",
+    image: "/assets/slide2.png",
     alt: "Bình Tài Lộc 2026",
   },
 ];

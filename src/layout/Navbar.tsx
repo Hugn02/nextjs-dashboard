@@ -33,20 +33,9 @@ const initialMenuItems: MenuItem[] = [
   },
   {
     label: "Chức năng",
-    children: [
-      { label: "Dùng hàng ngày", href: "#" },
-      { label: "Trang trí", href: "#" },
-      { label: "Quà tặng", href: "#" },
-    ],
+    children: [], // Sẽ được điền dữ liệu từ API
   },
-  {
-    label: "Quà tặng",
-    children: [
-      { label: "Quà cưới", href: "#" },
-      { label: "Quà tân gia", href: "#" },
-      { label: "Quà sinh nhật", href: "#" },
-    ],
-  },
+
   {
     label: "Khách hàng doanh nghiệp",
     children: [
@@ -54,7 +43,7 @@ const initialMenuItems: MenuItem[] = [
       { label: "In logo theo yêu cầu", href: "#" },
     ],
   },
-  { label: "Gift Voucher", href: "#" },
+
   { label: "Tin tức", href: "#" },
   { label: "Về chúng tôi", href: "#" },
 ];
@@ -167,7 +156,7 @@ export default function Navbar() {
             className="flex items-center justify-center lg:justify-start no-underline lg:w-[220px] shrink-0"
           >
             <img
-              src="/assets/logo.png"
+              src="/assets/logo2.png"
               alt="Bát Tràng"
               className="h-[36px] md:h-[54px] w-auto object-contain"
             />

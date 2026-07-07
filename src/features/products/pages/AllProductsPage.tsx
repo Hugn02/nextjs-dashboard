@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { fetchProducts } from '../services/product.service';
 import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
+import ProductFilter, { ActiveFilters } from "../components/ProductFilter";
+import { useProductFilterOptions } from "../hooks/useProductFilterOptions";
 
 function SkeletonCard() {
     return (
@@ -39,7 +41,13 @@ export default function AllProductsPage() {
     const [page, setPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
 
-    // Load initial products when component mounts or sortBy changes
+    // Filters hook & local state
+    const { collections, categories } = useProductFilterOptions();
+    const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [priceRange, setPriceRange] = useState<{ min?: number; max?: number } | null>(null);
+
+    // Load initial products when component mounts or sortBy/filters change
     useEffect(() => {
         const loadInitialProducts = async () => {
             setLoading(true);
@@ -48,6 +56,10 @@ export default function AllProductsPage() {
 
             try {
                 const { products: fetchedProducts, totalCount: count } = await fetchProducts({
+                    category: selectedCategory || undefined,
+                    collection: selectedCollection || undefined,
+                    minPrice: priceRange?.min,
+                    maxPrice: priceRange?.max,
                     sortBy: sortField === 'newest' ? 'createdAt' : sortField,
                     sortOrder: sortField === 'newest' ? 'desc' : (sortDirection as 'asc' | 'desc'),
                     limit: LIMIT,
@@ -66,7 +78,7 @@ export default function AllProductsPage() {
         };
 
         loadInitialProducts();
-    }, [sortBy]);
+    }, [sortBy, selectedCategory, selectedCollection, priceRange]);
 
     // Load more products when button clicked
     const handleLoadMore = async () => {
@@ -77,6 +89,10 @@ export default function AllProductsPage() {
 
         try {
             const { products: fetchedProducts } = await fetchProducts({
+                category: selectedCategory || undefined,
+                collection: selectedCollection || undefined,
+                minPrice: priceRange?.min,
+                maxPrice: priceRange?.max,
                 sortBy: sortField === 'newest' ? 'createdAt' : sortField,
                 sortOrder: sortField === 'newest' ? 'desc' : (sortDirection as 'asc' | 'desc'),
                 limit: LIMIT,
@@ -96,10 +112,23 @@ export default function AllProductsPage() {
     const hasMore = products.length < totalCount;
     const bannerImage = "/assets/category3.png";
 
+    const clearAllFilters = () => {
+        setSelectedCategory(null);
+        setSelectedCollection(null);
+        setPriceRange(null);
+    };
+
     return (
         <>
             <style jsx global>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap');
+                .filter-accordion-content {
+                    animation: filterFadeIn 0.18s ease-out;
+                }
+                @keyframes filterFadeIn {
+                    from { opacity: 0; transform: translateY(-4px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
             `}</style>
 
             {/* Banner */}
@@ -131,23 +160,51 @@ export default function AllProductsPage() {
                         Sản phẩm của chúng tôi
                     </h1>
 
+                    {/* Active filter tags */}
+                    <ActiveFilters
+                        categories={categories}
+                        collections={collections}
+                        selectedCategory={selectedCategory}
+                        setSelectedCategory={setSelectedCategory}
+                        selectedCollection={selectedCollection}
+                        setSelectedCollection={setSelectedCollection}
+                        priceRange={priceRange}
+                        setPriceRange={setPriceRange}
+                        clearAllFilters={clearAllFilters}
+                    />
+
                     {/* Toolbar */}
                     <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-[#f0e8d6] pb-4">
                         <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[14px] text-[#888]">
                             {loading ? "Đang tải..." : `${totalCount} sản phẩm`}
                         </span>
 
-                        <div className="flex items-center gap-2">
-                            <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] text-[#888]">Sắp xếp:</span>
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                                className="font-['Cormorant_Garamond',_Georgia,_serif] min-w-[150px] cursor-pointer rounded-[2px] border border-[#ddd] bg-white px-3 py-2 text-[13px] text-[#3d2b00] outline-none transition-colors hover:border-[#c4a84f]"
-                            >
-                                {sortOptions.map(opt => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
+                        <div className="relative flex items-center gap-4">
+                            {/* Nút bộ lọc & Dropdown */}
+                            <ProductFilter
+                                categories={categories}
+                                collections={collections}
+                                selectedCategory={selectedCategory}
+                                setSelectedCategory={setSelectedCategory}
+                                selectedCollection={selectedCollection}
+                                setSelectedCollection={setSelectedCollection}
+                                priceRange={priceRange}
+                                setPriceRange={setPriceRange}
+                            />
+
+                            {/* Sắp xếp */}
+                            <div className="flex items-center gap-2">
+                                <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] text-[#888]">Sắp xếp:</span>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className="font-['Cormorant_Garamond',_Georgia,_serif] min-w-[150px] cursor-pointer rounded-[2px] border border-[#ddd] bg-white px-3 py-2 text-[13px] text-[#3d2b00] outline-none transition-colors hover:border-[#c4a84f]"
+                                >
+                                    {sortOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                     </div>
 
