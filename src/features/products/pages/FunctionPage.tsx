@@ -71,6 +71,8 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
     const [loading, setLoading] = useState(true);
     const [sortBy, setSortBy] = useState("productName-asc");
     const [filterOpen, setFilterOpen] = useState(false);
+    const [page, setPage] = useState(1);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
 
     // Filters
@@ -82,6 +84,8 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
     const [customMin, setCustomMin] = useState<string>("");
     const [customMax, setCustomMax] = useState<string>("");
     const [expandedSection, setExpandedSection] = useState<string | null>("category");
+
+    const LIMIT = 24;
 
     const filterRef = useRef<HTMLDivElement>(null);
 
@@ -149,6 +153,7 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
     useEffect(() => {
         if (!slug) return;
         const loadProducts = async () => {
+            setPage(1); // Reset page
             setLoading(true);
             const [sortField, sortDirection] = sortBy.split('-');
             try {
@@ -160,7 +165,8 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
                     maxPrice: priceRange?.max,
                     sortBy: sortField === 'newest' ? 'createdAt' : sortField,
                     sortOrder: sortField === 'newest' ? 'desc' : (sortDirection as 'asc' | 'desc'),
-                    limit: 20,
+                    limit: LIMIT,
+                    page: 1,
                     status: 'active',
                 });
                 setProducts(fetchedProducts);
@@ -168,12 +174,41 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
             } catch (err) {
                 console.error("Lỗi fetch products:", err);
                 setProducts([]);
+                setTotalCount(0);
             } finally {
                 setLoading(false);
             }
         };
         loadProducts();
     }, [slug, sortBy, selectedCollection, selectedCategory, priceRange]);
+
+    const handleLoadMore = async () => {
+        if (loadingMore || products.length >= totalCount) return;
+        setLoadingMore(true);
+        const nextPage = page + 1;
+        const [sortField, sortDirection] = sortBy.split('-');
+
+        try {
+            const { products: fetchedProducts } = await fetchProducts({
+                function: slug,
+                category: selectedCategory || undefined,
+                collection: selectedCollection || undefined,
+                minPrice: priceRange?.min,
+                maxPrice: priceRange?.max,
+                sortBy: sortField === 'newest' ? 'createdAt' : sortField,
+                sortOrder: sortField === 'newest' ? 'desc' : (sortDirection as 'asc' | 'desc'),
+                limit: LIMIT,
+                page: nextPage,
+                status: 'active',
+            });
+            setProducts(prev => [...prev, ...fetchedProducts]);
+            setPage(nextPage);
+        } catch (err) {
+            console.error("Lỗi fetch more products:", err);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
     const functionName = func?.name || (slug || "").replace(/-/g, " ").toUpperCase();
     const bannerImage = "/assets/category2.png";
@@ -509,11 +544,24 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 sm:gap-6">
-                            {products.map((product) => (
-                                <ProductCard key={product.id} product={product} />
-                            ))}
+                            {products.map((product) => <ProductCard key={product._id || product.id} product={product} />)}
                         </div>
                     )}
+
+                    {/* Load More Button */}
+                    {!loading && products.length > 0 && products.length < totalCount && (
+                        <div className="mt-12 flex justify-center">
+                            <button
+                                onClick={handleLoadMore}
+                                disabled={loadingMore}
+                                className="font-['Cormorant_Garamond',_Georgia,_serif] cursor-pointer rounded-[2px] border border-[#c4a84f] bg-white px-8 py-3 text-xs uppercase tracking-[2px] text-[#8b6914] transition-all hover:bg-[#c4a84f] hover:text-white disabled:opacity-50"
+                            >
+                                {loadingMore ? "Đang tải..." : "Xem thêm sản phẩm"}
+                            </button>
+                        </div>
+                    )}
+
+
 
                 </div>
             </main>

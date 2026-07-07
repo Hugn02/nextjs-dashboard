@@ -65,6 +65,8 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
     const [loading, setLoading] = useState(true);
     const [sortBy, setSortBy] = useState("productName-asc");
     const [filterOpen, setFilterOpen] = useState(false);
+    const [page, setPage] = useState(1);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
 
     // ── Bộ lọc động ──────────────────────────────────────────────
@@ -75,6 +77,8 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
     const [customMin, setCustomMin] = useState<string>("");
     const [customMax, setCustomMax] = useState<string>("");
     const [expandedSection, setExpandedSection] = useState<string | null>("collection");
+
+    const LIMIT = 24;
 
     const filterRef = useRef<HTMLDivElement>(null);
 
@@ -142,6 +146,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
     useEffect(() => {
         if (!slug) return;
         const loadProducts = async () => {
+            setPage(1); // Reset page to 1 on any filter change
             setLoading(true);
             const [sortField, sortDirection] = sortBy.split('-');
             try {
@@ -152,7 +157,8 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                     maxPrice: priceRange?.max,
                     sortBy: sortField === 'newest' ? 'createdAt' : sortField,
                     sortOrder: sortField === 'newest' ? 'desc' : (sortDirection as 'asc' | 'desc'),
-                    limit: 20,
+                    limit: LIMIT,
+                    page: 1,
                     status: 'active',
                 });
                 setProducts(fetchedProducts);
@@ -160,12 +166,40 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
             } catch (err) {
                 console.error("Lỗi fetch products:", err);
                 setProducts([]);
+                setTotalCount(0);
             } finally {
                 setLoading(false);
             }
         };
         loadProducts();
     }, [slug, sortBy, selectedCollection, priceRange]);
+
+    const handleLoadMore = async () => {
+        if (loadingMore || products.length >= totalCount) return;
+        setLoadingMore(true);
+        const nextPage = page + 1;
+        const [sortField, sortDirection] = sortBy.split('-');
+
+        try {
+            const { products: fetchedProducts } = await fetchProducts({
+                category: slug,
+                collection: selectedCollection || undefined,
+                minPrice: priceRange?.min,
+                maxPrice: priceRange?.max,
+                sortBy: sortField === 'newest' ? 'createdAt' : sortField,
+                sortOrder: sortField === 'newest' ? 'desc' : (sortDirection as 'asc' | 'desc'),
+                limit: LIMIT,
+                page: nextPage,
+                status: 'active',
+            });
+            setProducts(prev => [...prev, ...fetchedProducts]);
+            setPage(nextPage);
+        } catch (err) {
+            console.error("Lỗi fetch more products:", err);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
     const categoryName = category?.name || (slug || "").replace(/-/g, " ").toUpperCase();
     const categoryBanner = "/assets/category2.png";
@@ -513,9 +547,23 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                         </div>
                     ) : (
                         <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
-                            {products.map((p) => <ProductCard key={p.id} product={p} />)}
+                            {products.map((p) => <ProductCard key={p._id || p.id} product={p} />)}
                         </div>
                     )}
+
+                    {/* Load More Button */}
+                    {!loading && products.length > 0 && products.length < totalCount && (
+                        <div className="mt-12 flex justify-center">
+                            <button
+                                onClick={handleLoadMore}
+                                disabled={loadingMore}
+                                className="font-['Cormorant_Garamond',_Georgia,_serif] cursor-pointer rounded-[2px] border border-[#c4a84f] bg-white px-8 py-3 text-xs uppercase tracking-[2px] text-[#8b6914] transition-all hover:bg-[#c4a84f] hover:text-white disabled:opacity-50"
+                            >
+                                {loadingMore ? "Đang tải..." : "Xem thêm sản phẩm"}
+                            </button>
+                        </div>
+                    )}
+
                 </div>
             </main>
         </>

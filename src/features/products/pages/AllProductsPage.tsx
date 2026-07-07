@@ -29,7 +29,7 @@ const sortOptions = [
     { value: "newPrice-desc", label: "Giá: Cao → Thấp" },
 ];
 
-const LIMIT = 12;
+const LIMIT = 24;
 
 export default function AllProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
