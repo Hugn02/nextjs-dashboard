@@ -18,7 +18,7 @@ export default function Footer() {
       <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr] gap-x-5 gap-y-10">
         <div className="flex flex-col items-start text-left">
           <img
-            src="/assets/logo.png"
+            src="/assets/logo2.png"
             alt="Bát Tràng"
             className="h-8 md:h-10 mb-4"
           />

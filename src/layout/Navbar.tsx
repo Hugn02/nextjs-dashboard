@@ -44,7 +44,7 @@ const initialMenuItems: MenuItem[] = [
     ],
   },
 
-  { label: "Tin tức", href: "#" },
+  { label: "Tin tức", href: "/news" },
   { label: "Về chúng tôi", href: "#" },
 ];
 
