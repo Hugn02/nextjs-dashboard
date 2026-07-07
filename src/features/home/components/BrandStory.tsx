@@ -30,7 +30,7 @@ export default function BrandStory() {
         <div className="relative">
           <div className="absolute -inset-5 border border-[#c4a84f] rounded-[2px] opacity-40" />{" "}
           <Image
-            src="/assets/brand-story.jpg" // Đường dẫn tương đối từ thư mục public
+            src="/assets/brand-history.png" // Đường dẫn tương đối từ thư mục public
             alt="Làng gốm Bát Tràng xưa"
             width={500} // Cung cấp chiều rộng thực của ảnh
             height={600} // Cung cấp chiều cao thực của ảnh
