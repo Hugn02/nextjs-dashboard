@@ -53,7 +53,7 @@ export default function ArtisanSection() {
               {/* Experience badge */}
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-5 py-3 rounded-full shadow-lg border border-[#ede0c4] whitespace-nowrap">
                 <span className="font-['Cormorant_Garamond',_serif] text-[13px] text-[#8b6914] tracking-wider uppercase font-semibold">
-                  Hơn 600 năm truyền nghề
+                  Niềm đam mê với những màu men
                 </span>
               </div>
             </div>
