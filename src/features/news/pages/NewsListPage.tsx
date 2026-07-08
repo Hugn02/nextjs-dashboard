@@ -42,42 +42,30 @@ export default function NewsListPage() {
         loadArticles();
     }, []);
 
-    const bannerImage = "/assets/category2.png"; // reusing the banner image template
-
     return (
         <>
             <style jsx global>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap');
             `}</style>
 
-            {/* Banner */}
-            <div className="relative mt-[120px] h-[300px] w-full overflow-hidden hidden lg:block">
-                <Image
-                    src={bannerImage}
-                    alt="Tin tức"
-                    fill
-                    className="object-cover object-center"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/40" />
-            </div>
-
-            <main className="min-h-[80vh] bg-[#faf7f2] pb-24 pt-8 mt-[100px] lg:mt-0">
-                <div className="mx-auto max-w-[1200px] px-6">
-                    {/* Page Header */}
-                    <div className="hidden lg:block text-center pt-12 pb-10">
-                        <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] text-4xl font-light text-[#2c1a00] uppercase tracking-[4px]">Tin tức & Nghệ thuật gốm</h1>
-                        <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-[#888] text-sm tracking-widest mt-2 max-w-md italic mx-auto">Chia sẻ kiến thức, kỹ thuật làm gốm Bát Tràng và bí quyết gia đình</p>
-                    </div>
-
-                    {/* Breadcrumbs */}
-                    <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-8 border-b border-[#e6dcbf] pb-4 text-xs tracking-wider text-[#888]">
+            <main className="min-h-[80vh] bg-[#faf7f2] pb-24 mt-[120px]">
+                {/* Breadcrumbs */}
+                <div className="border-b border-[#e6dcbf] bg-white">
+                    <nav className="mx-auto max-w-[1200px] px-6 py-3 font-['Cormorant_Garamond',_Georgia,_serif] text-xs tracking-wider text-[#888]">
                         <Link href="/" className="text-[#888] no-underline hover:text-[#c4a84f] transition-colors">
                             Trang chủ
                         </Link>
                         <span className="mx-2">›</span>
                         <span className="text-[#2c1a00] font-semibold">Tin tức</span>
                     </nav>
+                </div>
+
+                <div className="mx-auto max-w-[1200px] px-6">
+                    {/* Page Header */}
+                    <div className="hidden lg:block text-center pt-12 pb-10">
+                        <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] text-4xl font-light text-[#2c1a00] uppercase tracking-[4px]">Tin tức & Nghệ thuật gốm</h1>
+                        <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-[#888] text-sm tracking-widest mt-2 max-w-md italic mx-auto">Chia sẻ kiến thức, kỹ thuật làm gốm Bát Tràng và bí quyết gia đình</p>
+                    </div>
 
                     {/* Mobile Title */}
                     <div className="lg:hidden text-center mb-8">
