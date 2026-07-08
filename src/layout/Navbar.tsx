@@ -36,16 +36,9 @@ const initialMenuItems: MenuItem[] = [
     children: [], // Sẽ được điền dữ liệu từ API
   },
 
-  {
-    label: "Khách hàng doanh nghiệp",
-    children: [
-      { label: "Quà tặng doanh nghiệp", href: "#" },
-      { label: "In logo theo yêu cầu", href: "#" },
-    ],
-  },
-
   { label: "Tin tức", href: "/news" },
-  { label: "Về chúng tôi", href: "#" },
+  { label: "Khách hàng doanh nghiệp", href: "/business" },
+  { label: "Về chúng tôi", href: "/about" },
 ];
 
 export default function Navbar() {
