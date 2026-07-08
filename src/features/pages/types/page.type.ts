@@ -4,7 +4,6 @@ export interface SitePage {
   title?: string
   subtitle?: string
   content?: string
-  banner?: string
   videoUrl?: string
   address?: string
   phone?: string
