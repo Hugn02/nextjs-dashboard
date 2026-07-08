@@ -5,7 +5,7 @@ export default function BrandStory() {
     <section className="bg-white py-20 border-t border-[#ede0c4]">
       <div className="max-w-[960px] mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
         <div>
-          <p className="text-[11px] tracking-[4px] text-[#c4a84f] font-['Cormorant_Garamond',_serif] uppercase mb-3">
+          <p className="text-[15px] tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-3">
             Di sản hơn 600 năm tồn tại và phát triển
           </p>
           <h2 className="text-[clamp(28px,3.5vw,40px)] font-['Cormorant_Garamond',_serif] font-light text-[#2c1a00] tracking-[1px] leading-[1.3] mb-5">
@@ -21,7 +21,7 @@ export default function BrandStory() {
             Qua các thế hệ, người dân Bát Tràng không chỉ giữ gìn kỹ thuật làm gốm mà còn sáng tạo ra nhiều loại hoa văn, họa tiết, màu men độc đáo, góp phần mang đậm bản sắc dân tộc nước ta lên các sản phẩm gốm sứ.
           </p>
           <a
-            href="/pages/lich-su-100-nam-hinh-thanh-va-phat-trien"
+            href="/news/lich-su-hinh-thanh-va-phat-trien-lang-gom-bat-trang"
             className="inline-block bg-gradient-to-br from-[#8b6914] to-[#c4a84f] text-white no-underline px-9 py-3.5 text-[12px] tracking-[2px] uppercase font-semibold transition-opacity hover:opacity-[0.88]"
           >
             Tìm hiểu thêm

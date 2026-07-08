@@ -73,7 +73,7 @@ export default function ProductSection() {
       <div className="max-w-[1280px] mx-auto px-6">
         <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
           <div>
-            <p className="text-[11px] tracking-[4px] text-[#c4a84f] font-['Cormorant_Garamond',_serif] uppercase mb-2">
+            <p className="text-[15px] tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">
               Nổi bật
             </p>
             <h2 className="text-[clamp(26px,3.5vw,38px)] font-['Cormorant_Garamond',_serif] font-light text-[#2c1a00] tracking-[2px] m-0">

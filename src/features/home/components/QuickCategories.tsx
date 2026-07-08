@@ -64,7 +64,7 @@ export default function QuickCategories() {
     <section className="bg-white pt-10 md:pt-[60px] pb-10 mt-[88px] md:mt-0">
       <div className="max-w-[1280px] mx-auto px-6">
         <div className="text-center mb-10">
-          <p className="text-[11px] tracking-[4px] text-[#c4a84f] font-['Cormorant_Garamond',_serif] uppercase mb-2">
+          <p className="text-[15px] tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">
             Khám phá
           </p>
           <h2 className="text-[clamp(28px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-light text-[#2c1a00] tracking-[2px] m-0">
@@ -101,7 +101,7 @@ export default function QuickCategories() {
                     (e.target as HTMLImageElement).src = `https://placehold.co/100x100/faf7f2/c4a84f?text=${encodeURIComponent(cat.name)}`;
                   }}
                 />
-                <span className="text-[12px] text-[#3d2b00] font-['Cormorant_Garamond',_serif] font-semibold text-center leading-[1.4]">
+                <span className="text-[14px] md:text-[15px] text-[#3d2b00] font-['Cormorant_Garamond',_serif] font-semibold text-center leading-[1.4]">
                   {cat.name}
                 </span>
               </a>

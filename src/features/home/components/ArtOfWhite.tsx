@@ -16,29 +16,26 @@ export default function ArtOfWhite() {
           {/* Cursive Title */}
           <div className="mb-3">
             <span className="font-['Alex_Brush',_cursive] text-[48px] md:text-[68px] text-[#4a3f35] leading-none block">
-              The Art of White
+              The Art of Fire
             </span>
           </div>
 
           {/* Subtitle with Gold Vertical Bar */}
           <div className="flex gap-3 mb-8 items-stretch">
             <div className="w-[3px] bg-[#c4a84f] shrink-0" />
-            <h3 className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] font-sans font-bold tracking-[2px] text-[#2c1a00] uppercase leading-tight sm:whitespace-nowrap">
-              Nghệ thuật của sứ màu trắng không họa tiết
+            <h3 className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] font-sans font-bold tracking-[2px] text-[#2c1a00] uppercase leading-tight">
+              Nghệ thuật men hỏa biến
             </h3>
           </div>
 
           {/* Paragraph and Action Button */}
           <div className="flex flex-col items-center">
             <p className="text-center text-[#554433] text-[15px] md:text-[16px] leading-[1.8] mb-8 font-sans max-w-[480px]">
-              Được thiết kế chuyên biệt để sử dụng trong các nhà hàng, khách sạn 5 sao
-              trên toàn thế giới. Nhiệt độ nung lên tới 1.460°C giúp loại bỏ hoàn toàn
-              kim loại nặng như chì và cadimi. Tiện sử dụng hàng ngày với máy rửa chén
-              và lò vi sóng.
+              Men hỏa biến là dòng men được tạo ra bởi sự tương tác hóa học giữa oxit kim loại và men nền trong môi trường nhiệt độ cao. Mỗi sản phẩm là một tác phẩm nghệ thuật độc nhất, không thể sao chép, mang vẻ đẹp của sự ngẫu hứng và biến ảo kỳ diệu từ lửa.
             </p>
 
             <a
-              href="/collections/su-trang-khong-hoa-tiet"
+              href="/collections/men-hoa-bien"
               className="inline-block bg-[#c4a84f] hover:bg-[#b0923a] text-white font-sans text-[11px] tracking-[2px] font-bold px-9 py-3.5 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               XEM THÊM NGAY

@@ -51,7 +51,7 @@ export default function FeaturedCollections() {
     <section className="bg-[#2c1a00] py-[72px]">
       <div className="max-w-[1280px] mx-auto px-6">
         <div className="text-center mb-12">
-          <p className="text-[11px] tracking-[4px] text-[#c4a84f] font-['Cormorant_Garamond',_serif] uppercase mb-2.5">
+          <p className="text-[15px] tracking-[4px] text-[#c4a84f] font-['Cormorant_Garamond',_serif] uppercase mb-2.5">
             Nổi bật
           </p>
           <h2 className="text-[clamp(28px,4vw,44px)] font-['Cormorant_Garamond',_serif] font-light text-[#fdf8ef] tracking-[3px] m-0">

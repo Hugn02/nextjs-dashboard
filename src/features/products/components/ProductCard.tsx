@@ -125,15 +125,14 @@ export default function ProductCard({ product }: { product: Product }) {
 
             {/* Thông tin sản phẩm */}
             <div className="flex flex-1 flex-col gap-1 p-[14px_14px_16px]">
-                {/* Tên collection nhỏ */}
+                 {/* Tên collection nhỏ */}
                 {collectionName && (
-                    <p className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 text-[10px] uppercase tracking-[1.5px] text-[#c4a84f]">
+                    <p className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 text-[10px] uppercase tracking-[1.5px] text-[#8b6914]">
                         {collectionName}
                     </p>
                 )}
 
-                {/* Tên sản phẩm */}
-                <h3 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 overflow-hidden text-[13px] font-semibold leading-[1.5] text-[#2c1a00] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3]">
+                <h3 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 overflow-hidden text-[13px] font-semibold leading-[1.5] text-[#2c1a00] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] h-[39px]">
                     {product.name}
                 </h3>
 
