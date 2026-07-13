@@ -226,8 +226,8 @@ export default function OrderDetailPage() {
                                 {/* Dot step */}
                                 <div
                                     className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 border-2 ${isCompleted
-                                            ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
-                                            : "bg-white border-gray-200 text-gray-400"
+                                        ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
+                                        : "bg-white border-gray-200 text-gray-400"
                                         } ${isActive ? "ring-4 ring-[#c4a84f]/20 scale-110" : ""}`}
                                 >
                                     <StepIcon className="w-5 h-5" />
@@ -348,7 +348,7 @@ export default function OrderDetailPage() {
                                                             </h4>
                                                             {p.sku && (
                                                                 <p className="text-[11px] font-mono text-gray-400 mt-0.5">
-                                                                    SKU: {p.sku}
+                                                                    Mã SP: {p.sku}
                                                                 </p>
                                                             )}
                                                             <p className="text-xs text-gray-400 mt-1 font-sans">
