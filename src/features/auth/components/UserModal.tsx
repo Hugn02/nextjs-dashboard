@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, ChangeEvent } from "react";
 import ModalWrapper from "@/src/components/ui/ModalWrapper";
 import { User } from "@/src/features/auth/types/auth.types";
@@ -142,10 +143,10 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
               </a>
             )}
 
-            <button className="w-full p-3 md:p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group">
+            <Link href="/orders/history" className="w-full p-3 md:p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group no-underline">
               <span className="text-xs md:text-sm font-semibold text-[#3d2b00] font-sans uppercase tracking-wider">Lịch sử đơn hàng</span>
               <span className="text-[#c4a84f] group-hover:translate-x-1 transition-transform">→</span>
-            </button>
+            </Link>
           </div>
 
           <button

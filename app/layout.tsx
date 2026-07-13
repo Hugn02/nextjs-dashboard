@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import ChatWidget from "@/src/layout/ChatWidget";
+import { CartProvider } from "@/src/features/cart/context/CartContext";
+import CartAddedNotification from "@/src/features/cart/components/CartAddedNotification";
 
 export const metadata: Metadata = {
   title: "Bát Tràng Vietnam — Sứ Cao Cấp Số 1 Việt Nam",
@@ -24,8 +26,11 @@ export default function RootLayout({
   return (
     <html lang="vi" className={cormorant.className}>
       <body className="antialiased bg-white text-[#2c1a00]">
-        {children}
-        <ChatWidget />
+        <CartProvider>
+          {children}
+          <ChatWidget />
+          <CartAddedNotification />
+        </CartProvider>
       </body>
     </html>
   );

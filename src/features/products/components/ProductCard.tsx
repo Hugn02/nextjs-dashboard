@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from "../types/product.type";
+import useCart from "../../cart/hooks/useCart";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatPrice(n: number) {
@@ -47,6 +48,10 @@ async function fetchAndCacheCollections(): Promise<Map<string, string>> {
 
 // ─── ProductCard ──────────────────────────────────────────────────────────────
 export default function ProductCard({ product }: { product: Product }) {
+    const { addItem } = useCart();
+    const [adding, setAdding] = useState(false);
+    const [showQty, setShowQty] = useState(false);   // sau click: hiện qty controls
+    const [qty, setQty] = useState(1);
     const [hovered, setHovered] = useState(false);
     const [imgError, setImgError] = useState(false);
     const [imgError2, setImgError2] = useState(false);
@@ -166,13 +171,100 @@ export default function ProductCard({ product }: { product: Product }) {
                     >
                         Liên hệ đặt hàng
                     </button>
-                ) : (
+                ) : !showQty ? (
+                    /* ── State 1: Nút "Thêm vào giỏ hàng" với sweep animation ── */
                     <button
-                        className="w-full cursor-pointer rounded-[2px] border-none bg-[#c4a84f] py-2.5 text-[11px] font-bold uppercase text-white transition-colors duration-200 hover:bg-[#a8893a]"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setShowQty(true);
+                        }}
+                        className="group relative w-full cursor-pointer overflow-hidden rounded-[30px] border border-[#d29f13] bg-[#d29f13] py-[9px] text-[11px] font-bold uppercase text-white transition-all duration-300"
                         style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: 1.5 }}
                     >
-                        Thêm vào giỏ hàng
+                        {/* White sweep — tự điền từ giữa ra */}
+                        <span className="absolute top-0 left-1/2 h-full w-0 -translate-x-1/2 bg-white transition-all duration-300 ease-out group-hover:w-[110%]" />
+                        {/* Text giữ nguyên, chỉ đổi màu */}
+                        <span className="relative transition-colors duration-300 ease-out group-hover:text-[#d29f13]">
+                            Thêm vào giỏ hàng
+                        </span>
                     </button>
+                ) : (
+                    /* ── State 2: Controls số lượng + icon giỏ hàng ── */
+                    <div
+                        className="flex items-center gap-2"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    >
+                        {/* Pill: - qty + */}
+                        <div className="flex flex-1 items-center justify-between rounded-[30px] border border-[#d29f13] overflow-hidden h-[38px] px-1">
+                            <button
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQty(q => Math.max(1, q - 1)); }}
+                                className="w-7 h-7 flex items-center justify-center bg-transparent border-none cursor-pointer text-[#d29f13] text-base font-bold hover:bg-[#fef9ec] rounded-full transition-colors"
+                            >
+                                -
+                            </button>
+                            <span className="text-sm font-semibold text-[#2c1a00] select-none" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
+                                {qty}
+                            </span>
+                            <button
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQty(q => q + 1); }}
+                                className="w-7 h-7 flex items-center justify-center bg-transparent border-none cursor-pointer text-[#d29f13] text-base font-bold hover:bg-[#fef9ec] rounded-full transition-colors"
+                            >
+                                +
+                            </button>
+                        </div>
+
+                        {/* Icon giỏ hàng — pill-circle với sweep animation */}
+                        <button
+                            onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (adding) return;
+                                setAdding(true);
+                                try {
+                                    await addItem(product.id || product._id, qty);
+                                    setQty(1);
+                                    setShowQty(false);
+                                    // Phát sự kiện — modal sẽ hiện ở app level
+                                    window.dispatchEvent(
+                                        new CustomEvent("cart-added", {
+                                            detail: { productName: product.name },
+                                        })
+                                    );
+                                } catch (err: any) {
+                                    alert(err.message || "Có lỗi xảy ra");
+                                } finally {
+                                    setAdding(false);
+                                }
+                            }}
+                            disabled={adding}
+                            className="group relative w-[38px] h-[38px] flex-shrink-0 overflow-hidden rounded-full border border-[#d29f13] bg-[#d29f13] cursor-pointer transition-all duration-300 disabled:opacity-50"
+                            title="Thêm vào giỏ hàng"
+                        >
+                            {/* Sweep white */}
+                            <span className="absolute top-0 left-1/2 h-full w-0 -translate-x-1/2 bg-white transition-all duration-300 ease-out group-hover:w-[160%]" />
+                            <span className="relative flex items-center justify-center w-full h-full">
+                                {adding ? (
+                                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin group-hover:border-[#d29f13] group-hover:border-t-transparent" />
+                                ) : (
+                                    <svg
+                                        width="16" height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className="text-white group-hover:text-[#d29f13] transition-colors duration-300"
+                                    >
+                                        <circle cx="9" cy="21" r="1"/>
+                                        <circle cx="20" cy="21" r="1"/>
+                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                    </svg>
+                                )}
+                            </span>
+                        </button>
+                    </div>
                 )}
             </div>
         </Link>

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { fetchProductBySlug, fetchProducts } from "../services/product.service";
 import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
+import useCart from "../../cart/hooks/useCart";
 
 
 interface ProductDetailPageProps {
@@ -19,6 +20,7 @@ function formatPrice(n: number) {
 
 // ─── Main Detail Page Component ──────────────────────────────────────────────
 export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
+    const { addItem } = useCart();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -125,10 +127,22 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     };
 
     // Add to cart toast display
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (!product) return;
-        setToastMessage(`Đã thêm ${quantity} sản phẩm vào giỏ hàng thành công!`);
-        setTimeout(() => setToastMessage(null), 3000);
+
+        try {
+            await addItem(product.id, quantity);
+
+            // Dispatch event for CartAddedNotification to show popup
+            window.dispatchEvent(
+                new CustomEvent("cart-added", {
+                    detail: { productName: product.name },
+                })
+            );
+        } catch (err: any) {
+            console.error("Failed to add to cart:", err);
+            setToastMessage(err.message || "Thêm vào giỏ hàng thất bại!");
+        }
     };
 
     // ─── Image Drag/Swipe Handlers ──────────────────────────────────────────────

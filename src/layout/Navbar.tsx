@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import UserModal from "../features/auth/components/UserModal";
 import CartModal from "../features/cart/components/CartModal";
 import SearchModal from "../features/search/components/SearchModal";
+import useCart from "../features/cart/hooks/useCart";
 
 type Category = {
   _id: string;
@@ -42,6 +43,7 @@ const initialMenuItems: MenuItem[] = [
 ];
 
 export default function Navbar() {
+  const { cartCount } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [activeModal, setActiveModal] = useState<
     "search" | "user" | "cart" | null
@@ -178,10 +180,9 @@ export default function Navbar() {
                       <a
                         key={child.label}
                         href={child.href || "#"}
-                        className="flex items-center justify-between px-[18px] py-3.5 text-[#4a4a4a] no-underline text-base font-['Cormorant_Garamond',_serif] font-medium whitespace-nowrap transition-colors hover:bg-[#f7f3eb]"
+                        className="flex items-center px-[18px] py-3.5 text-[#4a4a4a] no-underline text-base font-['Cormorant_Garamond',_serif] font-medium whitespace-nowrap transition-colors hover:bg-[#f7f3eb]"
                       >
                         <span>{child.label}</span>
-                        <span className="text-lg text-[#666]">›</span>
                       </a>
                     ))}
                   </div>
@@ -217,9 +218,9 @@ export default function Navbar() {
               className={`relative bg-none border-none cursor-pointer w-7 text-center transition-all duration-300 ${activeModal === "cart" ? "text-2xl text-[#c4a84f] rotate-90" : "text-[20px] text-[#3d2b00]"}`}
             >
               {activeModal === "cart" ? "✕" : "🛒"}
-              {activeModal !== "cart" && (
+              {activeModal !== "cart" && cartCount > 0 && (
                 <span className="absolute -top-1.5 -right-2 bg-[#c4a84f] text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-bold">
-                  0
+                  {cartCount}
                 </span>
               )}
             </button>
