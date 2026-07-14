@@ -37,6 +37,12 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     const [startY, setStartY] = useState(0);
     const [dragOffset, setDragOffset] = useState(0);
     const [useTransition, setUseTransition] = useState(true);
+    const [reviews, setReviews] = useState<any[]>([]);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [ratingFilter, setRatingFilter] = useState<string | number>("all");
+    const [currentPage, setCurrentPage] = useState(1);
+    const REVIEWS_PER_PAGE = 5;
+
     // Fetch product details
     useEffect(() => {
         if (!slug) return;
@@ -106,6 +112,90 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
         setQuantityError(null);
         setActiveImageIndex(0);
     }, [slug]);
+
+    // Fetch reviews when product is loaded
+    useEffect(() => {
+        if (!product?.id) return;
+
+        const loadReviews = async () => {
+            setReviewsLoading(true);
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews?product=${product.id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setReviews(data);
+                }
+            } catch (err) {
+                console.error("Failed to load reviews:", err);
+            } finally {
+                setReviewsLoading(false);
+            }
+        };
+
+        loadReviews();
+    }, [product?.id]);
+
+    const { averageRating, totalReviews, counts, filteredReviews, paginatedReviews, totalPages } = useMemo(() => {
+        if (reviews.length === 0) {
+            return {
+                averageRating: 0,
+                totalReviews: 0,
+                counts: { all: 0, 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+                filteredReviews: [],
+                paginatedReviews: [],
+                totalPages: 1
+            };
+        }
+        const sum = reviews.reduce((acc, curr) => acc + curr.rating, 0);
+        const average = parseFloat((sum / reviews.length).toFixed(1));
+
+        const starCounts = {
+            all: reviews.length,
+            5: 0,
+            4: 0,
+            3: 0,
+            2: 0,
+            1: 0,
+        };
+        reviews.forEach((r) => {
+            if (r.rating >= 1 && r.rating <= 5) {
+                starCounts[r.rating as 1 | 2 | 3 | 4 | 5] += 1;
+            }
+        });
+
+        const filtered = reviews.filter((r) => {
+            if (ratingFilter === "all") return true;
+            return r.rating === Number(ratingFilter);
+        });
+
+        const totalP = Math.max(1, Math.ceil(filtered.length / REVIEWS_PER_PAGE));
+        
+        const startIndex = (currentPage - 1) * REVIEWS_PER_PAGE;
+        const paginated = filtered.slice(startIndex, startIndex + REVIEWS_PER_PAGE);
+
+        return {
+            averageRating: average,
+            totalReviews: reviews.length,
+            counts: starCounts,
+            filteredReviews: filtered,
+            paginatedReviews: paginated,
+            totalPages: totalP,
+        };
+    }, [reviews, ratingFilter, currentPage]);
+
+    const handleFilterChange = (filter: string | number) => {
+        setRatingFilter(filter);
+        setCurrentPage(1);
+    };
+
+    const renderStars = (rating: number) => {
+        const rounded = Math.round(rating);
+        return (
+            <span className="text-[#ee4d2d] text-sm font-sans tracking-tight">
+                {"★".repeat(rounded) + "☆".repeat(5 - rounded)}
+            </span>
+        );
+    };
 
     // Quantity handlers
     const incrementQty = () => {
@@ -398,15 +488,25 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                     {product.name}
                                 </h1>
 
+                                {/* Rating summary */}
+                                {totalReviews > 0 && (
+                                    <div className="flex items-center gap-2 mt-2">
+                                        {renderStars(averageRating)}
+                                        <span className="text-xs text-[#888] font-['Cormorant_Garamond',_serif]">
+                                            {averageRating}/5 ({totalReviews} đánh giá)
+                                        </span>
+                                    </div>
+                                )}
+
                                 {/* SKU Code */}
                                 {product.sku && (
-                                    <p className="m-0 mt-2 text-[11px] text-[#888] font-mono tracking-wider uppercase">
+                                    <p className="m-0 mt-2 text-[12px] text-[#888] font-mono tracking-wider uppercase">
                                         Mã SP: {product.sku}
                                     </p>
                                 )}
 
                                 {/* Category & Collection Info */}
-                                <div className="mt-3 flex flex-col gap-1.5">
+                                <div className="mt-3 flex flex-col gap-1">
                                     {categoryInfo && (
                                         <p className="m-0 text-[12px] text-[#888] font-['Cormorant_Garamond',_serif]">
                                             <span className="font-semibold text-[#3d2b00]">Loại sản phẩm:</span>{" "}
@@ -509,7 +609,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                     <h3 className="m-0 text-xs font-bold uppercase tracking-widest text-[#3d2b00] font-['Cormorant_Garamond',_serif]">
                                         Thông tin cơ bản
                                     </h3>
-                                    <div className="font-['Cormorant_Garamond',_serif] text-[#555] text-[14px] leading-relaxed flex flex-col gap-2.5">
+                                    <div className="font-['Cormorant_Garamond',_serif] text-[#555] text-sm leading-relaxed flex flex-col gap-2.5">
                                         {product.shortDescription && (
                                             <p className="m-0 font-medium text-[#2c1a00]">{product.shortDescription}</p>
                                         )}
@@ -539,11 +639,11 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                         Thông tin chi tiết
                                     </h3>
                                     <div className="overflow-x-auto">
-                                        <table className="w-full text-left border-collapse mt-2 text-[13px] font-['Cormorant_Garamond',_serif]">
+                                        <table className="w-full text-left border-collapse mt-2 text-sm font-['Cormorant_Garamond',_serif]">
                                             <tbody className="divide-y divide-[#f0e8d6]">
                                                 {product.specifications.map((spec, index) => (
                                                     <tr key={index}>
-                                                        <td className="py-2.5 font-semibold text-[#3d2b00]">{spec.label}</td>
+                                                        <td className="py-2.5 pr-4 font-semibold text-[#3d2b00]">{spec.label}</td>
                                                         <td className="py-2.5 text-[#555]">{spec.value}</td>
                                                     </tr>
                                                 ))}
@@ -553,6 +653,148 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                 </div>
                             )}
                         </div>
+                    </div>
+
+                    {/* ── Bottom Section: Đánh giá sản phẩm (Reviews List) ── */}
+                    <div className="mt-20 border-t border-[#f0e8d6] pt-14 font-['Cormorant_Garamond',_serif]">
+                        <h2 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 mb-8 text-center font-light uppercase tracking-[3px] text-[#2c1a00]" style={{ fontSize: "clamp(20px, 2.5vw, 26px)" }}>
+                            ĐÁNH GIÁ SẢN PHẨM
+                        </h2>
+
+                        {reviewsLoading ? (
+                            <p className="text-center text-[#888] text-sm">Đang tải đánh giá...</p>
+                        ) : reviews.length === 0 ? (
+                            <p className="text-center text-[#888] text-sm italic py-4">Chưa có đánh giá nào cho sản phẩm này.</p>
+                        ) : (
+                            <div className="max-w-3xl mx-auto mb-16">
+                                {/* Shopee style Rating & Filter Summary Box */}
+                                <div className="bg-[#fffbf8] p-6 rounded-sm border border-[#f9ede5] flex flex-col md:flex-row gap-6 items-center mb-8">
+                                    {/* Left: Score */}
+                                    <div className="text-center md:border-r border-[#f9ede5] md:pr-8 flex flex-col items-center justify-center min-w-[140px]">
+                                        <p className="text-[15px] text-[#ee4d2d] m-0">
+                                            <span className="text-3xl font-bold">{averageRating}</span> trên 5
+                                        </p>
+                                        <div className="mt-1">
+                                            {renderStars(averageRating)}
+                                        </div>
+                                    </div>
+
+                                    {/* Right: Filter Tags */}
+                                    <div className="flex-1 flex flex-wrap gap-2 justify-start">
+                                        <button
+                                            onClick={() => handleFilterChange("all")}
+                                            className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${
+                                                ratingFilter === "all"
+                                                    ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
+                                                    : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
+                                            }`}
+                                        >
+                                            Tất Cả ({counts.all})
+                                        </button>
+                                        {[5, 4, 3, 2, 1].map((star) => (
+                                            <button
+                                                key={star}
+                                                onClick={() => handleFilterChange(star)}
+                                                className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${
+                                                    ratingFilter === star
+                                                        ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
+                                                        : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
+                                                }`}
+                                            >
+                                                {star} Sao ({counts[star as 1 | 2 | 3 | 4 | 5]})
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Reviews List */}
+                                {paginatedReviews.length === 0 ? (
+                                    <div className="text-center text-[#888] text-sm py-12 border-t border-[#f0e8d6]">
+                                        Không có đánh giá nào phù hợp với bộ lọc đã chọn.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-0 divide-y divide-[#f5f5f5]">
+                                        {paginatedReviews.map((r, index) => (
+                                            <div key={r.id || index} className="py-6 flex gap-4">
+                                                {/* Left: Avatar */}
+                                                <div className="w-10 h-10 rounded-full bg-[#f5f5f5] border border-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 uppercase flex-shrink-0">
+                                                    {r.user?.fullName ? r.user.fullName.charAt(0) : "K"}
+                                                </div>
+
+                                                {/* Right: Content */}
+                                                <div className="flex-1 flex flex-col gap-1.5">
+                                                    <span className="font-bold text-[#333] text-[15px] block">
+                                                        {r.user?.fullName || "Khách mua hàng"}
+                                                    </span>
+                                                    <div>{renderStars(r.rating)}</div>
+                                                    <span className="text-[15px] text-[#999]">
+                                                        {new Date(r.createdAt).toLocaleString('vi-VN')}
+                                                    </span>
+
+                                                    {/* Attributes */}
+                                                    {(r.qualityFeedback || r.descriptionFeedback) && (
+                                                        <div className="mt-1 space-y-1 text-[15px]">
+                                                            {r.qualityFeedback && (
+                                                                <div>
+                                                                    <span className="text-[#888]">Chất lượng sản phẩm:</span>{" "}
+                                                                    <span className="text-[#333]">{r.qualityFeedback}</span>
+                                                                </div>
+                                                            )}
+                                                            {r.descriptionFeedback && (
+                                                                <div>
+                                                                    <span className="text-[#888]">Đúng với mô tả:</span>{" "}
+                                                                    <span className="text-[#333]">{r.descriptionFeedback}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Comment */}
+                                                    <p className="mt-2 text-[15px] text-[#333] leading-relaxed whitespace-pre-line m-0">
+                                                        {r.comment}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Pagination Controls */}
+                                {totalPages > 1 && (
+                                    <div className="flex justify-center items-center gap-3 mt-8 pt-6 border-t border-[#f0e8d6] text-sm">
+                                        <button
+                                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                            disabled={currentPage === 1}
+                                            className="px-3 py-1.5 border border-[#e8e8e8] rounded-[2px] bg-white text-[#555] disabled:opacity-40 disabled:hover:text-[#555] disabled:hover:border-[#e8e8e8] hover:border-[#ee4d2d] hover:text-[#ee4d2d] transition-all cursor-pointer disabled:cursor-not-allowed"
+                                        >
+                                            &lt;
+                                        </button>
+                                        <div className="flex gap-1.5">
+                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                                <button
+                                                    key={page}
+                                                    onClick={() => setCurrentPage(page)}
+                                                    className={`px-3 py-1.5 rounded-[2px] border transition-all cursor-pointer ${
+                                                        currentPage === page
+                                                            ? "border-[#ee4d2d] bg-[#ee4d2d] text-white"
+                                                            : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
+                                                    }`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <button
+                                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className="px-3 py-1.5 border border-[#e8e8e8] rounded-[2px] bg-white text-[#555] disabled:opacity-40 disabled:hover:text-[#555] disabled:hover:border-[#e8e8e8] hover:border-[#ee4d2d] hover:text-[#ee4d2d] transition-all cursor-pointer disabled:cursor-not-allowed"
+                                        >
+                                            &gt;
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* ── Bottom Section: Cùng bộ sưu tập (Related Products) ── */}
