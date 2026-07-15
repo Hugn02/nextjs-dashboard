@@ -145,15 +145,12 @@ export default function CheckoutPage() {
     };
 
     try {
-      const token = localStorage.getItem("token");
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002"}/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Thêm token vào header để xác thực
-          // Chỉ thêm header này nếu có token
-          ...(token && { Authorization: `Bearer ${token}` }),
         },
+        credentials: "include", // Gửi cookie xác thực cùng với request
         body: JSON.stringify(orderPayload),
       });
 
@@ -164,6 +161,8 @@ export default function CheckoutPage() {
 
       const orderResult = await res.json();
 
+      const orderData = orderResult.data || orderResult;
+
       // Xóa note khỏi local storage
       localStorage.removeItem("checkout_note");
 
@@ -171,7 +170,7 @@ export default function CheckoutPage() {
       await refreshCart();
 
       // Đi tới trang Success
-      router.push(`/orders/${orderResult.id || orderResult._id}/success`);
+      router.push(`/orders/${orderData.id || orderData._id}/success`);
     } catch (err: any) {
       setErrorMessage(err.message || "Có lỗi xảy ra trong quá trình đặt hàng.");
     } finally {

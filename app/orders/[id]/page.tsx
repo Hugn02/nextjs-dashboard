@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Navbar from "@/src/layout/Navbar";
 import Footer from "@/src/layout/Footer";
+import { fetchWithAuth } from "@/src/lib/api-client";
 import {
     ArrowLeft,
     Calendar,
@@ -84,16 +85,10 @@ export default function OrderDetailPage() {
 
     const fetchMyReviews = async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
-            const res = await fetch(`${API_URL}/reviews/my`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const res = await fetchWithAuth(`${API_URL}/reviews/my`);
             if (res.ok) {
                 const data = await res.json();
-                setMyReviews(data);
+                setMyReviews(data.data || []);
             }
         } catch (err) {
             console.error("Failed to fetch my reviews:", err);
@@ -146,16 +141,10 @@ export default function OrderDetailPage() {
         setReviewError(null);
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Bạn cần đăng nhập để thực hiện hành động này.");
-            }
-
-            const res = await fetch(`${API_URL}/reviews`, {
+            const res = await fetchWithAuth(`${API_URL}/reviews`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     productId: selectedProduct.id || selectedProduct._id,
@@ -186,21 +175,13 @@ export default function OrderDetailPage() {
         setLoading(true);
         setError(null);
         try {
-            const token = localStorage.getItem("token");
-            const headers: HeadersInit = {};
-            if (token) {
-                headers["Authorization"] = `Bearer ${token}`;
-            }
-
-            const res = await fetch(`${API_URL}/orders/${id}`, {
-                headers,
-            });
+            const res = await fetchWithAuth(`${API_URL}/orders/${id}`);
 
             if (!res.ok) {
                 throw new Error("Không thể tải thông tin đơn hàng.");
             }
             const data = await res.json();
-            setOrder(data);
+            setOrder(data.data);
         } catch (err: any) {
             setError(err.message || "Có lỗi xảy ra.");
         } finally {
@@ -216,16 +197,8 @@ export default function OrderDetailPage() {
         if (!id) return;
         setCancelling(true);
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Bạn cần đăng nhập để thực hiện hành động này.");
-            }
-
-            const response = await fetch(`${API_URL}/orders/${id}/cancel`, {
+            const response = await fetchWithAuth(`${API_URL}/orders/${id}/cancel`, {
                 method: 'PATCH',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
             });
 
             if (!response.ok) {

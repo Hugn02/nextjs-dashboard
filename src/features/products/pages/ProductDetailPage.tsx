@@ -123,7 +123,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews?product=${product.id}`);
                 if (res.ok) {
                     const data = await res.json();
-                    setReviews(data);
+                    setReviews(data.data || data || []);
                 }
             } catch (err) {
                 console.error("Failed to load reviews:", err);

@@ -25,7 +25,7 @@ export async function getCart(): Promise<Cart | null> {
     const res = await fetch(`${API_URL}/cart`, { headers: getHeaders() });
     if (!res.ok) return null;
     const data = await res.json();
-    return normalizeCart(data);
+    return normalizeCart(data?.data);
   } catch {
     return null;
   }
@@ -46,7 +46,7 @@ export async function addToCart(
       throw new Error(err.message || "Không thể thêm vào giỏ hàng");
     }
     const data = await res.json();
-    return normalizeCart(data);
+    return normalizeCart(data?.data);
   } catch (e) {
     throw e;
   }
@@ -64,7 +64,7 @@ export async function updateCartItem(
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return normalizeCart(data);
+    return normalizeCart(data?.data);
   } catch {
     return null;
   }
@@ -78,7 +78,7 @@ export async function removeFromCart(productId: string): Promise<Cart | null> {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return normalizeCart(data);
+    return normalizeCart(data?.data);
   } catch {
     return null;
   }
@@ -95,6 +95,7 @@ export async function clearCart(): Promise<void> {
 
 /** Chuẩn hóa dữ liệu cart từ backend — map productName → name, imageUrl → images */
 function normalizeCart(data: any): Cart {
+  if (!data) return { _id: "", sessionId: "", items: [] };
   const items = (data.items || []).map((item: any) => {
     const p = item.product || {};
     return {

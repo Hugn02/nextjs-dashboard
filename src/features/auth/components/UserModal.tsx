@@ -73,6 +73,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
         const res = await fetch(`${AUTH_API}/signin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             email: formData.email,
             password: formData.password
@@ -95,7 +96,15 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch(`${AUTH_API}/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (e) {
+      console.error("Failed to call logout API", e);
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);

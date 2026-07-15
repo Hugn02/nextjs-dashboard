@@ -6,6 +6,7 @@ import Image from "next/image";
 import Navbar from "@/src/layout/Navbar";
 import Footer from "@/src/layout/Footer";
 import { User } from "@/src/features/auth/types/auth.types";
+import { fetchWithAuth } from "@/src/lib/api-client";
 import {
     ShoppingBag,
     Calendar,
@@ -73,16 +74,7 @@ export default function OrderHistoryPage() {
         setLoading(true);
         setError(null);
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Bạn cần đăng nhập để xem lịch sử đơn hàng.");
-            }
-
-            const response = await fetch(`${API_URL}/orders/my-orders`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const response = await fetchWithAuth(`${API_URL}/orders/my-orders`);
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -90,7 +82,7 @@ export default function OrderHistoryPage() {
             }
 
             const data = await response.json();
-            setOrders(data);
+            setOrders(data.data || []);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -107,16 +99,8 @@ export default function OrderHistoryPage() {
     const handleCancelOrder = async (orderId: string) => {
         setCancellingId(orderId);
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Bạn cần đăng nhập để thực hiện hành động này.");
-            }
-
-            const response = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
+            const response = await fetchWithAuth(`${API_URL}/orders/${orderId}/cancel`, {
                 method: 'PATCH',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
             });
 
             if (!response.ok) {

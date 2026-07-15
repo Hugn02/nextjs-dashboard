@@ -49,12 +49,14 @@ export default function OrderSuccessPage() {
     if (!id) return;
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002"}/orders/${id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002"}/orders/${id}`, {
+          credentials: 'include'
+        });
         if (!res.ok) {
           throw new Error("Không thể tải thông tin đơn hàng.");
         }
         const data = await res.json();
-        setOrder(data);
+        setOrder(data.data);
       } catch (err: any) {
         setError(err.message || "Có lỗi xảy ra.");
       } finally {
