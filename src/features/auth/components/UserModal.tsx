@@ -23,6 +23,8 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Kiểm tra trạng thái đăng nhập khi modal được mở
   useEffect(() => {
@@ -59,12 +61,13 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
           body: JSON.stringify({
             fullName: formData.fullName,
             email: formData.email,
-            password: formData.password
+            password: formData.password,
+            confirmPassword: formData.confirmPassword
           })
         });
         const result = await res.json();
-        if (result.statusCode === 200) {
-          setMessage({ text: "Đăng ký thành công! Vui lòng đăng nhập.", type: 'success' });
+        if (res.ok || result.success || result.statusCode === 201 || result.statusCode === 200) {
+          setMessage({ text: "Đăng ký tài khoản thành công!", type: 'success' });
           setMode('login');
         } else {
           setMessage({ text: result.message || "Đăng ký thất bại", type: 'error' });
@@ -129,7 +132,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             </h3>
             <p className="text-xs md:text-sm text-[#888] font-sans mt-0.5 md:mt-1">{user.email}</p>
             <div className="inline-block mt-2 px-3 py-1 bg-[#c4a84f]/10 text-[#c4a84f] text-[10px] font-bold uppercase tracking-widest rounded">
-              {user.role === 'admin' ? 'Quản trị viên' : 'Thành viên'}
+              {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') ? 'Quản trị viên' : 'Thành viên'}
             </div>
           </div>
 
@@ -140,7 +143,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             </button>
 
             {/* Hiển thị link Admin nếu role là admin */}
-            {user.role === 'admin' && (
+            {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && (
               <a
                 href={`${ADMIN_URL}/?token=${localStorage.getItem('token')}&user=${encodeURIComponent(JSON.stringify(user))}`}
                 target="_blank"
@@ -167,7 +170,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
         </div>
       ) : mode === 'login' ? (
         /* Form Đăng nhập cũ */
-        <>
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="w-full">
           <p className="text-center text-xs md:text-sm text-[#666] mb-5 md:mb-7 font-['Cormorant_Garamond',_serif]">
             Nhập email và mật khẩu của bạn:
           </p>
@@ -187,14 +190,23 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             className="w-full p-[12px_15px] md:p-[16px_18px] text-[14px] md:text-[15px] border border-[#ddd] rounded-lg mb-3 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
           />
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Mật khẩu"
-            value={formData.password}
-            onChange={handleInputChange}
-            className="w-full p-[12px_15px] md:p-[16px_18px] text-[14px] md:text-[15px] border border-[#ddd] rounded-lg mb-3.5 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
-          />
+          <div className="relative w-full mb-3.5">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Mật khẩu"
+              value={formData.password}
+              onChange={handleInputChange}
+              className="w-full p-[12px_50px_12px_15px] md:p-[16px_50px_16px_18px] text-[14px] md:text-[15px] border border-[#ddd] rounded-lg outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 border-none bg-transparent cursor-pointer text-[#c4a84f] hover:text-[#a8893a] text-xs font-semibold select-none font-sans"
+            >
+              {showPassword ? "Ẩn" : "Hiện"}
+            </button>
+          </div>
 
           <p className="text-[12px] text-[#888] mb-5 leading-[1.6] font-sans">
             This site is protected by reCAPTCHA and the Google{" "}
@@ -222,9 +234,9 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             Quên mật khẩu?{" "}
             <a href="/account/login#recover" className="text-[#c4a84f] no-underline font-semibold">Khôi phục mật khẩu</a>
           </p>
-        </>
+        </form>
       ) : (
-        <>
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="w-full">
           <p className="text-center text-sm text-[#666] mb-7 font-['Cormorant_Garamond',_serif]">
             Vui lòng điền đầy đủ các thông tin dưới đây:
           </p>
@@ -253,23 +265,55 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             className="w-full p-[16px_18px] text-[15px] border border-[#ddd] rounded-lg mb-3.5 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
           />
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Mật khẩu"
-            value={formData.password}
-            onChange={handleInputChange}
-            className="w-full p-[16px_18px] text-[15px] border border-[#ddd] rounded-lg mb-3.5 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
-          />
+          <div className="relative w-full mb-3.5">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Mật khẩu"
+              value={formData.password}
+              onChange={handleInputChange}
+              className="w-full p-[16px_50px_16px_18px] text-[15px] border border-[#ddd] rounded-lg outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 border-none bg-transparent cursor-pointer text-[#c4a84f] hover:text-[#a8893a] text-xs font-semibold select-none font-sans"
+            >
+              {showPassword ? "Ẩn" : "Hiện"}
+            </button>
+          </div>
 
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Xác nhận mật khẩu"
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            className="w-full p-[16px_18px] text-[15px] border border-[#ddd] rounded-lg mb-3.5 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
-          />
+          <div className="text-left text-xs mb-3.5 space-y-1.5 font-sans text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <p className="font-semibold text-slate-600 mb-1">Yêu cầu mật khẩu:</p>
+            <div className="flex items-center gap-1.5">
+              <span className={formData.password.length >= 6 ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {formData.password.length >= 6 ? "✓" : "○"} Tối thiểu 6 ký tự
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={/^(?=.*[A-Za-z])(?=.*\d).+$/.test(formData.password) ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {/^(?=.*[A-Za-z])(?=.*\d).+$/.test(formData.password) ? "✓" : "○"} Chứa ít nhất 1 chữ cái và 1 chữ số
+              </span>
+            </div>
+          </div>
+
+          <div className="relative w-full mb-3.5">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Xác nhận mật khẩu"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              className="w-full p-[16px_50px_16px_18px] text-[15px] border border-[#ddd] rounded-lg outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 border-none bg-transparent cursor-pointer text-[#c4a84f] hover:text-[#a8893a] text-xs font-semibold select-none font-sans"
+            >
+              {showConfirmPassword ? "Ẩn" : "Hiện"}
+            </button>
+          </div>
 
           <p className="text-[12px] text-[#888] mb-5 leading-[1.6] font-sans italic">
             Bằng việc tạo tài khoản, bạn đồng ý với các chính sách bảo mật của Bát Tràng Vietnam.
@@ -292,7 +336,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
               Đăng nhập ngay
             </button>
           </p>
-        </>
+        </form>
       )}
     </ModalWrapper>
   );
