@@ -6,6 +6,11 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
     title: 'Tin tức & Nghệ thuật gốm | Bát Tràng',
     description: 'Chia sẻ kiến thức về sứ cao cấp, lịch sử gốm cổ truyền và nghệ thuật thưởng trà Việt Nam.',
+    openGraph: {
+        title: 'Tin tức & Nghệ thuật gốm | Bát Tràng Vietnam',
+        description: 'Chia sẻ kiến thức về sứ cao cấp, lịch sử gốm cổ truyền và nghệ thuật thưởng trà Việt Nam.',
+        type: 'website'
+    }
 };
 
 export default function Page() {
