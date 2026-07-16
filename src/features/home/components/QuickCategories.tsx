@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 const CLOUDINARY_DOMAIN = 'https://res.cloudinary.com/dls9re0ux/image/upload/';
 
@@ -93,10 +94,13 @@ export default function QuickCategories() {
                 href={`/categories/${cat.slug}`}
                 className="flex flex-col items-center gap-2.5 px-3 py-5 rounded border border-[#ede0c4] no-underline bg-[#fdfaf4] transition-all duration-[250ms] cursor-pointer hover:bg-[#fff8e8] hover:border-[#c4a84f] hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(196,168,79,0.15)]"
               >
-                <img
+                <Image
                   src={resolveImageUrl(cat.image) || `https://placehold.co/100x100/faf7f2/c4a84f?text=${encodeURIComponent(cat.name)}`}
                   alt={cat.name}
-                  className="h-[100px] w-auto object-contain"
+                  width={100}
+                  height={100}
+                  className="object-contain"
+                  unoptimized
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = `https://placehold.co/100x100/faf7f2/c4a84f?text=${encodeURIComponent(cat.name)}`;
                   }}

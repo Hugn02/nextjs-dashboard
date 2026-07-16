@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import UserModal from "../features/auth/components/UserModal";
 import CartModal from "../features/cart/components/CartModal";
@@ -150,10 +151,13 @@ export default function Navbar() {
             href="/"
             className="flex items-center justify-center lg:justify-start no-underline lg:w-[220px] shrink-0"
           >
-            <img
+            <Image
               src="/assets/logo2.png"
               alt="Bát Tràng"
+              width={160}
+              height={54}
               className="h-[36px] md:h-[54px] w-auto object-contain"
+              priority
             />
           </a>
 

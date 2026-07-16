@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 const HERO_SLIDES = [
   {
@@ -33,10 +34,13 @@ export default function HeroSlider() {
           className={`absolute inset-0 transition-opacity duration-900 ease-in-out 
                         ${i === current ? "opacity-100" : "opacity-0"}`}
         >
-          <img
+          <Image
             src={slide.image}
             alt={slide.alt}
-            className="w-full h-full object-cover object-top"
+            fill
+            sizes="100vw"
+            className="object-cover object-top"
+            priority={i === 0}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#1e0f00]/35 to-transparent" />
         </div>

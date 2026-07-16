@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 const CLOUDINARY_DOMAIN = 'https://res.cloudinary.com/dls9re0ux/image/upload/';
 
@@ -69,10 +70,12 @@ export default function FeaturedCollections() {
                 href={`/collections/${col.slug}`}
                 className="group block no-underline relative overflow-hidden rounded-[2px] border border-[#c4a84f]/30 aspect-[3/4] bg-[#3d2b00]"
               >
-                <img
+                <Image
                   src={resolveImageUrl(col.image)}
                   alt={col.name}
-                  className="w-full h-full object-cover opacity-85 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
+                  fill
+                  sizes="220px"
+                  className="object-cover opacity-85 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
                 />
                 <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#1e0a00]/90 to-transparent p-[32px_20px_20px]">
                   <h3 className="text-[#fdf8ef] text-[22px] font-normal mb-1">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 export default function Footer() {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -17,10 +18,12 @@ export default function Footer() {
     <footer className="bg-[#1a0d00] text-[#d4b896] pt-[60px] pb-8 border-t-2 border-[#c4a84f]">
       <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr] gap-x-5 gap-y-10">
         <div className="flex flex-col items-start text-left">
-          <img
+          <Image
             src="/assets/logo2.png"
             alt="Bát Tràng"
-            className="h-8 md:h-10 mb-4"
+            width={120}
+            height={40}
+            className="h-8 md:h-10 w-auto mb-4"
           />
           <p className="text-[11px] md:text-[13px] leading-[1.6] md:leading-[1.8] text-[#a08060] mb-4">
             Website chính thức của Bát Tràng tại Việt Nam — Thương hiệu sứ cao
@@ -51,10 +54,13 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="flex items-center justify-center w-9 h-9 rounded-full bg-[#c4a84f]/15 border border-[#c4a84f]/30 transition-colors hover:bg-[#c4a84f]/30"
               >
-                <img
+                <Image
                   src={social.src}
                   alt={social.alt}
-                  className="w-3/5 h-3/5 object-contain"
+                  width={20}
+                  height={20}
+                  className="object-contain"
+                  unoptimized
                 />
               </a>
             ))}

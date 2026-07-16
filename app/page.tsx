@@ -1,14 +1,31 @@
-import ArtOfWhite from "@/src/features/home/components/ArtOfWhite";
-import ArtisanSection from "@/src/features/home/components/ArtisanSection";
-import BrandStory from "@/src/features/home/components/BrandStory";
-import FeaturedCollections from "@/src/features/home/components/FeaturedCollections";
+import dynamic from "next/dynamic";
 import HeroSlider from "@/src/features/home/components/HeroSlider";
-import NewsSection from "@/src/features/home/components/NewsSection";
-import QuickCategories from "@/src/features/home/components/QuickCategories";
 import TrustBar from "@/src/features/home/components/TrustBar";
-import ProductSection from "@/src/features/products/components/ProductSection";
-import Footer from "@/src/layout/Footer";
 import Navbar from "@/src/layout/Navbar";
+import Footer from "@/src/layout/Footer";
+
+// Below-fold sections — dynamically imported for code splitting (separate JS chunks)
+const NewsSection = dynamic(
+  () => import("@/src/features/home/components/NewsSection")
+);
+const QuickCategories = dynamic(
+  () => import("@/src/features/home/components/QuickCategories")
+);
+const ProductSection = dynamic(
+  () => import("@/src/features/products/components/ProductSection")
+);
+const ArtOfWhite = dynamic(
+  () => import("@/src/features/home/components/ArtOfWhite")
+);
+const FeaturedCollections = dynamic(
+  () => import("@/src/features/home/components/FeaturedCollections")
+);
+const ArtisanSection = dynamic(
+  () => import("@/src/features/home/components/ArtisanSection")
+);
+const BrandStory = dynamic(
+  () => import("@/src/features/home/components/BrandStory")
+);
 
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
