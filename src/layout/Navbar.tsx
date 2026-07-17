@@ -200,28 +200,54 @@ export default function Navbar() {
               onClick={() =>
                 setActiveModal(activeModal === "search" ? null : "search")
               }
-              className={`bg-none border-none cursor-pointer w-7 text-center transition-all duration-300 ${activeModal === "search" ? "text-2xl text-[#c4a84f] rotate-90" : "text-[20px] text-[#3d2b00]"}`}
+              title="Tìm kiếm"
+              className={`bg-transparent border-none cursor-pointer p-0 flex items-center justify-center w-7 h-7 text-[#3d2b00] transition-all duration-300 hover:text-[#c4a84f] ${activeModal === "search" ? "text-[#c4a84f] rotate-90" : ""}`}
             >
-              {activeModal === "search" ? "✕" : "🔍"}
+              {activeModal === "search" ? (
+                <span className="text-2xl">✕</span>
+              ) : (
+                <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="m21 20.152-5.348-5.348a6.56 6.56 0 0 0 1.529-4.214A6.597 6.597 0 0 0 10.59 4 6.597 6.597 0 0 0 4 10.59a6.597 6.597 0 0 0 6.59 6.59 6.56 6.56 0 0 0 4.215-1.528L20.152 21zM5.2 10.59a5.4 5.4 0 0 1 5.391-5.392 5.4 5.4 0 0 1 5.392 5.392 5.4 5.4 0 0 1-5.392 5.392A5.4 5.4 0 0 1 5.2 10.59"></path>
+                </svg>
+              )}
             </button>
 
             <button
               onClick={() =>
                 setActiveModal(activeModal === "user" ? null : "user")
               }
-              className={`bg-none border-none cursor-pointer w-7 text-center transition-all duration-300 ${activeModal === "user" ? "text-2xl text-[#c4a84f] rotate-90" : isLoggedIn ? "text-[20px] text-[#c4a84f]" : "text-[20px] text-[#3d2b00]"}`}
+              className={`bg-transparent border-none cursor-pointer p-0 flex items-center justify-center w-7 h-7 text-[#3d2b00] transition-all duration-300 hover:text-[#c4a84f] ${activeModal === "user" ? "text-[#c4a84f] rotate-90" : ""} ${isLoggedIn ? "" : ""}`}
               title={isLoggedIn ? "Tài khoản của tôi" : "Đăng nhập"}
             >
-              {activeModal === "user" ? "✕" : isLoggedIn ? "👤" : "👤"}
+              {activeModal === "user" ? (
+                <span className="text-2xl">✕</span>
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 488.9 488.9" xmlSpace="preserve">
+                  <g>
+                    <path fill="currentColor" d="M477.7,454.8v-26c0-26.5-12.4-52-33.1-68.1c-48.2-37.4-97.3-63.5-114.5-72.2v-29.7c3.5-7.8,6.4-16.3,8.6-25.5   c12.8-4.6,19.8-23.4,24.5-40c6.3-22.1,5.6-37.6-1.8-46.2c7.8-42.5,4.3-73.8-10.3-93.1c-7.7-10.1-16.7-14.4-22.7-16.3   c-4.3-6-13-16.1-27.7-24.2C285.5,4.5,268.4,0,249.6,0c-3.4,0-6.8,0.2-9.8,0.4c-8.4,0.4-16.7,2-24.9,4.7c-0.1,0-0.2,0.1-0.3,0.1   c-9,3.1-17.8,7.6-26.3,13.4c-9.7,6.2-18.6,13.6-26.3,21.8c-15.1,15.5-25.1,33-29.4,51.7c-4.1,15.5-4.4,31.1-1,46.4   c-1.8,1.3-3.4,2.8-4.8,4.6c-6.9,9.1-7.2,23.4-1.1,45.1c4.2,15,9.8,30.3,19.3,37.2c2.8,14.4,7.5,27.5,13.8,39.1v24.1   c-17.2,8.7-66.3,34.7-114.5,72.2c-20.7,16.1-33.1,41.5-33.1,68.1v26c0,18.8,15.3,34,34,34h398.5   C462.4,488.9,477.7,473.6,477.7,454.8z M35.6,454.8v-26c0-19,8.8-37.2,23.6-48.7c52-40.3,104.9-66.9,115-71.8   c5.6-2.7,9.1-8.3,9.1-14.6v-32.5c0-2.2-0.6-4.3-1.7-6.2c-6.6-11.2-11.2-24.6-13.5-39.9c-0.8-4.9-4.4-8.8-9.1-10   c-1.3-1.5-5-6.9-9.7-23.6c-3.9-13.8-3.6-20.2-3.2-22.5c3.9,0.2,7.8-1.6,10.3-4.7c2.6-3.3,3.3-7.7,1.9-11.6   c-5.2-14.5-5.8-29.4-1.8-44.6c3.4-14.6,11.2-28.2,23.3-40.6c6.5-7,14-13.1,22-18.2c0.1-0.1,0.3-0.2,0.4-0.3   c6.7-4.7,13.7-8.2,20.6-10.6c0.1,0,0.2-0.1,0.2-0.1c5.9-2,12-3.1,18.4-3.4c17.5-1.5,33.2,1.8,47.1,9.9   c15.2,8.4,21.4,19.4,21.4,19.4c1.9,3.9,5.3,6.2,9.7,6.5c0.3,0,6.8,1,12.4,8.9c5.9,8.4,14.3,30,3.8,80.4c-1.2,5.6,1.7,11.2,6.8,13.6   c0.5,1.8,1.3,7.9-3,23.1c-3.8,13.4-6.9,19.5-8.7,22.2c-2.3-0.4-4.7-0.2-6.9,0.8c-3.8,1.6-6.6,5.1-7.3,9.1c-2.1,12-5.5,22.8-9.9,32   c-0.8,1.7-1.2,3.5-1.2,5.3v37.6c0,6.3,3.5,11.8,9.1,14.6c10.1,4.9,63,31.6,114.9,71.8c14.8,11.5,23.6,29.7,23.6,48.7v26   c0,5.2-4.3,9.5-9.5,9.5H45.2C39.9,464.4,35.6,460.1,35.6,454.8z"></path>
+                  </g>
+                </svg>
+              )}
             </button>
 
             <button
               onClick={() =>
                 setActiveModal(activeModal === "cart" ? null : "cart")
               }
-              className={`relative bg-none border-none cursor-pointer w-7 text-center transition-all duration-300 ${activeModal === "cart" ? "text-2xl text-[#c4a84f] rotate-90" : "text-[20px] text-[#3d2b00]"}`}
+              title="Giỏ hàng"
+              className={`relative bg-transparent border-none cursor-pointer p-0 flex items-center justify-center w-7 h-7 text-[#3d2b00] transition-all duration-300 hover:text-[#c4a84f] ${activeModal === "cart" ? "text-[#c4a84f] rotate-90" : ""}`}
             >
-              {activeModal === "cart" ? "✕" : "🛒"}
+              {activeModal === "cart" ? (
+                <span className="text-2xl">✕</span>
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 22 24">
+                  <path fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" d="M14.622,17.984v-1.791c0-1.353,1.097-2.45,2.45-2.45s2.45,1.097,2.45,2.45v1.947"></path>
+                  <line fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" x1="3.563" y1="21.844" x2="11.172" y2="21.844"></line>
+                  <path fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" d="M13.101,7.719V4.653c0-2.087-1.692-3.78-3.78-3.78c-2.087,0-3.779,1.692-3.779,3.78v3.066"></path>
+                  <path fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" d="M3.513,21.844c-1.34,0-2.427-1.087-2.427-2.427l0.184-2.167L2.322,5.179h14l0.569,6.306"></path>
+                  <path fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" d="M20.854,23.141h-7.56c-0.055,0-0.1-0.045-0.1-0.1v-4.8c0-0.055,0.045-0.1,0.1-0.1h7.56c0.055,0,0.1,0.045,0.1,0.1v4.8 C20.954,23.096,20.909,23.141,20.854,23.141z"></path>
+                </svg>
+              )}
               {activeModal !== "cart" && cartCount > 0 && (
                 <span className="absolute -top-1.5 -right-2 bg-[#c4a84f] text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-bold">
                   {cartCount}

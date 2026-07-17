@@ -6,7 +6,7 @@ import Image from "next/image";
 import ModalWrapper from "@/src/components/ui/ModalWrapper";
 import { useSearch } from "../hooks/useSearch";
 
-const POPULAR_TAGS = ["Bộ ấm trà", "Bình hoa", "Bộ bát đĩa", "Sứ trắng", "Quà tặng"];
+const POPULAR_TAGS = ["Ấm trà", "Bình hoa", "Chén trà", "Tống trà", "Dầm trà"];
 
 function formatPrice(n: number) {
   return n.toLocaleString("vi-VN") + "₫";
