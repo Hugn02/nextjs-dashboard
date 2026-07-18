@@ -12,19 +12,23 @@ const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:3002/
 const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
 
 export default function UserModal({ onClose }: { onClose: () => void }) {
-  // Sử dụng state để chuyển đổi giữa 'login' và 'register'
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  // Sử dụng state để chuyển đổi giữa các mode
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot-password' | 'change-password'>('login');
   const [user, setUser] = useState<User | null>(null); // Sử dụng interface User
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    oldPassword: '',
+    newPassword: ''
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   // Kiểm tra trạng thái đăng nhập khi modal được mở
   useEffect(() => {
@@ -72,7 +76,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
         } else {
           setMessage({ text: result.message || "Đăng ký thất bại", type: 'error' });
         }
-      } else {
+      } else if (mode === 'login') {
         const res = await fetch(`${AUTH_API}/signin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -90,6 +94,68 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
           window.location.reload(); // Reload để cập nhật trạng thái auth toàn trang
         } else {
           setMessage({ text: result.message || "Đăng nhập thất bại", type: 'error' });
+        }
+      } else if (mode === 'forgot-password') {
+        if (!formData.email) {
+          setMessage({ text: "Vui lòng nhập email của bạn", type: 'error' });
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch(`${AUTH_API}/forgot-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formData.email
+          })
+        });
+        const result = await res.json();
+        if (res.ok || result.statusCode === 200) {
+          setMessage({ text: "Mật khẩu ngẫu nhiên đã được gửi về email của bạn. Vui lòng kiểm tra và đăng nhập lại!", type: 'success' });
+        } else {
+          setMessage({ text: result.message || "Gửi yêu cầu thất bại", type: 'error' });
+        }
+      } else if (mode === 'change-password') {
+        if (!formData.oldPassword || !formData.newPassword || !formData.confirmPassword) {
+          setMessage({ text: "Vui lòng nhập đầy đủ thông tin", type: 'error' });
+          setLoading(false);
+          return;
+        }
+        if (formData.newPassword !== formData.confirmPassword) {
+          setMessage({ text: "Mật khẩu mới xác nhận không khớp", type: 'error' });
+          setLoading(false);
+          return;
+        }
+
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${AUTH_API}/change-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            oldPassword: formData.oldPassword,
+            newPassword: formData.newPassword,
+            confirmPassword: formData.confirmPassword
+          })
+        });
+        const result = await res.json();
+        if (res.ok || result.statusCode === 200) {
+          setMessage({ text: "Đổi mật khẩu thành công!", type: 'success' });
+          setTimeout(() => {
+            setFormData(prev => ({
+              ...prev,
+              oldPassword: '',
+              newPassword: '',
+              confirmPassword: ''
+            }));
+            setMessage(null);
+            setMode('login');
+          }, 2000);
+        } else {
+          setMessage({ text: result.message || "Đổi mật khẩu thất bại", type: 'error' });
         }
       }
     } catch (err) {
@@ -116,11 +182,119 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
 
   return (
     <ModalWrapper
-      title={user ? "Tài khoản của bạn" : (mode === 'login' ? "Đăng nhập tài khoản" : "Tạo tài khoản mới")}
+      title={
+        user && mode === 'change-password'
+          ? "Đổi mật khẩu"
+          : user
+            ? "Tài khoản của bạn"
+            : mode === 'login'
+              ? "Đăng nhập tài khoản"
+              : mode === 'forgot-password'
+                ? "Khôi phục mật khẩu"
+                : "Tạo tài khoản mới"
+      }
       onClose={onClose}
       width={480}
     >
-      {user ? (
+      {user && mode === 'change-password' ? (
+        /* Giao diện đổi mật khẩu khi đã đăng nhập */
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="w-full">
+          <p className="text-center text-xs md:text-sm text-[#666] mb-5 md:mb-7 font-['Cormorant_Garamond',_serif]">
+            Nhập thông tin để thay đổi mật khẩu của bạn:
+          </p>
+
+          {message && (
+            <p className={`text-center text-xs mb-4 ${message.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+              {message.text}
+            </p>
+          )}
+
+          <div className="relative w-full mb-3">
+            <input
+              type={showOldPassword ? "text" : "password"}
+              name="oldPassword"
+              placeholder="Mật khẩu cũ"
+              value={formData.oldPassword}
+              onChange={handleInputChange}
+              className="w-full p-[12px_50px_12px_15px] md:p-[16px_50px_16px_18px] text-[14px] md:text-[15px] border border-[#ddd] rounded-lg outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowOldPassword(!showOldPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 border-none bg-transparent cursor-pointer text-[#c4a84f] hover:text-[#a8893a] text-xs font-semibold select-none font-sans"
+            >
+              {showOldPassword ? "Ẩn" : "Hiện"}
+            </button>
+          </div>
+
+          <div className="relative w-full mb-3">
+            <input
+              type={showNewPassword ? "text" : "password"}
+              name="newPassword"
+              placeholder="Mật khẩu mới"
+              value={formData.newPassword}
+              onChange={handleInputChange}
+              className="w-full p-[12px_50px_12px_15px] md:p-[16px_50px_16px_18px] text-[14px] md:text-[15px] border border-[#ddd] rounded-lg outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 border-none bg-transparent cursor-pointer text-[#c4a84f] hover:text-[#a8893a] text-xs font-semibold select-none font-sans"
+            >
+              {showNewPassword ? "Ẩn" : "Hiện"}
+            </button>
+          </div>
+
+          <div className="text-left text-xs mb-3.5 space-y-1.5 font-sans text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <p className="font-semibold text-slate-600 mb-1">Yêu cầu mật khẩu mới:</p>
+            <div className="flex items-center gap-1.5">
+              <span className={formData.newPassword.length >= 8 ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {formData.newPassword.length >= 8 ? "✓" : "○"} Tối thiểu 8 ký tự
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()]).+$/.test(formData.newPassword) ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()]).+$/.test(formData.newPassword) ? "✓" : "○"} Chứa ít nhất 1 chữ cái, 1 số và 1 ký tự đặc biệt
+              </span>
+            </div>
+          </div>
+
+          <div className="relative w-full mb-5">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Xác nhận mật khẩu mới"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              className="w-full p-[12px_50px_12px_15px] md:p-[16px_50px_16px_18px] text-[14px] md:text-[15px] border border-[#ddd] rounded-lg outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 border-none bg-transparent cursor-pointer text-[#c4a84f] hover:text-[#a8893a] text-xs font-semibold select-none font-sans"
+            >
+              {showConfirmPassword ? "Ẩn" : "Hiện"}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            disabled={loading}
+            onClick={handleSubmit}
+            className="w-full p-3.5 md:p-4 bg-[#c4a84f] text-white border-none rounded-lg cursor-pointer text-[14px] md:text-[15px] font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] mb-3 transition-colors hover:bg-[#a8893a] disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {loading ? "Đang xử lý..." : "Xác nhận đổi mật khẩu"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setMessage(null); }}
+            className="w-full p-3 md:p-4 border border-[#c4a84f] text-[#c4a84f] rounded-lg cursor-pointer text-[12px] md:text-[13px] font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] transition-all hover:bg-[#c4a84f] hover:text-white"
+          >
+            Quay lại
+          </button>
+        </form>
+      ) : user ? (
         /* Giao diện khi đã đăng nhập thành công */
         <div className="flex flex-col gap-4 md:gap-6 py-2 md:py-4">
           <div className="text-center">
@@ -141,8 +315,11 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="flex flex-col gap-1 md:gap-2 border-t border-[#eee] pt-4 md:pt-6">
-            <button className="w-full p-3 md:p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group">
-              <span className="text-xs md:text-sm font-semibold text-[#3d2b00] font-sans uppercase tracking-wider">Thông tin tài khoản</span>
+            <button
+              onClick={() => { setMode('change-password'); setMessage(null); }}
+              className="w-full p-3 md:p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group cursor-pointer"
+            >
+              <span className="text-xs md:text-sm font-semibold text-[#3d2b00] font-sans uppercase tracking-wider">Đổi mật khẩu</span>
               <span className="text-[#c4a84f] group-hover:translate-x-1 transition-transform">→</span>
             </button>
 
@@ -213,8 +390,13 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <p className="text-[12px] text-[#888] mb-5 leading-[1.6] font-sans">
-            This site is protected by reCAPTCHA and the Google{" "}
-            <a href="#" className="text-[#1a73e8] no-underline">Privacy Policy</a> and <a href="#" className="text-[#1a73e8] no-underline">Terms of Service</a> apply.
+            Trang web này được bảo vệ bởi reCAPTCHA và tuân theo{" "}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-[#1a73e8] no-underline hover:underline">
+              Chính sách Quyền riêng tư
+            </a> và{" "}
+            <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="text-[#1a73e8] no-underline hover:underline">
+              Điều khoản Dịch vụ
+            </a> của Google.
           </p>
 
           <button
@@ -236,8 +418,53 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
           </p>
           <p className="text-center text-[13px] text-[#666] m-0 font-sans">
             Quên mật khẩu?{" "}
-            <a href="/account/login#recover" className="text-[#c4a84f] no-underline font-semibold">Khôi phục mật khẩu</a>
+            <button
+              type="button"
+              onClick={() => { setMode('forgot-password'); setMessage(null); }}
+              className="text-[#c4a84f] border-none bg-transparent p-0 cursor-pointer font-semibold hover:underline"
+            >
+              Khôi phục mật khẩu
+            </button>
           </p>
+        </form>
+      ) : mode === 'forgot-password' ? (
+        /* Form Quên mật khẩu */
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="w-full">
+          <p className="text-center text-xs md:text-sm text-[#666] mb-5 md:mb-7 font-['Cormorant_Garamond',_serif]">
+            Nhập email của bạn để nhận mật khẩu khôi phục ngẫu nhiên:
+          </p>
+
+          {message && (
+            <p className={`text-center text-xs mb-4 ${message.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+              {message.text}
+            </p>
+          )}
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleInputChange}
+            className="w-full p-[12px_15px] md:p-[16px_18px] text-[14px] md:text-[15px] border border-[#ddd] rounded-lg mb-5 outline-none font-inherit box-border text-[#333] bg-white transition-colors focus:border-[#c4a84f]"
+          />
+
+          <button
+            type="button"
+            disabled={loading}
+            onClick={handleSubmit}
+            className="w-full p-3.5 md:p-4 bg-[#c4a84f] text-white border-none rounded-lg cursor-pointer text-[14px] md:text-[15px] font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] mb-3 transition-colors hover:bg-[#a8893a] disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {loading ? "Đang xử lý..." : "Gửi yêu cầu khôi phục"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setMessage(null); }}
+            className="w-full p-3 md:p-4 border border-[#c4a84f] text-[#c4a84f] rounded-lg cursor-pointer text-[12px] md:text-[13px] font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] transition-all hover:bg-[#c4a84f] hover:text-white"
+          >
+            Quay lại đăng nhập
+          </button>
         </form>
       ) : (
         <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="w-full">
