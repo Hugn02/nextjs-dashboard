@@ -253,8 +253,18 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className={/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()]).+$/.test(formData.newPassword) ? "text-emerald-600 font-medium" : "text-slate-400"}>
-                {/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()]).+$/.test(formData.newPassword) ? "✓" : "○"} Chứa ít nhất 1 chữ cái, 1 số và 1 ký tự đặc biệt
+              <span className={/(?=.*[A-Z])/.test(formData.newPassword) ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {/(?=.*[A-Z])/.test(formData.newPassword) ? "✓" : "○"} Chứa ít nhất 1 chữ cái viết hoa
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={/(?=.*\d)/.test(formData.newPassword) ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {/(?=.*\d)/.test(formData.newPassword) ? "✓" : "○"} Chứa ít nhất 1 chữ số
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?])/.test(formData.newPassword) ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?])/.test(formData.newPassword) ? "✓" : "○"} Chứa ít nhất 1 ký tự đặc biệt
               </span>
             </div>
           </div>
@@ -517,13 +527,23 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
           <div className="text-left text-xs mb-3.5 space-y-1.5 font-sans text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
             <p className="font-semibold text-slate-600 mb-1">Yêu cầu mật khẩu:</p>
             <div className="flex items-center gap-1.5">
-              <span className={formData.password.length >= 6 ? "text-emerald-600 font-medium" : "text-slate-400"}>
-                {formData.password.length >= 6 ? "✓" : "○"} Tối thiểu 6 ký tự
+              <span className={formData.password.length >= 8 ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {formData.password.length >= 8 ? "✓" : "○"} Tối thiểu 8 ký tự
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className={/^(?=.*[A-Za-z])(?=.*\d).+$/.test(formData.password) ? "text-emerald-600 font-medium" : "text-slate-400"}>
-                {/^(?=.*[A-Za-z])(?=.*\d).+$/.test(formData.password) ? "✓" : "○"} Chứa ít nhất 1 chữ cái và 1 chữ số
+              <span className={/(?=.*[A-Z])/.test(formData.password) ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {/(?=.*[A-Z])/.test(formData.password) ? "✓" : "○"} Chứa ít nhất 1 chữ cái viết hoa
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={/(?=.*\d)/.test(formData.password) ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {/(?=.*\d)/.test(formData.password) ? "✓" : "○"} Chứa ít nhất 1 chữ số
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?])/.test(formData.password) ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                {/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?])/.test(formData.password) ? "✓" : "○"} Chứa ít nhất 1 ký tự đặc biệt
               </span>
             </div>
           </div>
