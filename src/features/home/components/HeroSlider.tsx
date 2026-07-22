@@ -27,7 +27,7 @@ export default function HeroSlider() {
   }, []);
 
   return (
-    <section className="hidden md:block relative w-full h-[min(640px,72vh)] overflow-hidden mt-[120px]">
+    <section className="relative w-full aspect-[16/8] sm:aspect-[16/6.5] lg:aspect-auto lg:h-[min(640px,72vh)] overflow-hidden mt-[88px] md:mt-[120px]">
       {HERO_SLIDES.map((slide, i) => (
         <div
           key={slide.id}
@@ -46,13 +46,13 @@ export default function HeroSlider() {
         </div>
       ))}
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10">
         {HERO_SLIDES.map((_, i) => (
           <button
             key={i}
             onClick={() => setCurrent(i)}
-            className={`h-2 rounded-full border-none cursor-pointer transition-all duration-300 p-0 
-                            ${i === current ? "w-8 bg-[#c4a84f]" : "w-2 bg-white/60"}`}
+            className={`h-1.5 sm:h-2 rounded-full border-none cursor-pointer transition-all duration-300 p-0 
+                            ${i === current ? "w-6 sm:w-8 bg-[#c4a84f]" : "w-1.5 sm:w-2 bg-white/60"}`}
           />
         ))}
       </div>

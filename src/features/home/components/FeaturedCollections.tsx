@@ -52,10 +52,10 @@ export default function FeaturedCollections() {
     <section className="bg-[#2c1a00] py-[72px]">
       <div className="max-w-[1280px] mx-auto px-6">
         <div className="text-center mb-12">
-          <p className="text-[15px] tracking-[4px] text-[#c4a84f] font-['Cormorant_Garamond',_serif] uppercase mb-2.5">
+          <p className="text-[13px] sm:text-[15px] tracking-[3px] sm:tracking-[4px] text-[#c4a84f] font-['Cormorant_Garamond',_serif] uppercase mb-2.5">
             Nổi bật
           </p>
-          <h2 className="text-[clamp(28px,4vw,44px)] font-['Cormorant_Garamond',_serif] font-light text-[#fdf8ef] tracking-[3px] m-0">
+          <h2 className="text-[clamp(22px,4vw,44px)] font-['Cormorant_Garamond',_serif] font-light text-[#fdf8ef] tracking-[2px] sm:tracking-[3px] m-0">
             Bộ sưu tập đặc sắc
           </h2>
           <div className="w-[60px] h-px bg-gradient-to-r from-transparent via-[#c4a84f] to-transparent mx-auto mt-4" />

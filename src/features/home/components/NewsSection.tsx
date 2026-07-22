@@ -41,11 +41,11 @@ export default function NewsSection() {
 
     if (loading) {
         return (
-            <section className="bg-[#f2eee5] py-16 border-t border-[#ede0c4]">
+            <section className="bg-[#f2eee5] py-12 md:py-16 border-t border-[#ede0c4]">
                 <div className="max-w-[1280px] mx-auto px-6">
                     <div className="text-center mb-10">
-                        <p className="text-[15px] tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">Tin tức & Sự kiện</p>
-                        <h2 className="text-[clamp(28px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-normal text-[#2c1a00] tracking-[1px] m-0 max-w-3xl mx-auto">Chuyên mục cập nhật các tin tức và sự kiện mới nhất tại Nghệ nhân Bát Tràng</h2>
+                        <p className="text-[13px] sm:text-[15px] tracking-[3px] sm:tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">Tin tức & Sự kiện</p>
+                        <h2 className="text-[clamp(20px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-normal text-[#2c1a00] tracking-[1px] m-0 max-w-3xl mx-auto">Chuyên mục cập nhật các tin tức và sự kiện mới nhất tại Nghệ nhân Bát Tràng</h2>
                         <div className="w-[60px] h-px bg-gradient-to-r from-transparent via-[#c4a84f] to-transparent mx-auto mt-4" />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -61,11 +61,11 @@ export default function NewsSection() {
     }
 
     return (
-        <section className="bg-[#f2eee5] py-16 border-t border-[#ede0c4]">
+        <section className="bg-[#f2eee5] py-12 md:py-16 border-t border-[#ede0c4]">
             <div className="max-w-[1280px] mx-auto px-6">
                 <div className="text-center mb-10">
-                    <p className="text-[15px] tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">Tin tức & Sự kiện</p>
-                    <h2 className="text-[clamp(28px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-normal text-[#2c1a00] tracking-[1px] m-0 max-w-3xl mx-auto">Chuyên mục cập nhật các tin tức và sự kiện mới nhất tại Nghệ nhân Bát Tràng</h2>
+                    <p className="text-[13px] sm:text-[15px] tracking-[3px] sm:tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">Tin tức & Sự kiện</p>
+                    <h2 className="text-[clamp(20px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-normal text-[#2c1a00] tracking-[1px] m-0 max-w-3xl mx-auto">Chuyên mục cập nhật các tin tức và sự kiện mới nhất tại Nghệ nhân Bát Tràng</h2>
                     <div className="w-[60px] h-px bg-gradient-to-r from-transparent via-[#c4a84f] to-transparent mx-auto mt-4" />
                 </div>
 

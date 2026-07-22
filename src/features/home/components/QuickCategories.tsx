@@ -62,13 +62,13 @@ export default function QuickCategories() {
   }
 
   return (
-    <section className="bg-white pt-10 md:pt-[60px] pb-10 mt-[88px] md:mt-0">
+    <section className="bg-white pt-10 md:pt-[60px] pb-10">
       <div className="max-w-[1280px] mx-auto px-6">
         <div className="text-center mb-10">
-          <p className="text-[15px] tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">
+          <p className="text-[13px] sm:text-[15px] tracking-[3px] sm:tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">
             Khám phá
           </p>
-          <h2 className="text-[clamp(28px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-light text-[#2c1a00] tracking-[2px] m-0">
+          <h2 className="text-[clamp(22px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-light text-[#2c1a00] tracking-[2px] m-0">
             Bạn đang cần tìm gì?
           </h2>
           <div className="w-[60px] h-px bg-gradient-to-r from-transparent via-[#c4a84f] to-transparent mx-auto mt-4" />

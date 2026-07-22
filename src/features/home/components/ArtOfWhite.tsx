@@ -15,22 +15,22 @@ export default function ArtOfWhite() {
         <div className="flex flex-col justify-center">
           {/* Cursive Title */}
           <div className="mb-3">
-            <span className="font-['Alex_Brush',_cursive] text-[48px] md:text-[68px] text-[#4a3f35] leading-none block">
+            <span className="font-['Alex_Brush',_cursive] text-[36px] sm:text-[48px] md:text-[68px] text-[#4a3f35] leading-none block text-center md:text-left">
               The Art of Fire
             </span>
           </div>
 
           {/* Subtitle with Gold Vertical Bar */}
-          <div className="flex gap-3 mb-8 items-stretch">
+          <div className="flex gap-3 mb-6 items-stretch justify-center md:justify-start">
             <div className="w-[3px] bg-[#c4a84f] shrink-0" />
-            <h3 className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] font-sans font-bold tracking-[2px] text-[#2c1a00] uppercase leading-tight">
+            <h3 className="text-[13px] sm:text-[16px] md:text-[18px] lg:text-[20px] font-sans font-bold tracking-[1.5px] sm:tracking-[2px] text-[#2c1a00] uppercase leading-tight">
               Nghệ thuật men hỏa biến
             </h3>
           </div>
 
           {/* Paragraph and Action Button */}
           <div className="flex flex-col items-center">
-            <p className="text-center text-[#554433] text-[15px] md:text-[16px] leading-[1.8] mb-8 font-sans max-w-[480px]">
+            <p className="text-center text-[#554433] text-[14px] md:text-[16px] leading-[1.8] mb-8 font-sans max-w-[480px]">
               Men hỏa biến là dòng men được tạo ra bởi sự tương tác hóa học giữa oxit kim loại và men nền trong môi trường nhiệt độ cao. Mỗi sản phẩm là một tác phẩm nghệ thuật độc nhất, không thể sao chép, mang vẻ đẹp của sự ngẫu hứng và biến ảo kỳ diệu từ lửa.
             </p>
 
