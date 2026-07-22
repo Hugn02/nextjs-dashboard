@@ -252,7 +252,8 @@ export default function OrderDetailPage() {
         return order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     };
 
-    // Helper rendering the timeline stepper
+
+    // Helper rendering the timeline stepper - redesigned for mobile-first
     const renderTimeline = () => {
         if (!order) return null;
 
@@ -260,19 +261,21 @@ export default function OrderDetailPage() {
 
         if (isCancelled) {
             return (
-                <div className="bg-white border border-red-200 rounded-lg p-6 mb-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="bg-white border border-red-200 rounded-lg p-5 mb-6 shadow-sm">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center border border-red-200 text-red-600 flex-shrink-0">
+                        <div className="w-11 h-11 bg-red-50 rounded-full flex items-center justify-center border border-red-200 text-red-600 flex-shrink-0">
                             <XCircle className="w-6 h-6" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-red-650 font-sans">Đơn hàng đã bị hủy</h3>
-                            <p className="text-xs text-gray-400 font-sans mt-0.5">Vào lúc: {new Date(order.updatedAt).toLocaleString("vi-VN")}</p>
+                            <h3 className="font-bold text-red-600 font-sans text-sm">Đơn hàng đã bị hủy</h3>
+                            <p className="text-xs text-gray-400 font-sans mt-0.5">
+                                Vào lúc: {new Date(order.updatedAt).toLocaleString("vi-VN")}
+                            </p>
                         </div>
                     </div>
-                    <div className="text-sm text-gray-500 font-sans max-w-md">
+                    <p className="text-xs text-gray-500 font-sans mt-4 leading-relaxed border-t border-red-100 pt-3">
                         Đơn hàng của bạn đã được hủy bỏ. Nếu bạn đã chuyển khoản trước đó, chúng tôi sẽ liên hệ trong vòng 24h để hoàn tất thủ tục hoàn tiền.
-                    </div>
+                    </p>
                 </div>
             );
         }
@@ -284,22 +287,73 @@ export default function OrderDetailPage() {
             { key: "completed", label: "Hoàn thành", icon: CheckCircle2 },
         ];
 
-        // Determine current step index
         const currentIdx = steps.findIndex(s => s.key === order.status);
 
         return (
-            <div className="bg-white border border-[#ede0c4] rounded-lg p-6 md:p-8 mb-8 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-6 font-sans text-center md:text-left">
+            <div className="bg-white border border-[#ede0c4] rounded-lg p-5 md:p-8 mb-6 shadow-sm">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-5 font-sans text-center">
                     Trạng thái đơn hàng
                 </h3>
 
-                <div className="flex flex-col md:flex-row justify-between items-center relative gap-8 md:gap-4 font-sans">
-                    {/* Horizontal Line connector (Desktop only) */}
-                    <div className="hidden md:block absolute top-[22px] left-[10%] right-[10%] h-[2px] bg-gray-100 z-0">
+                {/* ── MOBILE: Vertical Stepper ── */}
+                <div className="flex md:hidden flex-col items-center">
+                    <div className="w-fit mx-auto flex flex-col">
+                        {steps.map((step, idx) => {
+                            const StepIcon = step.icon;
+                            const isCompleted = idx <= currentIdx;
+                            const isActive = idx === currentIdx;
+                            const isLast = idx === steps.length - 1;
+
+                            return (
+                                <div key={step.key} className="flex gap-4 items-stretch">
+                                    {/* Left: icon + vertical line */}
+                                    <div className="flex flex-col items-center">
+                                        <div
+                                            className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all duration-300 ${
+                                                isCompleted
+                                                    ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
+                                                    : "bg-white border-gray-200 text-gray-400"
+                                            } ${isActive ? "ring-4 ring-[#c4a84f]/20 scale-110" : ""}`}
+                                        >
+                                            <StepIcon className="w-4 h-4" />
+                                        </div>
+                                        {/* Vertical connector */}
+                                        {!isLast && (
+                                            <div className="w-[2px] flex-1 my-1 min-h-[24px]"
+                                                style={{ background: idx < currentIdx ? "#c4a84f" : "#e5e7eb" }}
+                                            />
+                                        )}
+                                    </div>
+
+                                    {/* Right: label */}
+                                    <div className={`flex items-start pt-2 pb-5 flex-1 min-w-[130px] ${isLast ? "pb-0" : ""}`}>
+                                        <div>
+                                            <p className={`text-sm font-bold tracking-[0.3px] font-sans leading-tight ${
+                                                isCompleted ? "text-[#2c1a00]" : "text-gray-400"
+                                            }`}>
+                                                {step.label}
+                                            </p>
+                                            {isActive && (
+                                                <span className="inline-block px-2 py-0.5 mt-1 bg-[#fffbeb] border border-[#fef3c7] text-[#d97706] rounded text-[10px] font-semibold font-sans">
+                                                    Hiện tại
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* ── DESKTOP: Horizontal Stepper ── */}
+                <div className="hidden md:flex justify-between items-start relative gap-4 font-sans">
+                    {/* Horizontal Line */}
+                    <div className="absolute top-[20px] left-[10%] right-[10%] h-[2px] bg-gray-100 z-0">
                         <div
                             className="h-full bg-[#c4a84f] transition-all duration-500"
                             style={{ width: `${(Math.max(0, currentIdx) / (steps.length - 1)) * 100}%` }}
-                        ></div>
+                        />
                     </div>
 
                     {steps.map((step, idx) => {
@@ -308,21 +362,20 @@ export default function OrderDetailPage() {
                         const isActive = idx === currentIdx;
 
                         return (
-                            <div key={step.key} className="flex md:flex-col items-center gap-4 md:gap-2 flex-1 z-10 w-full md:w-auto">
-                                {/* Dot step */}
+                            <div key={step.key} className="flex flex-col items-center gap-2 flex-1 z-10">
                                 <div
-                                    className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 border-2 ${isCompleted
-                                        ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
-                                        : "bg-white border-gray-200 text-gray-400"
-                                        } ${isActive ? "ring-4 ring-[#c4a84f]/20 scale-110" : ""}`}
+                                    className={`w-11 h-11 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                                        isCompleted
+                                            ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
+                                            : "bg-white border-gray-200 text-gray-400"
+                                    } ${isActive ? "ring-4 ring-[#c4a84f]/20 scale-110" : ""}`}
                                 >
                                     <StepIcon className="w-5 h-5" />
                                 </div>
-
-                                {/* Label step */}
-                                <div className="text-left md:text-center">
-                                    <p className={`text-xs font-bold tracking-[0.5px] uppercase ${isCompleted ? "text-[#2c1a00]" : "text-gray-400"
-                                        }`}>
+                                <div className="text-center">
+                                    <p className={`text-xs font-bold tracking-[0.5px] uppercase font-sans ${
+                                        isCompleted ? "text-[#2c1a00]" : "text-gray-400"
+                                    }`}>
                                         {step.label}
                                     </p>
                                     {isActive && (
@@ -374,23 +427,23 @@ export default function OrderDetailPage() {
                         </div>
                     ) : (
                         <div>
-                            {/* Title Block */}
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
+                            {/* Title Block - Left & Right layout on mobile & desktop */}
+                            <div className="flex justify-between items-start gap-4 mb-6">
                                 <div>
-                                    <div className="flex items-center gap-2 text-[#c4a84f] text-xs font-bold tracking-[2px] uppercase mb-1">
-                                        <FileText className="w-4 h-4" />
+                                    <div className="flex items-center gap-1.5 text-[#c4a84f] text-[10px] sm:text-xs font-bold tracking-[1.5px] uppercase mb-1">
+                                        <FileText className="w-3.5 h-3.5" />
                                         <span>Mã đơn hàng</span>
                                     </div>
-                                    <h1 className="text-2xl md:text-3xl font-mono font-bold text-[#2c1a00] break-all">
+                                    <h1 className="text-lg sm:text-2xl md:text-3xl font-mono font-bold text-[#2c1a00] break-all leading-tight">
                                         {order.publicId}
                                     </h1>
                                 </div>
-                                <div className="text-left md:text-right font-sans text-xs text-gray-400">
-                                    <div className="flex items-center md:justify-end gap-1.5 mb-1">
-                                        <Calendar className="w-4 h-4 text-gray-300" />
+                                <div className="text-right font-sans text-xs text-gray-400 flex-shrink-0">
+                                    <div className="flex items-center justify-end gap-1.5 mb-1">
+                                        <Calendar className="w-3.5 h-3.5 text-gray-300" />
                                         <span>Thời gian đặt hàng:</span>
                                     </div>
-                                    <strong className="text-gray-700 text-sm font-sans">
+                                    <strong className="text-gray-700 text-xs sm:text-sm font-sans block">
                                         {new Date(order.createdAt).toLocaleString("vi-VN")}
                                     </strong>
                                 </div>
@@ -400,7 +453,7 @@ export default function OrderDetailPage() {
                             {renderTimeline()}
 
                             {/* Two Column details grid */}
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
 
                                 {/* Left Column: Order Items */}
                                 <div className="lg:col-span-2 space-y-6">
@@ -411,13 +464,14 @@ export default function OrderDetailPage() {
                                             </h3>
                                         </div>
 
-                                        <div className="divide-y divide-gray-100 px-6">
+                                        <div className="divide-y divide-gray-100 px-4 sm:px-6">
                                             {order.items.map((item, idx) => {
                                                 const p = item.product || {};
                                                 const imgUrl = p.imageUrl?.[0] || "https://placehold.co/80x80";
                                                 return (
-                                                    <div key={idx} className="py-5 flex gap-4 items-center">
-                                                        <div className="relative w-16 h-16 bg-white border border-[#ede0c4] rounded overflow-hidden flex-shrink-0">
+                                                    <div key={idx} className="py-4 flex gap-3 sm:gap-4 items-start sm:items-center">
+                                                        {/* Image */}
+                                                        <div className="relative w-14 h-14 sm:w-16 sm:h-16 bg-white border border-[#ede0c4] rounded overflow-hidden flex-shrink-0 mt-0.5 sm:mt-0">
                                                             <Image
                                                                 src={imgUrl}
                                                                 alt={p.productName || "Sản phẩm"}
@@ -426,28 +480,29 @@ export default function OrderDetailPage() {
                                                                 sizes="64px"
                                                             />
                                                         </div>
+
+                                                        {/* Info */}
                                                         <div className="flex-1 min-w-0">
-                                                            <h4 className="text-sm font-bold text-[#2c1a00] hover:text-[#c4a84f] transition-colors font-sans">
-                                                                <Link href={`/products/${p.slug}`} className="no-underline text-inherit cursor-pointer">
+                                                            <h4 className="text-[13px] font-bold text-[#2c1a00] hover:text-[#c4a84f] transition-colors font-sans leading-snug">
+                                                                <Link href={`/products/${p.slug}`} className="no-underline text-inherit cursor-pointer line-clamp-2">
                                                                     {p.productName || "Sản phẩm Bát Tràng"}
                                                                 </Link>
                                                             </h4>
                                                             {p.sku && (
-                                                                <p className="text-[11px] font-mono text-gray-400 mt-0.5">
+                                                                <p className="text-[10px] font-mono text-gray-400 mt-0.5">
                                                                     Mã SP: {p.sku}
                                                                 </p>
                                                             )}
-                                                            <p className="text-xs text-gray-400 mt-1 font-sans">
-                                                                Số lượng: <span className="text-gray-700 font-semibold">{item.quantity}</span>
-                                                            </p>
-
-                                                            {/* Review triggers moved to order actions card */}
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-xs text-gray-400 font-sans font-medium mb-0.5">Đơn giá: {formatPrice(item.price)}</p>
-                                                            <span className="text-sm font-bold text-gray-800 font-sans">
-                                                                {formatPrice(item.price * item.quantity)}
-                                                            </span>
+                                                            <div className="flex items-center justify-between mt-1.5 gap-2">
+                                                                <p className="text-xs text-gray-400 font-sans">
+                                                                    SL: <span className="text-gray-700 font-semibold">{item.quantity}</span>
+                                                                    <span className="mx-1.5 text-gray-300">·</span>
+                                                                    <span className="text-gray-400">{formatPrice(item.price)}</span>
+                                                                </p>
+                                                                <span className="text-sm font-bold text-gray-800 font-sans whitespace-nowrap">
+                                                                    {formatPrice(item.price * item.quantity)}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 );

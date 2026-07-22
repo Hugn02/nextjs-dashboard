@@ -169,7 +169,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
         });
 
         const totalP = Math.max(1, Math.ceil(filtered.length / REVIEWS_PER_PAGE));
-        
+
         const startIndex = (currentPage - 1) * REVIEWS_PER_PAGE;
         const paginated = filtered.slice(startIndex, startIndex + REVIEWS_PER_PAGE);
 
@@ -727,14 +727,13 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                     </div>
 
                                     {/* Right: Filter Tags */}
-                                    <div className="flex-1 flex flex-wrap gap-2 justify-start">
+                                    <div className="flex-1 flex flex-wrap gap-2 justify-center md:justify-start">
                                         <button
                                             onClick={() => handleFilterChange("all")}
-                                            className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${
-                                                ratingFilter === "all"
+                                            className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${ratingFilter === "all"
                                                     ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
                                                     : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
-                                            }`}
+                                                }`}
                                         >
                                             Tất Cả ({counts.all})
                                         </button>
@@ -742,11 +741,10 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                             <button
                                                 key={star}
                                                 onClick={() => handleFilterChange(star)}
-                                                className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${
-                                                    ratingFilter === star
+                                                className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${ratingFilter === star
                                                         ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
                                                         : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
-                                                }`}
+                                                    }`}
                                             >
                                                 {star} Sao ({counts[star as 1 | 2 | 3 | 4 | 5]})
                                             </button>
@@ -821,11 +819,10 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                                 <button
                                                     key={page}
                                                     onClick={() => setCurrentPage(page)}
-                                                    className={`px-3 py-1.5 rounded-[2px] border transition-all cursor-pointer ${
-                                                        currentPage === page
+                                                    className={`px-3 py-1.5 rounded-[2px] border transition-all cursor-pointer ${currentPage === page
                                                             ? "border-[#ee4d2d] bg-[#ee4d2d] text-white"
                                                             : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {page}
                                                 </button>

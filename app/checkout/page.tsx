@@ -37,9 +37,10 @@ const VIETNAM_LOCATIONS: LocationData = {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, summary, refreshCart, loading } = useCart();
+  const { cart, refreshCart, loading } = useCart();
 
   const [user, setUser] = useState<User | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [form, setForm] = useState({
     customerName: "",
     phone: "",
@@ -56,10 +57,19 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Restore note from Cart page
+  // Restore note + selected IDs from Cart page
   useEffect(() => {
     const savedNote = localStorage.getItem("checkout_note") || "";
     setForm((prev) => ({ ...prev, note: savedNote }));
+
+    // Đọc danh sách sản phẩm đã chọn từ giỏ hàng
+    const savedIds = localStorage.getItem("checkout_selected_ids");
+    if (savedIds) {
+      try {
+        const ids: string[] = JSON.parse(savedIds);
+        setSelectedIds(new Set(ids));
+      } catch (e) { console.error("Failed to parse selected ids"); }
+    }
 
     // Lấy thông tin user từ localStorage
     const savedUser = localStorage.getItem("user");
@@ -110,10 +120,22 @@ export default function CheckoutPage() {
     return n.toLocaleString("vi-VN") + "₫";
   };
 
+  // Lọc sản phẩm theo checkbox đã chọn
+  const checkoutItems = cart
+    ? (selectedIds.size > 0
+        ? cart.items.filter((item) => selectedIds.has(item.product.id || item.product._id))
+        : cart.items)
+    : [];
+
+  const checkoutSubtotal = checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const checkoutItemCount = checkoutItems.reduce((sum, item) => sum + item.quantity, 0);
+  const checkoutShippingFee = checkoutSubtotal > 0 && checkoutSubtotal < 500000 ? 30000 : 0;
+  const checkoutTotal = checkoutSubtotal + checkoutShippingFee;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cart || cart.items.length === 0) {
-      setErrorMessage("Giỏ hàng của bạn đang trống!");
+    if (!cart || checkoutItems.length === 0) {
+      setErrorMessage("Không có sản phẩm nào để đặt hàng!");
       return;
     }
 
@@ -134,13 +156,13 @@ export default function CheckoutPage() {
       district: form.district,
       ward: form.ward,
       note: form.note,
-      items: cart.items.map(item => ({
+      items: checkoutItems.map(item => ({
         productId: item.product.id || item.product._id,
         quantity: item.quantity,
         price: item.price
       })),
-      total: summary.total,
-      shippingFee: summary.shippingFee,
+      total: checkoutTotal,
+      shippingFee: checkoutShippingFee,
       sessionId: getSessionId()
     };
 
@@ -163,8 +185,9 @@ export default function CheckoutPage() {
 
       const orderData = orderResult.data || orderResult;
 
-      // Xóa note khỏi local storage
+      // Xóa note + selected ids khỏi local storage
       localStorage.removeItem("checkout_note");
+      localStorage.removeItem("checkout_selected_ids");
 
       // Refresh Cart context
       await refreshCart();
@@ -392,61 +415,67 @@ export default function CheckoutPage() {
         {/* Right column: Order Summary */}
         <div className="bg-[#fbfaf8] border border-[#ede0c4] rounded p-6 shadow-[0_2px_8px_rgba(0,0,0,0.01)] sticky top-6">
           <h2 className="text-base font-bold font-['Cormorant_Garamond',_serif] tracking-[1px] uppercase text-[#2c1a00] pb-3 border-b border-[#ede0c4] mb-4">
-            Tóm tắt đơn hàng ({summary.itemCount} sản phẩm)
+            Tóm tắt đơn hàng ({checkoutItemCount} sản phẩm)
           </h2>
 
-          {/* Product Items */}
+          {/* Product Items — chỉ hiện sản phẩm đã chọn */}
           <div className="max-h-[300px] overflow-y-auto pr-1 flex flex-col gap-4 border-b border-[#ede0c4] pb-4 mb-4">
-            {cart?.items.map((item) => {
-              const p = item.product;
-              const imageUrl = p?.imageUrl?.[0] || p?.images?.[0] || "https://placehold.co/80x80";
-              return (
-                <div key={p.id || p._id} className="flex gap-3 items-center justify-between">
-                  <div className="flex gap-3 items-center">
-                    <div className="relative w-12 h-12 bg-[#faf7f2] border border-[#ede0c4] rounded overflow-hidden">
-                      <Image
-                        src={imageUrl}
-                        alt={p.name}
-                        fill
-                        className="object-cover"
-                        sizes="48px"
-                      />
-                      <span className="absolute -top-1.5 -right-1.5 bg-[#8b6914] text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                        {item.quantity}
-                      </span>
+            {checkoutItems.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-4">
+                Không có sản phẩm nào được chọn.
+              </p>
+            ) : (
+              checkoutItems.map((item) => {
+                const p = item.product;
+                const imageUrl = p?.imageUrl?.[0] || p?.images?.[0] || "https://placehold.co/80x80";
+                return (
+                  <div key={p.id || p._id} className="flex gap-3 items-center justify-between">
+                    <div className="flex gap-3 items-center">
+                      <div className="relative w-12 h-12 bg-[#faf7f2] border border-[#ede0c4] rounded overflow-hidden">
+                        <Image
+                          src={imageUrl}
+                          alt={p.name}
+                          fill
+                          className="object-cover"
+                          sizes="48px"
+                        />
+                        <span className="absolute -top-1.5 -right-1.5 bg-[#8b6914] text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                          {item.quantity}
+                        </span>
+                      </div>
+                      <div className="max-w-[200px]">
+                        <h4 className="text-xs font-semibold font-['Cormorant_Garamond',_serif] text-[#2c1a00] line-clamp-1">
+                          {p.name}
+                        </h4>
+                        {p.sku && (
+                          <span className="text-[9px] text-gray-400 tracking-wide uppercase">SKU: {p.sku}</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="max-w-[200px]">
-                      <h4 className="text-xs font-semibold font-['Cormorant_Garamond',_serif] text-[#2c1a00] line-clamp-1">
-                        {p.name}
-                      </h4>
-                      {p.sku && (
-                        <span className="text-[9px] text-gray-400 tracking-wide uppercase">SKU: {p.sku}</span>
-                      )}
-                    </div>
+                    <span className="font-['Cormorant_Garamond',_serif] text-xs font-bold text-gray-800">
+                      {formatPrice(item.price * item.quantity)}
+                    </span>
                   </div>
-                  <span className="font-['Cormorant_Garamond',_serif] text-xs font-bold text-gray-800">
-                    {formatPrice(item.price * item.quantity)}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           {/* Pricing Totals */}
           <div className="flex flex-col gap-2.5 text-xs text-gray-600 font-['Cormorant_Garamond',_serif] border-b border-[#ede0c4] pb-4 mb-4">
             <div className="flex justify-between items-center">
               <span>Tạm tính:</span>
-              <span className="font-semibold text-gray-800">{formatPrice(summary.subtotal)}</span>
+              <span className="font-semibold text-gray-800">{formatPrice(checkoutSubtotal)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span>Phí vận chuyển:</span>
-              <span>{summary.shippingFee > 0 ? formatPrice(summary.shippingFee) : "Miễn phí"}</span>
+              <span>{checkoutShippingFee > 0 ? formatPrice(checkoutShippingFee) : "Miễn phí"}</span>
             </div>
           </div>
 
           <div className="flex justify-between items-center text-sm font-bold font-['Cormorant_Garamond',_serif] text-[#2c1a00] uppercase">
             <span>Tổng cộng:</span>
-            <span className="text-lg text-[#8b2500] font-extrabold">{formatPrice(summary.total)}</span>
+            <span className="text-lg text-[#8b2500] font-extrabold">{formatPrice(checkoutTotal)}</span>
           </div>
         </div>
       </div>
