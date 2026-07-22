@@ -22,6 +22,7 @@ import {
 
 interface Order {
     _id: string;
+    publicId: string;
     total: number;
     status: string;
     createdAt: string;
@@ -222,8 +223,8 @@ export default function OrderHistoryPage() {
                                             key={tab.id}
                                             onClick={() => setActiveTab(tab.id)}
                                             className={`px-4 py-2.5 text-xs font-bold tracking-[1px] uppercase whitespace-nowrap border-b-2 transition-all font-sans cursor-pointer ${activeTab === tab.id
-                                                    ? "border-[#c4a84f] text-[#c4a84f]"
-                                                    : "border-transparent text-gray-400 hover:text-[#2c1a00]"
+                                                ? "border-[#c4a84f] text-[#c4a84f]"
+                                                : "border-transparent text-gray-400 hover:text-[#2c1a00]"
                                                 }`}
                                         >
                                             {tab.label} ({count})
@@ -260,7 +261,7 @@ export default function OrderHistoryPage() {
                                                         <div className="flex items-center gap-1.5">
                                                             <FileText className="w-4 h-4 text-gray-400" />
                                                             <span className="text-xs text-gray-400 font-sans">Mã đơn:</span>
-                                                            <span className="font-mono text-sm font-semibold text-gray-800">{order._id}</span>
+                                                            <span className="font-mono text-sm font-semibold text-gray-800">{order.publicId}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1.5">
                                                             <Calendar className="w-4 h-4 text-gray-400" />
@@ -330,7 +331,7 @@ export default function OrderHistoryPage() {
                                                             </button>
                                                         )}
                                                         <Link
-                                                            href={`/orders/${order._id}`}
+                                                            href={`/orders/${order.publicId}`}
                                                             className="flex items-center gap-1 bg-[#2c1a00] text-white hover:bg-[#c4a84f] px-5 py-2 rounded text-xs font-bold tracking-[1px] uppercase transition-colors no-underline font-sans"
                                                         >
                                                             <span>Xem chi tiết</span>
@@ -361,7 +362,7 @@ export default function OrderHistoryPage() {
                                 Bạn có chắc chắn muốn hủy đơn hàng:
                             </p>
                             <div className="my-3 p-3 bg-gray-50 border border-gray-200 rounded font-mono text-xs text-gray-700 break-all select-all">
-                                {showConfirmModal._id}
+                                {showConfirmModal.publicId}
                             </div>
                             <p className="text-xs text-red-500 font-sans font-medium">
                                 * Lưu ý: Hành động này không thể hoàn tác sau khi đã thực hiện.

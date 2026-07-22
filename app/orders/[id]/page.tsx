@@ -26,6 +26,7 @@ import {
 
 interface OrderDetail {
     _id: string;
+    publicId: string;
     customerName: string;
     phone: string;
     email?: string;
@@ -381,7 +382,7 @@ export default function OrderDetailPage() {
                                         <span>Mã đơn hàng</span>
                                     </div>
                                     <h1 className="text-2xl md:text-3xl font-mono font-bold text-[#2c1a00] break-all">
-                                        {order._id}
+                                        {order.publicId}
                                     </h1>
                                 </div>
                                 <div className="text-left md:text-right font-sans text-xs text-gray-400">
@@ -618,7 +619,7 @@ export default function OrderDetailPage() {
                                 Bạn có chắc chắn muốn hủy đơn hàng này không?
                             </p>
                             <div className="my-3 p-3 bg-gray-50 border border-gray-200 rounded font-mono text-xs text-gray-700 break-all">
-                                {order?._id}
+                                {order?.publicId}
                             </div>
                             <p className="text-xs text-red-500 font-sans font-medium">
                                 * Lưu ý: Hành động hủy đơn hàng sẽ không thể khôi phục sau khi hoàn tất.

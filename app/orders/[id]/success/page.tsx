@@ -9,6 +9,7 @@ import Footer from "@/src/layout/Footer";
 
 interface OrderDetail {
   _id: string;
+  publicId: string;
   customerName: string;
   phone: string;
   email?: string;
@@ -103,7 +104,7 @@ export default function OrderSuccessPage() {
               <p className="text-sm text-gray-500 max-w-[500px] mx-auto mb-8 font-sans">
                 Cảm ơn bạn đã lựa chọn sản phẩm của Nghệ nhân Bát Tràng. Mã đơn hàng của bạn là{" "}
                 <strong className="text-gray-800 font-mono select-all bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded">
-                  {order._id}
+                  {order.publicId}
                 </strong>.
               </p>
 
