@@ -98,19 +98,18 @@ export default function ProductSection() {
         ) : (
           <Swiper
             modules={[Pagination, Autoplay]}
-            spaceBetween={16}
-            slidesPerView={1.5}
+            spaceBetween={20}
+            slidesPerView={1}
             pagination={{
               clickable: true,
-              el: '.swiper-pagination-custom', // Sử dụng một element tùy chỉnh cho pagination
+              el: '.swiper-pagination-custom',
             }}
             autoplay={{
               delay: 4000,
               disableOnInteraction: false,
             }}
             breakpoints={{
-              480: { slidesPerView: 2, spaceBetween: 16 },
-              640: { slidesPerView: 2.5, spaceBetween: 20 },
+              640: { slidesPerView: 2, spaceBetween: 20 },
               768: { slidesPerView: 3, spaceBetween: 20 },
               1024: { slidesPerView: 5, spaceBetween: 20 },
             }}
