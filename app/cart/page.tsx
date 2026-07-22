@@ -25,9 +25,8 @@ function Checkbox({ checked, onChange, id }: { checked: boolean; onChange: () =>
       aria-checked={checked}
       id={id}
       onClick={onChange}
-      className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c4a84f] focus:ring-offset-1 ${
-        checked ? "bg-[#c4a84f] border-[#c4a84f]" : "bg-white border-[#d1c0a2] hover:border-[#c4a84f]"
-      }`}
+      className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c4a84f] focus:ring-offset-1 ${checked ? "bg-[#c4a84f] border-[#c4a84f]" : "bg-white border-[#d1c0a2] hover:border-[#c4a84f]"
+        }`}
     >
       {checked && (
         <svg width="10" height="7" viewBox="0 0 10 7" fill="none">
@@ -324,7 +323,6 @@ export default function CartPage() {
                     rows={4}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="Nhập ghi chú cho đơn hàng của bạn (ví dụ: yêu cầu giao giờ hành chính, lời nhắn viết thiệp...)"
                     className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] resize-none font-sans"
                   />
                 </div>

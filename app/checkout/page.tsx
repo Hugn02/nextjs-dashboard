@@ -123,8 +123,8 @@ export default function CheckoutPage() {
   // Lọc sản phẩm theo checkbox đã chọn
   const checkoutItems = cart
     ? (selectedIds.size > 0
-        ? cart.items.filter((item) => selectedIds.has(item.product.id || item.product._id))
-        : cart.items)
+      ? cart.items.filter((item) => selectedIds.has(item.product.id || item.product._id))
+      : cart.items)
     : [];
 
   const checkoutSubtotal = checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -219,15 +219,15 @@ export default function CheckoutPage() {
       <div className="max-w-[1200px] mx-auto py-8 px-4 md:px-8 grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-8 items-start">
         {/* Left column: Checkout form */}
         <form onSubmit={handleSubmit} className="bg-white border border-[#ede0c4] rounded p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-          <nav className="text-xs text-gray-500 mb-6 font-['Cormorant_Garamond',_serif] uppercase tracking-[1.5px]">
-            <Link href="/cart" className="hover:underline text-[#8b6914] no-underline">Giỏ hàng</Link>
-            <span className="mx-2 text-gray-400">›</span>
-            <span className="text-gray-800 font-medium">Thông tin giao hàng</span>
-            <span className="mx-2 text-gray-400">›</span>
-            <span className="text-gray-400">Phương thức thanh toán</span>
+          <nav className="flex flex-wrap items-center gap-y-1 text-[10px] sm:text-xs text-gray-500 mb-5 font-['Cormorant_Garamond',_serif] uppercase tracking-[0.8px] sm:tracking-[1.5px]">
+            <Link href="/cart" className="hover:underline text-[#8b6914] no-underline whitespace-nowrap">Giỏ hàng</Link>
+            <span className="mx-1.5 text-gray-400">›</span>
+            <span className="text-gray-800 font-medium whitespace-nowrap">Thông tin giao hàng</span>
+            <span className="mx-1.5 text-gray-400">›</span>
+            <span className="text-gray-400 whitespace-nowrap">Phương thức thanh toán</span>
           </nav>
 
-          <h2 className="text-xl font-bold font-['Cormorant_Garamond',_serif] tracking-[1.5px] uppercase text-[#2c1a00] pb-3 border-b border-[#f3ebdb] mb-6">
+          <h2 className="text-base sm:text-xl font-bold font-['Cormorant_Garamond',_serif] tracking-[1px] sm:tracking-[1.5px] uppercase text-[#2c1a00] pb-3 border-b border-[#f3ebdb] mb-5">
             Thông tin giao hàng
           </h2>
 
@@ -250,8 +250,7 @@ export default function CheckoutPage() {
                 required
                 readOnly={!!user} // Khóa trường này nếu đã đăng nhập
                 disabled={!!user}
-                placeholder="Nguyễn Văn A"
-                className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5]"
+                className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] disabled:opacity-80"
               />
             </div>
 
@@ -266,7 +265,6 @@ export default function CheckoutPage() {
                   value={form.phone}
                   onChange={handleChange}
                   required
-                  placeholder="0901234567"
                   className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5]"
                 />
               </div>
@@ -282,8 +280,7 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   readOnly={!!user} // Khóa trường này nếu đã đăng nhập
                   disabled={!!user}
-                  placeholder="name@example.com"
-                  className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5]"
+                  className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] disabled:opacity-80"
                 />
               </div>
             </div>
@@ -298,7 +295,6 @@ export default function CheckoutPage() {
                 value={form.address}
                 onChange={handleChange}
                 required
-                placeholder="Số 10, ngõ 20, đường Bát Tràng"
                 className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5]"
               />
             </div>
@@ -370,7 +366,6 @@ export default function CheckoutPage() {
                 value={form.note}
                 onChange={handleChange}
                 rows={3}
-                placeholder="Ghi chú thêm về đơn hàng..."
                 className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] resize-none font-sans"
               />
             </div>
@@ -393,9 +388,6 @@ export default function CheckoutPage() {
                     <span>Thanh toán khi nhận hàng (COD)</span>
                   </label>
                 </div>
-                <span className="text-[11px] text-[#8b6914] font-semibold bg-[#fef9ec] px-2.5 py-1 rounded border border-[#fef3c7] font-sans">
-                  💵 Tiền mặt
-                </span>
               </div>
             </div>
 
