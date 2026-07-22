@@ -554,27 +554,27 @@ export default function OrderDetailPage() {
                                         <div className="space-y-4 font-sans text-sm text-gray-700">
                                             {/* Customer Name */}
                                             <div className="flex gap-3">
-                                                <User className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                                <User className="w-5 h-5 text-[#c4a84f] flex-shrink-0" />
                                                 <div>
-                                                    <span className="text-xs text-gray-450 block">Khách nhận hàng</span>
+                                                    <span className="text-xs text-gray-400 block">Khách nhận hàng</span>
                                                     <span className="font-semibold text-gray-800">{order.customerName}</span>
                                                 </div>
                                             </div>
 
                                             {/* Phone Number */}
                                             <div className="flex gap-3">
-                                                <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                                <Phone className="w-5 h-5 text-[#c4a84f] flex-shrink-0" />
                                                 <div>
-                                                    <span className="text-xs text-gray-450 block">Số điện thoại</span>
+                                                    <span className="text-xs text-gray-400 block">Số điện thoại</span>
                                                     <span className="font-semibold text-gray-800">{order.phone}</span>
                                                 </div>
                                             </div>
 
                                             {/* Address */}
                                             <div className="flex gap-3">
-                                                <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                                <MapPin className="w-5 h-5 text-[#c4a84f] flex-shrink-0" />
                                                 <div>
-                                                    <span className="text-xs text-gray-450 block">Địa chỉ nhận hàng</span>
+                                                    <span className="text-xs text-gray-400 block">Địa chỉ nhận hàng</span>
                                                     <span className="font-semibold text-gray-750 leading-relaxed">
                                                         {order.address}, {order.ward}, {order.district}, {order.province}
                                                     </span>
@@ -584,9 +584,9 @@ export default function OrderDetailPage() {
                                             {/* Note */}
                                             {order.note && (
                                                 <div className="flex gap-3 border-t border-gray-100 pt-3">
-                                                    <MessageSquare className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                                    <MessageSquare className="w-5 h-5 text-[#c4a84f] flex-shrink-0" />
                                                     <div className="w-full">
-                                                        <span className="text-xs text-gray-450 block">Ghi chú giao nhận</span>
+                                                        <span className="text-xs text-gray-400 block">Ghi chú giao nhận</span>
                                                         <p className="text-xs italic text-gray-500 bg-[#fbfaf8] border border-gray-200 rounded p-2.5 mt-1 leading-normal">
                                                             "{order.note}"
                                                         </p>

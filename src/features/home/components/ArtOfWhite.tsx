@@ -44,17 +44,21 @@ export default function ArtOfWhite() {
         </div>
 
         {/* Right Column: Embedded YouTube Video */}
-        <div className="relative group w-full flex justify-center p-4 md:p-6">
-          <div className="relative w-full max-w-[560px] aspect-video rounded-[2px] shadow-[12px_18px_35px_rgba(0,0,0,0.5)]">
-            <iframe
-              className="w-full h-full rounded-[2px]"
-              src="https://www.youtube.com/embed/zznr9ZZWQ48?si=A3HzC7FyA0MzOo2n"
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-            ></iframe>
+        <div className="relative group w-full flex justify-center p-2 sm:p-4 md:p-6">
+          <div className="relative w-full max-w-[560px]">
+            {/* Decorative gold accent frame */}
+            <div className="absolute -inset-3 sm:-inset-4 border border-[#c4a84f] rounded-[2px] opacity-40 pointer-events-none" />
+            <div className="relative w-full aspect-video rounded-[2px] shadow-[12px_18px_35px_rgba(44,26,0,0.35)] overflow-hidden z-10">
+              <iframe
+                className="w-full h-full rounded-[2px]"
+                src="https://www.youtube.com/embed/zznr9ZZWQ48?si=A3HzC7FyA0MzOo2n"
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              ></iframe>
+            </div>
           </div>
         </div>
       </div>

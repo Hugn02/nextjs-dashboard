@@ -26,7 +26,7 @@ function Checkbox({ checked, onChange, id }: { checked: boolean; onChange: () =>
       id={id}
       onClick={onChange}
       className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c4a84f] focus:ring-offset-1 ${
-        checked ? "bg-[#c4a84f] border-[#c4a84f]" : "bg-white border-[#ccc] hover:border-[#c4a84f]"
+        checked ? "bg-[#c4a84f] border-[#c4a84f]" : "bg-white border-[#d1c0a2] hover:border-[#c4a84f]"
       }`}
     >
       {checked && (
@@ -145,9 +145,8 @@ export default function CartPage() {
                     />
                     <label
                       htmlFor="select-all"
-                      className={`text-[11px] font-semibold uppercase tracking-widest cursor-pointer select-none transition-colors ${
-                        isAllSelected || isIndeterminate ? "text-[#c4a84f]" : "text-gray-400"
-                      }`}
+                      className={`text-[11px] font-semibold uppercase tracking-widest cursor-pointer select-none transition-colors ${isAllSelected || isIndeterminate ? "text-[#c4a84f]" : "text-gray-400"
+                        }`}
                     >
                       {isAllSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
                     </label>

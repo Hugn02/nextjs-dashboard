@@ -376,21 +376,26 @@ export default function CheckoutPage() {
             </div>
 
             <div className="mt-4 p-4 bg-[#fbfaf8] border border-[#ede0c4] rounded">
-              <span className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
+              <span className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2.5 font-sans">
                 Phương thức thanh toán
               </span>
-              <div className="flex items-center gap-3 p-3 bg-white border border-[#c4a84f] rounded">
-                <input
-                  type="radio"
-                  id="cod"
-                  name="paymentMethod"
-                  value="cod"
-                  defaultChecked
-                  className="accent-[#c4a84f] w-4 h-4"
-                />
-                <label htmlFor="cod" className="text-sm font-medium text-gray-800 cursor-pointer">
-                  Thanh toán khi nhận hàng (COD)
-                </label>
+              <div className="flex items-center justify-between p-3.5 bg-[#fffdf7] border border-[#c4a84f] rounded shadow-sm">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    id="cod"
+                    name="paymentMethod"
+                    value="cod"
+                    defaultChecked
+                    className="accent-[#c4a84f] w-4 h-4 cursor-pointer"
+                  />
+                  <label htmlFor="cod" className="text-sm font-semibold text-[#2c1a00] cursor-pointer flex items-center gap-2 font-sans">
+                    <span>Thanh toán khi nhận hàng (COD)</span>
+                  </label>
+                </div>
+                <span className="text-[11px] text-[#8b6914] font-semibold bg-[#fef9ec] px-2.5 py-1 rounded border border-[#fef3c7] font-sans">
+                  💵 Tiền mặt
+                </span>
               </div>
             </div>
 
