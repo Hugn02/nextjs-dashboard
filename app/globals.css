@@ -24,3 +24,10 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Fix mobile / Android dark mode form text color issue */
+input, select, textarea {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+

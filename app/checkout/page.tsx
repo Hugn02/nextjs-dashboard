@@ -250,7 +250,7 @@ export default function CheckoutPage() {
                 required
                 readOnly={!!user} // Khóa trường này nếu đã đăng nhập
                 disabled={!!user}
-                className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] disabled:opacity-80"
+                className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] disabled:opacity-80"
               />
             </div>
 
@@ -265,7 +265,7 @@ export default function CheckoutPage() {
                   value={form.phone}
                   onChange={handleChange}
                   required
-                  className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5]"
+                  className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5]"
                 />
               </div>
 
@@ -280,7 +280,7 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   readOnly={!!user} // Khóa trường này nếu đã đăng nhập
                   disabled={!!user}
-                  className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] disabled:opacity-80"
+                  className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] disabled:opacity-80"
                 />
               </div>
             </div>
@@ -295,7 +295,7 @@ export default function CheckoutPage() {
                 value={form.address}
                 onChange={handleChange}
                 required
-                className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5]"
+                className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5]"
               />
             </div>
 
@@ -309,7 +309,7 @@ export default function CheckoutPage() {
                   value={form.province}
                   onChange={handleChange}
                   required
-                  className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5]"
+                  className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5]"
                 >
                   <option value="">Chọn tỉnh / thành</option>
                   {citiesList.map((city) => (
@@ -328,7 +328,7 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   required
                   disabled={!form.province}
-                  className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] disabled:opacity-60"
+                  className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] disabled:opacity-60"
                 >
                   <option value="">Chọn quận / huyện</option>
                   {districts.map((dist) => (
@@ -347,7 +347,7 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   required
                   disabled={!form.district}
-                  className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] disabled:opacity-60"
+                  className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] disabled:opacity-60"
                 >
                   <option value="">Chọn phường / xã</option>
                   {wards.map((w) => (
@@ -366,7 +366,7 @@ export default function CheckoutPage() {
                 value={form.note}
                 onChange={handleChange}
                 rows={3}
-                className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] resize-none font-sans"
+                className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] resize-none font-sans"
               />
             </div>
 

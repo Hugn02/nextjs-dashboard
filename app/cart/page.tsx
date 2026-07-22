@@ -323,7 +323,7 @@ export default function CartPage() {
                     rows={4}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="w-full border border-[#ede0c4] rounded p-3 text-sm focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] resize-none font-sans"
+                    className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] resize-none font-sans"
                   />
                 </div>
               </div>
