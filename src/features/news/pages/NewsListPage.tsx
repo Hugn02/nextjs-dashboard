@@ -48,7 +48,7 @@ export default function NewsListPage() {
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap');
             `}</style>
 
-            <main className="min-h-[80vh] bg-[#faf7f2] pb-24 mt-[120px]">
+            <main className="min-h-[80vh] bg-[#faf7f2] pb-24 mt-[88px] md:mt-[120px]">
                 {/* Breadcrumbs */}
                 <div className="border-b border-[#e6dcbf] bg-white">
                     <nav className="mx-auto max-w-[1200px] px-6 py-3 font-['Cormorant_Garamond',_Georgia,_serif] text-xs tracking-wider text-[#888]">
@@ -67,12 +67,15 @@ export default function NewsListPage() {
                         <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-[#888] text-sm tracking-widest mt-2 max-w-md italic mx-auto">Chia sẻ kiến thức, kỹ thuật làm gốm Bát Tràng và bí quyết gia đình</p>
                     </div>
 
-                    {/* Mobile Title */}
-                    <div className="lg:hidden text-center mb-8">
-                        <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] text-2xl font-light text-[#2c1a00] uppercase tracking-[2px] m-0">
-                            Tin tức & Nghệ thuật gốm
+                    {/* Mobile / Tablet Title */}
+                    <div className="lg:hidden text-center pt-6 sm:pt-8 mb-6 sm:mb-8">
+                        <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] text-[22px] sm:text-[28px] md:text-[32px] font-light text-[#2c1a00] uppercase tracking-[2px] m-0">
+                            Tin tức &amp; Nghệ thuật gốm
                         </h1>
                         <div className="h-0.5 w-16 bg-[#c4a84f] mx-auto mt-3" />
+                        <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-[#888] text-xs sm:text-sm tracking-widest mt-2 italic">
+                            Chia sẻ kiến thức, kỹ thuật làm gốm Bát Tràng và bí quyết gia đình
+                        </p>
                     </div>
 
                     {/* List Grid */}
