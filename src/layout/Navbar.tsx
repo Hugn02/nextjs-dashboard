@@ -128,6 +128,13 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Lắng nghe custom event từ các trang khác (vd: Cart, Checkout) để mở modal login
+  useEffect(() => {
+    const handleOpenLogin = () => setActiveModal("user");
+    window.addEventListener("open-login-modal", handleOpenLogin);
+    return () => window.removeEventListener("open-login-modal", handleOpenLogin);
+  }, []);
+
   return (
     <>
       <header

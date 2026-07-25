@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Navbar from "@/src/layout/Navbar";
 import Footer from "@/src/layout/Footer";
 import useCart from "@/src/features/cart/hooks/useCart";
@@ -38,9 +39,11 @@ function Checkbox({ checked, onChange, id }: { checked: boolean; onChange: () =>
 }
 
 export default function CartPage() {
+  const router = useRouter();
   const { cart, summary, updateItem, removeItem, loading } = useCart();
   const [note, setNote] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [loginWarning, setLoginWarning] = useState(false);
 
   const fmt = (n: number) => n.toLocaleString("vi-VN") + "₫";
 
@@ -93,8 +96,18 @@ export default function CartPage() {
   }, [selectedItems]);
 
   const handleCheckout = () => {
+    // Kiểm tra đăng nhập (Phương án B)
+    const isLoggedIn = !!localStorage.getItem("user");
+    if (!isLoggedIn) {
+      setLoginWarning(true);
+      // Mở modal login trên Navbar qua custom event
+      window.dispatchEvent(new CustomEvent("open-login-modal"));
+      return;
+    }
+    setLoginWarning(false);
     handleSaveNote();
     localStorage.setItem("checkout_selected_ids", JSON.stringify([...selectedIds]));
+    router.push("/checkout/address");
   };
 
   return (
@@ -324,6 +337,7 @@ export default function CartPage() {
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] resize-none font-sans"
+                    placeholder="Nội dung ghi chú..."
                   />
                 </div>
               </div>
@@ -360,14 +374,13 @@ export default function CartPage() {
 
                 <div className="flex flex-col gap-3">
                   {selectedIds.size > 0 ? (
-                    <Link
-                      href="/checkout"
+                    <button
                       onClick={handleCheckout}
-                      className="flex items-center justify-center rounded border border-[#d29f13] bg-[#d29f13] py-4 text-xs font-bold tracking-[2px] uppercase no-underline text-white transition-colors duration-200 hover:bg-white hover:text-[#2c1a00]"
+                      className="flex items-center justify-center rounded border border-[#d29f13] bg-[#d29f13] py-4 text-xs font-bold tracking-[2px] uppercase text-white transition-colors duration-200 hover:bg-white hover:text-[#2c1a00]"
                       style={serif}
                     >
                       Thanh toán ({selectedIds.size} sản phẩm)
-                    </Link>
+                    </button>
                   ) : (
                     <button
                       disabled
@@ -377,6 +390,26 @@ export default function CartPage() {
                       Chọn sản phẩm để thanh toán
                     </button>
                   )}
+
+                  {/* Banner cảnh báo chưa đăng nhập */}
+                  {loginWarning && (
+                    <div className="flex flex-col gap-2.5 bg-amber-50 border border-amber-300 rounded-lg p-3.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <div className="flex items-start gap-2">
+                        <span className="text-amber-500 text-base flex-shrink-0 mt-0.5">🔒</span>
+                        <p className="text-xs text-amber-800 font-semibold leading-relaxed" style={serif}>
+                          Bạn cần <strong>đăng nhập</strong> để tiến hành thanh toán!
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => window.dispatchEvent(new CustomEvent("open-login-modal"))}
+                        className="w-full py-2.5 rounded bg-[#c4a84f] text-white text-xs font-bold tracking-[1.5px] uppercase hover:bg-[#a8893a] transition-colors"
+                        style={serif}
+                      >
+                        Đăng nhập ngay
+                      </button>
+                    </div>
+                  )}
+
                   <Link
                     href="/products/all"
                     className="inline-flex items-center gap-2 text-[#8b6914] hover:text-[#c4a84f] no-underline text-xs font-semibold tracking-[1px] uppercase transition-colors duration-200 pt-1 justify-center"

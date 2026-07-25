@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light; /* Luôn dùng light mode, tránh Chrome dark theme đổi màu */
 }
 
 @theme inline {
@@ -12,22 +13,29 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Fix mobile / Android dark mode form text color issue */
-input, select, textarea {
+/* ─── Fix mobile / Android dark mode form text color ─────────────────────────
+   Vấn đề: Chrome dark mode trên điện thoại render chữ nhập = màu xám nhạt
+   Giải pháp:
+   - color + -webkit-text-fill-color → ép chữ nhập luôn là màu đen tối
+   - ::placeholder → placeholder luôn là xám trung tính dễ đọc
+   ─────────────────────────────────────────────────────────────────────────── */
+input,
+select,
+textarea {
   color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
+  background-color: inherit;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important;
+  -webkit-text-fill-color: #9ca3af !important;
+  opacity: 1; /* Firefox cần opacity: 1 để hiển thị đúng */
+}
