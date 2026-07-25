@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { getProvinces, getDistricts, getWards } from "../services/location.service";
 import type {
   Province,
@@ -29,6 +30,11 @@ export default function AddressFormModal({
   onSubmit,
 }: AddressFormModalProps) {
   const isEdit = !!editData;
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [form, setForm] = useState({
     label: editData?.label ?? "",
@@ -106,8 +112,10 @@ export default function AddressFormModal({
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+
     if (
       !form.label ||
       !form.receiverName ||
@@ -120,6 +128,7 @@ export default function AddressFormModal({
       setError("Vui lòng điền đầy đủ các trường bắt buộc (*).");
       return;
     }
+
     setLoading(true);
     setError(null);
     try {
@@ -141,10 +150,13 @@ export default function AddressFormModal({
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  const content = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      onClick={(e) => e.stopPropagation()}
     >
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
@@ -156,7 +168,11 @@ export default function AddressFormModal({
             {isEdit ? "Cập nhật địa chỉ" : "Thêm Địa Chỉ Mới"}
           </h2>
           <button
-            onClick={onClose}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors text-xl font-light"
             aria-label="Đóng"
           >
@@ -164,8 +180,8 @@ export default function AddressFormModal({
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-4">
+        {/* Body container (dùng div thay form để không bao giờ bị lồng form) */}
+        <div className="px-6 py-5 flex flex-col gap-4">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded p-3">
               {error}
@@ -315,15 +331,19 @@ export default function AddressFormModal({
           <div className="flex gap-3 justify-end pt-2 border-t border-[#f3ebdb]">
             <button
               type="button"
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               className="px-5 py-2.5 rounded border border-[#ede0c4] text-xs font-bold uppercase tracking-wider text-gray-600 hover:bg-gray-50 transition-colors"
               style={serif}
             >
               Hủy
             </button>
             <button
-              type="submit"
+              type="button"
               disabled={loading}
+              onClick={handleSave}
               className="px-6 py-2.5 rounded bg-[#c4a84f] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#a8893a] transition-colors disabled:opacity-50"
               style={serif}
             >
@@ -334,8 +354,11 @@ export default function AddressFormModal({
                 : "Lưu địa chỉ"}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }
+

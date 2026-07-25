@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { UserLocation, CreateUserLocationDto } from "../types/location.types";
 import {
   createUserLocation,
@@ -27,6 +28,11 @@ export default function LocationPickerModal({
   onClose,
   onLocationsChange,
 }: LocationPickerModalProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [localSelected, setLocalSelected] = useState<string | null>(
     selectedId ?? locations.find((l) => l.isDefault)?.id ?? null
   );
@@ -36,12 +42,14 @@ export default function LocationPickerModal({
   const [deleting, setDeleting] = useState<string | null>(null);
   const [settingDefault, setSettingDefault] = useState<string | null>(null);
 
-  const handleConfirm = () => {
+  const handleConfirm = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const chosen = locations.find((l) => l.id === localSelected);
     if (chosen) onSelect(chosen);
   };
 
-  const handleDelete = async (loc: UserLocation) => {
+  const handleDelete = async (loc: UserLocation, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (loc.isDefault) {
       setActionError("Không thể xóa địa chỉ mặc định. Hãy đặt địa chỉ khác làm mặc định trước.");
       return;
@@ -61,7 +69,8 @@ export default function LocationPickerModal({
     }
   };
 
-  const handleSetDefault = async (loc: UserLocation) => {
+  const handleSetDefault = async (loc: UserLocation, e: React.MouseEvent) => {
+    e.stopPropagation();
     setSettingDefault(loc.id);
     setActionError(null);
     try {
@@ -94,12 +103,15 @@ export default function LocationPickerModal({
     setEditTarget(undefined);
   };
 
-  return (
+  if (!mounted) return null;
+
+  const modalContent = (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 flex items-center justify-center p-4"
+        className="fixed inset-0 z-[9990] flex items-center justify-center p-4"
         style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-white rounded-lg shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
           {/* Header */}
@@ -111,7 +123,11 @@ export default function LocationPickerModal({
               Địa Chỉ Của Tôi
             </h2>
             <button
-              onClick={onClose}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors text-xl font-light"
               aria-label="Đóng"
             >
@@ -194,7 +210,9 @@ export default function LocationPickerModal({
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
-                      onClick={() => {
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setEditTarget(loc);
                         setShowForm(true);
                         setActionError(null);
@@ -206,20 +224,22 @@ export default function LocationPickerModal({
                     {!loc.isDefault && (
                       <>
                         <button
-                          onClick={() => handleSetDefault(loc)}
-                          disabled={settingDefault === loc._id}
+                          type="button"
+                          onClick={(e) => handleSetDefault(loc, e)}
+                          disabled={settingDefault === loc.id}
                           className="text-xs text-blue-500 hover:text-blue-700 hover:underline font-semibold transition-colors disabled:opacity-50"
                         >
-                          {settingDefault === loc._id
+                          {settingDefault === loc.id
                             ? "Đang đặt..."
                             : "Đặt mặc định"}
                         </button>
                         <button
-                          onClick={() => handleDelete(loc)}
-                          disabled={deleting === loc._id}
+                          type="button"
+                          onClick={(e) => handleDelete(loc, e)}
+                          disabled={deleting === loc.id}
                           className="text-xs text-red-400 hover:text-red-600 hover:underline font-semibold transition-colors disabled:opacity-50"
                         >
-                          {deleting === loc._id ? "Đang xóa..." : "Xóa"}
+                          {deleting === loc.id ? "Đang xóa..." : "Xóa"}
                         </button>
                       </>
                     )}
@@ -232,7 +252,9 @@ export default function LocationPickerModal({
           {/* Footer */}
           <div className="px-6 py-4 border-t border-[#ede0c4] flex flex-col sm:flex-row gap-3 flex-shrink-0">
             <button
-              onClick={() => {
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
                 setEditTarget(undefined);
                 setShowForm(true);
                 setActionError(null);
@@ -243,6 +265,7 @@ export default function LocationPickerModal({
               <span className="text-lg leading-none">+</span> Thêm Địa Chỉ Mới
             </button>
             <button
+              type="button"
               onClick={handleConfirm}
               disabled={!localSelected}
               className="flex-1 py-3 rounded bg-[#e4393c] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#c42d30] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -254,7 +277,7 @@ export default function LocationPickerModal({
         </div>
       </div>
 
-      {/* AddressFormModal (z-50, rendered on top) */}
+      {/* AddressFormModal (z-[9999], rendered on top) */}
       {showForm && (
         <AddressFormModal
           editData={editTarget}
@@ -267,4 +290,6 @@ export default function LocationPickerModal({
       )}
     </>
   );
+
+  return createPortal(modalContent, document.body);
 }
