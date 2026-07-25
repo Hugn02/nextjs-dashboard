@@ -87,14 +87,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     try {
       const data = await cartService.updateCartItem(productId, quantity);
-      setCart(data);
-      setSummary(calculateSummary(data));
+      // data = null nếu API lỗi (VD: product đã bị xóa) → giữ nguyên cart cũ
+      if (data !== null) {
+        setCart(data);
+        setSummary(calculateSummary(data));
+      }
     } catch (err: any) {
       setError(err.message || "Failed to update quantity");
     } finally {
       setLoading(false);
     }
   };
+
 
   const removeFromCart = async (productId: string) => {
     setLoading(true);

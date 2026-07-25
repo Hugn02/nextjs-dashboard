@@ -6,6 +6,7 @@ const bundleAnalyzer = withBundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false, // Tắt strict mode để tránh double-mount useEffect trong dev
   images: {
     remotePatterns: [
       {

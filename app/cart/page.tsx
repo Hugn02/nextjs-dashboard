@@ -56,10 +56,12 @@ export default function CartPage() {
     localStorage.setItem("checkout_note", note);
   };
 
-  // All product IDs in cart
+  // All product IDs in cart (skip items where product was deleted)
   const allIds = useMemo(() => {
     if (!cart) return [] as string[];
-    return cart.items.map((item) => item.product.id || item.product._id) as string[];
+    return cart.items
+      .map((item) => item.product?.id || item.product?._id)
+      .filter(Boolean) as string[];
   }, [cart]);
 
   const isAllSelected = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
@@ -85,7 +87,11 @@ export default function CartPage() {
   // Selected items for summary
   const selectedItems = useMemo(() => {
     if (!cart) return [];
-    return cart.items.filter((item) => selectedIds.has(item.product.id || item.product._id));
+    return cart.items.filter(
+      (item) =>
+        item.product &&
+        selectedIds.has(item.product.id || item.product._id)
+    );
   }, [cart, selectedIds]);
 
   const selectedSummary = useMemo(() => {
@@ -176,151 +182,179 @@ export default function CartPage() {
                   <div className="divide-y divide-[#f3ebdb]">
                     {cart.items.map((item) => {
                       const p = item.product;
-                      const pid = (p.id || p._id) as string;
-                      const imgSrc = formatImageUrl(p?.imageUrl?.[0] || p?.images?.[0]);
-                      const isChecked = selectedIds.has(pid);
+                      // Guard: product có thể bị xóa khỏi DB
+                      const isDeleted = !p || (!p.id && !p._id);
+                      const pid = isDeleted ? `deleted-${Math.random()}` : ((p.id || p._id) as string);
+                      const imgSrc = isDeleted ? "" : formatImageUrl(p?.imageUrl?.[0] || p?.images?.[0]);
+                      const isChecked = !isDeleted && selectedIds.has(pid);
 
                       return (
                         <div
-                          key={pid}
-                          className={`transition-colors duration-150 ${isChecked ? "bg-[#fffdf7]" : "bg-white"}`}
+                          key={isDeleted ? `deleted-${item.price}-${item.quantity}` : pid}
+                          className={`transition-colors duration-150 ${isDeleted ? "bg-red-50 border-l-2 border-red-300" : isChecked ? "bg-[#fffdf7]" : "bg-white"}`}
                         >
-                          {/* ── MOBILE LAYOUT (< sm) ── */}
-                          <div className="flex sm:hidden gap-3 px-4 py-4 items-start">
-                            {/* Checkbox */}
-                            <div className="flex-shrink-0 pt-[3px]">
-                              <Checkbox checked={isChecked} onChange={() => toggleItem(pid)} />
-                            </div>
-
-                            {/* Product image */}
-                            <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
-                              <Image src={imgSrc} alt={p.name} fill className="object-cover" sizes="80px" />
-                            </div>
-
-                            {/* Right side: name + controls */}
-                            <div className="flex-1 min-w-0">
-                              <Link
-                                href={`/products/${p.slug}`}
-                                className="font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline text-[13px] leading-snug line-clamp-2"
-                                style={serif}
+                          {/* ── IF DELETED PRODUCT ── */}
+                          {isDeleted ? (
+                            <div className="flex items-center gap-3 px-4 py-4">
+                              <div className="w-[80px] h-[80px] flex-shrink-0 bg-red-50/80 border border-dashed border-red-200 rounded-sm flex items-center justify-center">
+                                <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-red-600">Sản phẩm không còn tồn tại</p>
+                                <p className="text-xs text-gray-400 mt-0.5">Sản phẩm này đã bị xóa khỏi hệ thống</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeItem(pid)}
+                                disabled={loading}
+                                className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-[10px] text-gray-300 hover:text-red-500 border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
+                                title="Xóa sản phẩm"
                               >
-                                {p.name}
-                              </Link>
-                              {p.sku && (
-                                <span className="block text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">
-                                  SKU: {p.sku}
-                                </span>
-                              )}
-                              <span className="block text-[11px] text-gray-400 mt-0.5">{fmt(p.price)}</span>
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              {/* ── MOBILE LAYOUT (< sm) ── */}
+                              <div className="flex sm:hidden gap-3 px-4 py-4 items-start">
+                                {/* Checkbox */}
+                                <div className="flex-shrink-0 pt-[3px]">
+                                  <Checkbox checked={isChecked} onChange={() => toggleItem(pid)} />
+                                </div>
 
-                              {/* Qty + total + delete row */}
-                              <div className="flex items-center justify-between mt-2.5 gap-2">
+                                {/* Product image */}
+                                <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
+                                  <Image src={imgSrc} alt={p.name} fill className="object-cover" sizes="80px" />
+                                </div>
+
+                                {/* Right side: name + controls */}
+                                <div className="flex-1 min-w-0">
+                                  <Link
+                                    href={`/products/${p.slug}`}
+                                    className="font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline text-[13px] leading-snug line-clamp-2"
+                                    style={serif}
+                                  >
+                                    {p.name}
+                                  </Link>
+                                  {p.sku && (
+                                    <span className="block text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">
+                                      SKU: {p.sku}
+                                    </span>
+                                  )}
+                                  <span className="block text-[11px] text-gray-400 mt-0.5">{fmt(p.price)}</span>
+
+                                  {/* Qty + total + delete row */}
+                                  <div className="flex items-center justify-between mt-2.5 gap-2">
+                                    {/* Qty */}
+                                    <div className="flex items-center border border-[#ddd] rounded overflow-hidden">
+                                      <button
+                                        onClick={() => changeQty(pid, item.quantity, -1)}
+                                        disabled={loading}
+                                        className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                                      >
+                                        −
+                                      </button>
+                                      <span className="w-8 text-center text-sm font-semibold text-[#2c1a00]">
+                                        {item.quantity}
+                                      </span>
+                                      <button
+                                        onClick={() => changeQty(pid, item.quantity, 1)}
+                                        disabled={loading}
+                                        className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+
+                                    {/* Line total */}
+                                    <span className="text-sm font-bold text-[#c4a84f]" style={serif}>
+                                      {fmt(item.price * item.quantity)}
+                                    </span>
+
+                                    {/* Delete */}
+                                    <button
+                                      onClick={() => removeItem(pid)}
+                                      disabled={loading}
+                                      className="w-7 h-7 flex items-center justify-center text-[10px] text-gray-300 hover:text-red-500 border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
+                                      title="Xóa sản phẩm"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* ── DESKTOP LAYOUT (≥ sm) ── */}
+                              <div className="hidden sm:flex items-center gap-4 px-6 py-5">
+                                {/* Checkbox */}
+                                <Checkbox checked={isChecked} onChange={() => toggleItem(pid)} />
+
+                                {/* Image */}
+                                <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
+                                  <Image src={imgSrc} alt={p.name} fill className="object-cover" sizes="80px" />
+                                </div>
+
+                                {/* Name + SKU + unit price */}
+                                <div className="flex-1 min-w-0">
+                                  <Link
+                                    href={`/products/${p.slug}`}
+                                    className="font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline text-sm md:text-base leading-snug line-clamp-2"
+                                    style={serif}
+                                  >
+                                    {p.name}
+                                  </Link>
+                                  {p.sku && (
+                                    <span className="block text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">
+                                      SKU: {p.sku}
+                                    </span>
+                                  )}
+                                  <span className="block text-xs text-gray-400 mt-1">{fmt(p.price)}</span>
+                                </div>
+
                                 {/* Qty */}
-                                <div className="flex items-center border border-[#ddd] rounded overflow-hidden">
+                                <div className="flex items-center justify-center border border-[#ddd] rounded overflow-hidden w-fit">
                                   <button
                                     onClick={() => changeQty(pid, item.quantity, -1)}
                                     disabled={loading}
-                                    className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                                    className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
                                   >
                                     −
                                   </button>
-                                  <span className="w-8 text-center text-sm font-semibold text-[#2c1a00]">
+                                  <span className="w-9 text-center text-sm font-semibold text-[#2c1a00]">
                                     {item.quantity}
                                   </span>
                                   <button
                                     onClick={() => changeQty(pid, item.quantity, 1)}
                                     disabled={loading}
-                                    className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                                    className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
                                   >
                                     +
                                   </button>
                                 </div>
 
                                 {/* Line total */}
-                                <span className="text-sm font-bold text-[#c4a84f]" style={serif}>
-                                  {fmt(item.price * item.quantity)}
-                                </span>
+                                <div className="w-[120px] text-right">
+                                  <span className="text-sm font-bold text-[#c4a84f]" style={serif}>
+                                    {fmt(item.price * item.quantity)}
+                                  </span>
+                                </div>
 
                                 {/* Delete */}
-                                <button
-                                  onClick={() => removeItem(pid)}
-                                  disabled={loading}
-                                  className="w-7 h-7 flex items-center justify-center text-[10px] text-gray-300 hover:text-red-500 border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
-                                  title="Xóa sản phẩm"
-                                >
-                                  ✕
-                                </button>
+                                <div className="w-[44px] flex justify-center">
+                                  <button
+                                    onClick={() => removeItem(pid)}
+                                    disabled={loading}
+                                    className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 bg-transparent border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
+                                    title="Xóa sản phẩm"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-
-                          {/* ── DESKTOP LAYOUT (≥ sm) ── */}
-                          <div className="hidden sm:flex items-center gap-4 px-6 py-5">
-                            {/* Checkbox */}
-                            <Checkbox checked={isChecked} onChange={() => toggleItem(pid)} />
-
-                            {/* Image */}
-                            <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
-                              <Image src={imgSrc} alt={p.name} fill className="object-cover" sizes="80px" />
-                            </div>
-
-                            {/* Name + SKU + unit price */}
-                            <div className="flex-1 min-w-0">
-                              <Link
-                                href={`/products/${p.slug}`}
-                                className="font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline text-sm md:text-base leading-snug line-clamp-2"
-                                style={serif}
-                              >
-                                {p.name}
-                              </Link>
-                              {p.sku && (
-                                <span className="block text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">
-                                  SKU: {p.sku}
-                                </span>
-                              )}
-                              <span className="block text-xs text-gray-400 mt-1">{fmt(p.price)}</span>
-                            </div>
-
-                            {/* Qty */}
-                            <div className="flex items-center justify-center border border-[#ddd] rounded overflow-hidden w-fit">
-                              <button
-                                onClick={() => changeQty(pid, item.quantity, -1)}
-                                disabled={loading}
-                                className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
-                              >
-                                −
-                              </button>
-                              <span className="w-9 text-center text-sm font-semibold text-[#2c1a00]">
-                                {item.quantity}
-                              </span>
-                              <button
-                                onClick={() => changeQty(pid, item.quantity, 1)}
-                                disabled={loading}
-                                className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
-                              >
-                                +
-                              </button>
-                            </div>
-
-                            {/* Line total */}
-                            <div className="w-[120px] text-right">
-                              <span className="text-sm font-bold text-[#c4a84f]" style={serif}>
-                                {fmt(item.price * item.quantity)}
-                              </span>
-                            </div>
-
-                            {/* Delete */}
-                            <div className="w-[44px] flex justify-center">
-                              <button
-                                onClick={() => removeItem(pid)}
-                                disabled={loading}
-                                className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 bg-transparent border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
-                                title="Xóa sản phẩm"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          </div>
+                            </>
+                          )}
                         </div>
                       );
                     })}

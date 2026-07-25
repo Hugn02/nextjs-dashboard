@@ -90,8 +90,33 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
             <div className="overflow-y-auto max-h-[50vh] divide-y divide-[#f3ebdb] px-5">
               {cart.items.map((item) => {
                 const p = item.product;
-                const pid = p.id || p._id;
-                const imgSrc = formatImageUrl(p?.imageUrl?.[0] || p?.images?.[0]);
+                const isDeleted = !p || (!p.id && !p._id);
+                const pid = isDeleted ? `deleted-${item.price}-${item.quantity}` : ((p.id || p._id) as string);
+                const imgSrc = isDeleted ? "" : formatImageUrl(p?.imageUrl?.[0] || p?.images?.[0]);
+
+                if (isDeleted) {
+                  return (
+                    <div key={pid} className="flex items-center gap-3 py-3 px-1 bg-red-50/50 rounded my-1 border-l-2 border-red-300">
+                      <div className="w-[50px] h-[50px] flex-shrink-0 bg-red-50 border border-dashed border-red-200 rounded flex items-center justify-center">
+                        <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-red-600 truncate">Sản phẩm không còn tồn tại</p>
+                        <p className="text-[10px] text-gray-400">Đã bị xóa khỏi hệ thống</p>
+                      </div>
+                      <button
+                        onClick={() => removeItem(pid)}
+                        disabled={loading}
+                        className="text-gray-300 hover:text-red-500 bg-transparent border-none cursor-pointer text-sm leading-none transition-colors p-1"
+                        title="Xóa sản phẩm"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                }
 
                 return (
                   <div key={pid} className="flex gap-3 py-4 items-start">
