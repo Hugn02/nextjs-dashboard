@@ -15,7 +15,7 @@ export async function estimateCheckout(
   dto: CheckoutEstimateDto = {}
 ): Promise<CheckoutEstimateResponse> {
   const res = await apiClient<ApiResponse<CheckoutEstimateResponse>>(
-    '/checkout/estimate',
+    '/orders/estimate',
     {
       method: 'POST',
       body: JSON.stringify(dto),
