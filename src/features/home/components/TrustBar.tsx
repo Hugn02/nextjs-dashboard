@@ -1,5 +1,5 @@
 const TRUST_BADGES = [
-  { icon: "🏆", text: "Thương hiệu sứ cao cấp số 1 Nhật Bản" },
+  { icon: "🏆", text: "Thương hiệu sứ cao cấp danh tiếng Bát Tràng" },
   { icon: "🎁", text: "Hỗ trợ gói quà miễn phí" },
   { icon: "🛡️", text: "Bảo hành bể vỡ khi vận chuyển" },
   { icon: "🚚", text: "Giao hàng toàn quốc" },

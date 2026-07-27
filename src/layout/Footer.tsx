@@ -67,54 +67,68 @@ export default function Footer() {
           </div>
         </div>
 
-        {[
-          {
-            title: "Sản phẩm",
-            links: [
-              "Bộ ấm trà cao cấp",
-              "Bộ bát đĩa",
-              "Cốc sứ",
-              "Bình hoa",
-              "Quà tặng",
-            ],
-          },
-          {
-            title: "Hỗ trợ",
-            links: [
-              "Chính sách đổi trả",
-              "Giao hàng",
-              "Hướng dẫn mua hàng",
-              "Hệ thống cửa hàng",
-            ],
-          },
-          {
-            title: "Liên hệ",
-            links: [
-              "📞 0901 234 567",
-              "✉️ info@battrang.vn",
-              "📍 TP. Hồ Chí Minh",
-              "📍 Hà Nội",
-            ],
-          },
-        ].map((col) => (
-          <div key={col.title} className="text-left">
-            <h4 className="text-[12px] tracking-[2px] text-[#c4a84f] uppercase mb-4">
-              {col.title}
-            </h4>
-            <ul className="list-none p-0 m-0">
-              {col.links.map((link) => (
-                <li key={link} className="mb-2">
-                  <a
-                    href="#"
-                    className="text-[#a08060] no-underline text-[13px] transition-colors hover:text-[#c4a84f]"
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        {/* Column 1: Sản phẩm */}
+        <div className="text-left">
+          <h4 className="text-[12px] tracking-[2px] text-[#c4a84f] uppercase mb-4">
+            Sản phẩm
+          </h4>
+          <ul className="list-none p-0 m-0">
+            {[
+              { label: "Bình Hoa", href: "/categories/binh-hoa" },
+              { label: "Ấm Trà", href: "/categories/am-tra" },
+              { label: "Chén Trà", href: "/categories/chen-tra" },
+              { label: "Tống Trà", href: "/categories/tong-tra" },
+              { label: "Dĩa Trà", href: "/categories/dam-tra" },
+              { label: "Tất cả sản phẩm", href: "/products/all" },
+            ].map((link) => (
+              <li key={link.label} className="mb-2">
+                <a
+                  href={link.href}
+                  className="text-[#a08060] no-underline text-[13px] transition-colors hover:text-[#c4a84f]"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Column 2: Hỗ trợ */}
+        <div className="text-left">
+          <h4 className="text-[12px] tracking-[2px] text-[#c4a84f] uppercase mb-4">
+            Hỗ trợ
+          </h4>
+          <ul className="list-none p-0 m-0">
+            {[
+              { label: "Chính sách đổi trả", href: "/support#doi-tra" },
+              { label: "Chính sách giao hàng", href: "/support#giao-hang" },
+              { label: "Hướng dẫn mua hàng", href: "/support#huong-dan" },
+              { label: "Hệ thống cửa hàng", href: "/support#cua-hang" },
+            ].map((link) => (
+              <li key={link.label} className="mb-2">
+                <a
+                  href={link.href}
+                  className="text-[#a08060] no-underline text-[13px] transition-colors hover:text-[#c4a84f]"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Column 3: Liên hệ (Hiển thị thông tin tĩnh, không dùng thẻ link) */}
+        <div className="text-left">
+          <h4 className="text-[12px] tracking-[2px] text-[#c4a84f] uppercase mb-4">
+            Liên hệ
+          </h4>
+          <ul className="list-none p-0 m-0 space-y-2 text-[13px] text-[#a08060]">
+            <li>📞 0901 234 567</li>
+            <li>✉️ info@battrang.vn</li>
+            <li>📍 Làng gốm Bát Tràng, Hà Nội</li>
+            <li>📍 456 Nguyễn Văn Linh, Q.7, TP.HCM</li>
+          </ul>
+        </div>
       </div>
 
       <div className="max-w-[1280px] mx-auto mt-10 pt-5 px-6 border-t border-[#c4a84f]/15 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
