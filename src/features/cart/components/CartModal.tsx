@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import useCart from "../hooks/useCart";
 
 const formatImageUrl = (url?: string) => {
@@ -15,13 +16,27 @@ const formatImageUrl = (url?: string) => {
 const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
 
 export default function CartModal({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
   const { cart, summary, updateItem, removeItem, loading } = useCart();
+  const [loginWarning, setLoginWarning] = useState(false);
 
   const fmt = (n: number) => n.toLocaleString("vi-VN") + "₫";
 
   const changeQty = (id: string, qty: number, delta: number) => {
     const next = qty + delta;
     if (next >= 1) updateItem(id, next);
+  };
+
+  const handleCheckout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const isLoggedIn = !!(localStorage.getItem("user") || localStorage.getItem("token"));
+    if (!isLoggedIn) {
+      setLoginWarning(true);
+      return;
+    }
+    setLoginWarning(false);
+    onClose();
+    router.push("/checkout");
   };
 
   return (
@@ -211,6 +226,25 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                   : "* Miễn phí vận chuyển cho đơn hàng của bạn!"}
               </p>
 
+              {/* Banner cảnh báo chưa đăng nhập */}
+              {loginWarning && (
+                <div className="flex flex-col gap-2 bg-amber-50 border border-amber-300 rounded-lg p-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="flex items-start gap-2">
+                    <span className="text-amber-500 text-sm flex-shrink-0 mt-0.5">🔒</span>
+                    <p className="text-xs text-amber-800 font-semibold leading-relaxed" style={serif}>
+                      Bạn cần <strong>đăng nhập</strong> để tiến hành thanh toán!
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent("open-login-modal"))}
+                    className="w-full py-2 rounded bg-[#c4a84f] text-white text-xs font-bold tracking-[1.5px] uppercase hover:bg-[#a8893a] transition-colors border-none cursor-pointer"
+                    style={serif}
+                  >
+                    Đăng nhập ngay
+                  </button>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-2.5 mt-0.5">
                 <Link
                   href="/cart"
@@ -221,15 +255,14 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                   <span className="absolute top-0 left-1/2 h-full w-0 -translate-x-1/2 bg-[#d29f13] transition-all duration-300 ease-out group-hover:w-[105%]" />
                   <span className="relative transition-colors duration-300 ease-out group-hover:text-white">Xem giỏ hàng</span>
                 </Link>
-                <Link
-                  href="/checkout"
-                  onClick={onClose}
-                  className="group relative flex items-center justify-center overflow-hidden rounded-[30px] border border-[#d29f13] bg-[#d29f13] py-3 text-xs font-bold tracking-[1.5px] uppercase no-underline text-white transition-colors duration-300 ease-out"
+                <button
+                  onClick={handleCheckout}
+                  className="group relative flex items-center justify-center overflow-hidden rounded-[30px] border border-[#d29f13] bg-[#d29f13] py-3 text-xs font-bold tracking-[1.5px] uppercase text-white transition-colors duration-300 ease-out cursor-pointer"
                   style={serif}
                 >
                   <span className="absolute top-0 left-1/2 h-full w-0 -translate-x-1/2 bg-white transition-all duration-300 ease-out group-hover:w-[105%]" />
                   <span className="relative transition-colors duration-300 ease-out group-hover:text-[#d29f13]">Thanh toán</span>
-                </Link>
+                </button>
               </div>
             </div>
           </>

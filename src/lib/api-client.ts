@@ -49,6 +49,12 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 export async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const headers = new Headers(options.headers);
     headers.set('Content-Type', 'application/json');
+    if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        if (token && !headers.has('Authorization')) {
+            headers.set('Authorization', `Bearer ${token}`);
+        }
+    }
 
     const response = await fetchWithAuth(endpoint, {
         ...options,

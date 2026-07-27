@@ -21,7 +21,8 @@ import {
 } from "lucide-react";
 
 interface Order {
-    _id: string;
+    _id?: string;
+    id?: string;
     publicId: string;
     total: number;
     status: string;
@@ -247,12 +248,15 @@ export default function OrderHistoryPage() {
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    {filteredOrders.map((order) => {
+                                    {filteredOrders.map((order, idx) => {
                                         const statusCfg = getStatusConfig(order.status);
                                         const StatusIcon = statusCfg.icon;
+                                        const orderId = order._id || order.id || order.publicId;
+                                        const orderKey = orderId || `order-${idx}`;
+
                                         return (
                                             <div
-                                                key={order._id}
+                                                key={orderKey}
                                                 className="bg-white border border-[#ede0c4] rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col"
                                             >
                                                 {/* Header of Order Card */}
@@ -281,11 +285,11 @@ export default function OrderHistoryPage() {
 
                                                 {/* Items in Order */}
                                                 <div className="divide-y divide-gray-100 px-6">
-                                                    {order.items.map((item, idx) => {
+                                                    {order.items.map((item, itemIdx) => {
                                                         const p = item.product || {};
                                                         const imgUrl = p.imageUrl?.[0] || "https://placehold.co/80x80";
                                                         return (
-                                                            <div key={idx} className="py-4 flex gap-4 items-center">
+                                                            <div key={itemIdx} className="py-4 flex gap-4 items-center">
                                                                 <div className="relative w-16 h-16 bg-white border border-[#ede0c4] rounded overflow-hidden flex-shrink-0">
                                                                     <Image
                                                                         src={imgUrl}
@@ -324,10 +328,10 @@ export default function OrderHistoryPage() {
                                                         {order.status === 'pending' && (
                                                             <button
                                                                 onClick={() => setShowConfirmModal(order)}
-                                                                disabled={cancellingId === order._id}
+                                                                disabled={cancellingId === orderId}
                                                                 className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold tracking-[1px] uppercase rounded transition-colors disabled:opacity-50 font-sans cursor-pointer"
                                                             >
-                                                                {cancellingId === order._id ? 'Đang hủy...' : 'Hủy đơn'}
+                                                                {cancellingId === orderId ? 'Đang hủy...' : 'Hủy đơn'}
                                                             </button>
                                                         )}
                                                         <Link
@@ -377,11 +381,11 @@ export default function OrderHistoryPage() {
                                 Quay lại
                             </button>
                             <button
-                                onClick={() => handleCancelOrder(showConfirmModal._id)}
+                                onClick={() => handleCancelOrder(showConfirmModal._id || showConfirmModal.id || "")}
                                 disabled={!!cancellingId}
                                 className="px-5 py-2 bg-red-650 text-white text-xs font-bold tracking-[1px] uppercase rounded hover:bg-red-700 transition shadow-sm disabled:opacity-50 font-sans cursor-pointer"
                             >
-                                {cancellingId === showConfirmModal._id ? 'Đang xử lý...' : 'Đồng ý hủy'}
+                                {cancellingId === (showConfirmModal._id || showConfirmModal.id) ? 'Đang xử lý...' : 'Đồng ý hủy'}
                             </button>
                         </div>
                     </div>

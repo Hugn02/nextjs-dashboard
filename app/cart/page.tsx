@@ -102,12 +102,10 @@ export default function CartPage() {
   }, [selectedItems]);
 
   const handleCheckout = () => {
-    // Kiểm tra đăng nhập (Phương án B)
-    const isLoggedIn = !!localStorage.getItem("user");
+    // Kiểm tra đăng nhập
+    const isLoggedIn = !!(localStorage.getItem("user") || localStorage.getItem("token"));
     if (!isLoggedIn) {
       setLoginWarning(true);
-      // Mở modal login trên Navbar qua custom event
-      window.dispatchEvent(new CustomEvent("open-login-modal"));
       return;
     }
     setLoginWarning(false);

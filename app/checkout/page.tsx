@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useCart from "@/src/features/cart/hooks/useCart";
-import { getSessionId } from "@/src/features/cart/services/cart.service";
 import { User } from "@/src/features/auth/types/auth.types";
 import type { UserLocation } from "@/src/features/location/types/location.types";
 import {
@@ -301,15 +300,18 @@ export default function CheckoutPage() {
       })),
       total: checkoutTotal,
       shippingFee: checkoutShippingFee,
-      sessionId: getSessionId(),
     };
 
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002"}/orders`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api"}/orders`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           credentials: "include",
           body: JSON.stringify(orderPayload),
         }
