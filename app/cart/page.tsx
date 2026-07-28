@@ -109,6 +109,17 @@ export default function CartPage() {
     router.push("/checkout/address");
   };
 
+  const handleRemoveItem = (id: string) => {
+    // Gọi hàm xóa gốc từ hook
+    removeItem(id);
+    // Cập nhật lại selectedIds để loại bỏ id của sản phẩm vừa xóa
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  };
+
   return (
     <>
       <Navbar />
@@ -201,7 +212,7 @@ export default function CartPage() {
                               </div>
                               <button
                                 type="button"
-                                onClick={() => removeItem(pid)}
+                                onClick={() => handleRemoveItem(pid)}
                                 disabled={loading}
                                 className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-[10px] text-gray-300 hover:text-red-500 border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
                                 title="Xóa sản phẩm"
@@ -269,7 +280,7 @@ export default function CartPage() {
 
                                     {/* Delete */}
                                     <button
-                                      onClick={() => removeItem(pid)}
+                                      onClick={() => handleRemoveItem(pid)}
                                       disabled={loading}
                                       className="w-7 h-7 flex items-center justify-center text-[10px] text-gray-300 hover:text-red-500 border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
                                       title="Xóa sản phẩm"
@@ -344,7 +355,7 @@ export default function CartPage() {
                                 {/* Delete */}
                                 <div className="w-[44px] flex justify-center">
                                   <button
-                                    onClick={() => removeItem(pid)}
+                                    onClick={() => handleRemoveItem(pid)}
                                     disabled={loading}
                                     className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 bg-transparent border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
                                     title="Xóa sản phẩm"
