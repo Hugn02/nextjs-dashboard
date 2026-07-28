@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from "../types/product.type";
 import useCart from "../../cart/hooks/useCart";
+import { cloudinaryLoader } from "@/src/lib/cloudinary";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatPrice(n: number) {
@@ -98,6 +99,7 @@ export default function ProductCard({ product }: { product: Product }) {
                     src={firstImage}
                     alt={product.name}
                     fill
+                    loader={firstImage.includes("res.cloudinary.com") ? cloudinaryLoader : undefined}
                     className={`object-cover transition-all duration-300 ease-in-out ${hovered ? "scale-105" : "scale-100"} ${hovered && secondImage ? "opacity-0" : "opacity-100"}`}
                     onError={() => setImgError(true)}
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
@@ -107,10 +109,11 @@ export default function ProductCard({ product }: { product: Product }) {
                         src={secondImage}
                         alt={`${product.name} - ảnh 2`}
                         fill
+                        loader={secondImage.includes("res.cloudinary.com") ? cloudinaryLoader : undefined}
                         className={`object-cover transition-all duration-300 ease-in-out ${hovered ? "scale-105 opacity-100" : "scale-100 opacity-0"}`}
                         onError={() => setImgError2(true)}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                        priority={false} // Ảnh thứ 2 không cần ưu tiên tải
+                        priority={false}
                     />
                 )}
 

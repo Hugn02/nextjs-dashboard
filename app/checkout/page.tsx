@@ -164,6 +164,23 @@ export default function CheckoutPage() {
     return () => clearTimeout(timer);
   }, [cart, selectedLocation]);
 
+  // Tự động kiểm tra & đồng bộ selectedIds với sản phẩm hiện có trong cart
+  useEffect(() => {
+    if (!cart || cart.items.length === 0) return;
+
+    const cartProductIds = cart.items
+      .map((item) => item.product?.id || item.product?._id)
+      .filter(Boolean) as string[];
+
+    setSelectedIds((prev) => {
+      if (prev.size === 0) {
+        return new Set(cartProductIds);
+      }
+      const validSelected = new Set([...prev].filter((id) => cartProductIds.includes(id)));
+      return validSelected.size > 0 ? validSelected : new Set(cartProductIds);
+    });
+  }, [cart]);
+
 
   function applyLocationToForm(loc: UserLocation) {
     setForm((prev) => ({
@@ -491,23 +508,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Địa chỉ chi tiết */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5 font-sans">
-                Địa chỉ chi tiết (Số nhà, tên đường...) *
-              </label>
-              <input
-                type="text"
-                name="address"
-                value={form.address}
-                onChange={handleChange}
-                required
-                readOnly={!!selectedLocation}
-                className={`w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] ${selectedLocation ? "opacity-80 cursor-default" : ""
-                  }`}
-              />
-            </div>
-
             {/* Tỉnh / Quận / Phường — readonly khi có địa chỉ đã chọn */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {["province", "district", "ward"].map((field) => (
@@ -531,6 +531,23 @@ export default function CheckoutPage() {
                   />
                 </div>
               ))}
+            </div>
+
+            {/* Địa chỉ chi tiết */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5 font-sans">
+                Địa chỉ chi tiết (Số nhà, tên đường...) *
+              </label>
+              <input
+                type="text"
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                required
+                readOnly={!!selectedLocation}
+                className={`w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] ${selectedLocation ? "opacity-80 cursor-default" : ""
+                  }`}
+              />
             </div>
 
             {/* Note */}
@@ -574,13 +591,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Submit */}
-            <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4 border-t border-[#f3ebdb] pt-6">
-              <Link
-                href="/checkout/address"
-                className="text-xs font-bold tracking-[1.5px] uppercase text-[#8b6914] no-underline hover:underline font-['Cormorant_Garamond',_serif]"
-              >
-                ‹ Thay đổi địa chỉ
-              </Link>
+            <div className="flex justify-center items-center mt-6 border-t border-[#f3ebdb] pt-6">
               <button
                 type="submit"
                 disabled={

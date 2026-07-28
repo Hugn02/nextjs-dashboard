@@ -16,5 +16,8 @@ export default function useCart() {
     updateItem: context.updateQuantity,
     removeItem: context.removeFromCart,
     clearCart: context.clearCart,
+    // Checkbox selection — persist qua navigate
+    selectedIds: context.selectedIds,
+    setSelectedIds: context.setSelectedIds,
   };
 }

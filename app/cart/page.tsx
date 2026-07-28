@@ -1,19 +1,15 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/src/layout/Navbar";
 import Footer from "@/src/layout/Footer";
 import useCart from "@/src/features/cart/hooks/useCart";
+import { formatCloudinaryUrl, cloudinaryLoader } from "@/src/lib/cloudinary";
 
-const formatImageUrl = (url?: string) => {
-  if (!url) return "https://placehold.co/120x120";
-  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) return url;
-  const base = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "https://res.cloudinary.com/dls9re0ux/image/upload";
-  return `${base.endsWith("/") ? base : base + "/"}${url}`;
-};
+const formatImageUrl = (url?: string) => formatCloudinaryUrl(url, { width: 240, quality: 80 });
 
 const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
 
@@ -40,10 +36,9 @@ function Checkbox({ checked, onChange, id }: { checked: boolean; onChange: () =>
 
 export default function CartPage() {
   const router = useRouter();
-  const { cart, summary, updateItem, removeItem, loading } = useCart();
-  const [note, setNote] = useState("");
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [loginWarning, setLoginWarning] = useState(false);
+  const { cart, summary, updateItem, removeItem, loading, selectedIds, setSelectedIds } = useCart();
+  const [note, setNote] = React.useState("");
+  const [loginWarning, setLoginWarning] = React.useState(false);
 
   const fmt = (n: number) => n.toLocaleString("vi-VN") + "₫";
 
@@ -96,7 +91,7 @@ export default function CartPage() {
 
   const selectedSummary = useMemo(() => {
     const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const itemCount = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
+    const itemCount = selectedItems.length;
     const shippingFee = subtotal > 0 && subtotal < 500000 ? 30000 : 0;
     return { subtotal, itemCount, total: subtotal + shippingFee, shippingFee };
   }, [selectedItems]);
@@ -117,11 +112,11 @@ export default function CartPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#faf8f5] pt-[88px] md:pt-[120px] pb-16 px-0 sm:px-4 md:px-8">
+      <main className="min-h-screen bg-[#faf8f5] pt-[100px] md:pt-[136px] pb-16 px-0 sm:px-4 md:px-8">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-0">
 
           {/* Breadcrumbs */}
-          <nav className="text-[13px] text-gray-400 mb-6" style={serif}>
+          <nav className="text-[13px] text-gray-400 mb-6 pt-2 sm:pt-3" style={serif}>
             <Link href="/" className="hover:text-[#c4a84f] text-gray-400 no-underline transition-colors">
               Trang chủ
             </Link>
@@ -168,8 +163,9 @@ export default function CartPage() {
                     </label>
 
                     {/* Desktop column headers */}
-                    <div className="hidden sm:grid grid-cols-[1fr_110px_120px_44px] gap-4 flex-1 ml-2">
+                    <div className="hidden sm:grid grid-cols-[1fr_110px_110px_120px_44px] gap-4 flex-1 ml-2">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sản phẩm</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 text-center">Đơn giá</span>
                       <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 text-center">Số lượng</span>
                       <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 text-right">Thành tiền</span>
                       <div />
@@ -224,7 +220,7 @@ export default function CartPage() {
 
                                 {/* Product image */}
                                 <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
-                                  <Image src={imgSrc} alt={p.name} fill className="object-cover" sizes="80px" />
+                                  <Image src={imgSrc} alt={p.name} fill loader={imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined} className="object-cover" sizes="80px" />
                                 </div>
 
                                 {/* Right side: name + controls */}
@@ -241,7 +237,7 @@ export default function CartPage() {
                                       SKU: {p.sku}
                                     </span>
                                   )}
-                                  <span className="block text-[11px] text-gray-400 mt-0.5">{fmt(p.price)}</span>
+                                  <span className="block text-[11px] text-gray-500 font-medium mt-0.5">Đơn giá: {fmt(p.price)}</span>
 
                                   {/* Qty + total + delete row */}
                                   <div className="flex items-center justify-between mt-2.5 gap-2">
@@ -267,7 +263,7 @@ export default function CartPage() {
                                     </div>
 
                                     {/* Line total */}
-                                    <span className="text-sm font-bold text-[#c4a84f]" style={serif}>
+                                    <span className="text-sm font-bold text-red-600" style={serif}>
                                       {fmt(item.price * item.quantity)}
                                     </span>
 
@@ -291,10 +287,10 @@ export default function CartPage() {
 
                                 {/* Image */}
                                 <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
-                                  <Image src={imgSrc} alt={p.name} fill className="object-cover" sizes="80px" />
+                                  <Image src={imgSrc} alt={p.name} fill loader={imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined} className="object-cover" sizes="80px" />
                                 </div>
 
-                                {/* Name + SKU + unit price */}
+                                {/* Name + SKU */}
                                 <div className="flex-1 min-w-0">
                                   <Link
                                     href={`/products/${p.slug}`}
@@ -308,11 +304,17 @@ export default function CartPage() {
                                       SKU: {p.sku}
                                     </span>
                                   )}
-                                  <span className="block text-xs text-gray-400 mt-1">{fmt(p.price)}</span>
+                                </div>
+
+                                {/* Đơn giá */}
+                                <div className="w-[110px] text-center">
+                                  <span className="text-sm font-medium text-gray-600 font-sans">
+                                    {fmt(p.price)}
+                                  </span>
                                 </div>
 
                                 {/* Qty */}
-                                <div className="flex items-center justify-center border border-[#ddd] rounded overflow-hidden w-fit">
+                                <div className="flex items-center justify-center border border-[#ddd] rounded overflow-hidden w-[110px] shrink-0">
                                   <button
                                     onClick={() => changeQty(pid, item.quantity, -1)}
                                     disabled={loading}
@@ -334,7 +336,7 @@ export default function CartPage() {
 
                                 {/* Line total */}
                                 <div className="w-[120px] text-right">
-                                  <span className="text-sm font-bold text-[#c4a84f]" style={serif}>
+                                  <span className="text-sm font-bold text-red-600" style={serif}>
                                     {fmt(item.price * item.quantity)}
                                   </span>
                                 </div>
@@ -399,7 +401,7 @@ export default function CartPage() {
 
                 <div className="flex justify-between items-center text-base font-bold mb-6" style={serif}>
                   <span className="uppercase tracking-wide text-[#2c1a00]">Tổng tiền:</span>
-                  <span className="text-xl text-[#c4a84f]">
+                  <span className="text-xl font-bold text-red-600">
                     {selectedIds.size > 0 ? fmt(selectedSummary.total) : "0₫"}
                   </span>
                 </div>

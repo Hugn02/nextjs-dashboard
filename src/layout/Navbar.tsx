@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import UserModal from "../features/auth/components/UserModal";
 import CartModal from "../features/cart/components/CartModal";
@@ -149,14 +150,14 @@ export default function Navbar() {
           {/* Nút Hamburger cho Mobile */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden text-[#3d2b00] text-2xl bg-transparent border-none cursor-pointer p-0 w-8"
+            className="lg:hidden text-[#3d2b00] text-2xl bg-transparent border-none cursor-pointer p-0 w-8 transition-colors duration-200 hover:text-[#c4a84f]"
           >
             {isMobileMenuOpen ? "✕" : "☰"}
           </button>
 
-          <a
+          <Link
             href="/"
-            className="flex items-center justify-center lg:justify-start no-underline lg:w-[220px] shrink-0"
+            className="flex items-center justify-center lg:justify-start no-underline lg:w-[220px] shrink-0 transition-opacity duration-200 hover:opacity-80"
           >
             <Image
               src="/assets/logo2.png"
@@ -166,7 +167,7 @@ export default function Navbar() {
               className="h-[36px] md:h-[54px] w-auto object-contain"
               priority
             />
-          </a>
+          </Link>
 
           {/* Menu Desktop - Ẩn trên Mobile */}
           <div className="hidden lg:flex items-center justify-center gap-7 min-w-0">
@@ -177,24 +178,24 @@ export default function Navbar() {
                     {item.label}
                   </span>
                 ) : (
-                  <a
+                  <Link
                     href={item.href || "#"}
                     className="text-[#3d2b00] no-underline text-[13px] tracking-[1px] font-['Cormorant_Garamond',_serif] font-semibold uppercase whitespace-nowrap shrink-0 leading-[1.2] py-8 transition-colors hover:text-[#c4a84f]"
                   >
                     {item.label}
-                  </a>
+                  </Link>
                 )}
 
                 {item.children && (
                   <div className="absolute top-full left-0 min-w-[280px] bg-white rounded shadow-xl py-2 opacity-0 invisible translate-y-2.5 transition-all duration-[250ms] group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 z-[999]">
                     {item.children.map((child) => (
-                      <a
+                      <Link
                         key={child.label}
                         href={child.href || "#"}
                         className="flex items-center px-[18px] py-3.5 text-[#4a4a4a] no-underline text-base font-['Cormorant_Garamond',_serif] font-medium whitespace-nowrap transition-colors hover:bg-[#f7f3eb]"
                       >
                         <span>{child.label}</span>
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -278,30 +279,30 @@ export default function Navbar() {
             <div key={item.label} className="border-b border-[#b49664]/10 last:border-none py-4">
               <div className="flex justify-between items-center mb-2">
                 {item.children ? (
-                  <span className="text-[#3d2b00] text-base font-bold uppercase tracking-widest font-['Cormorant_Garamond',_serif] block w-full">
+                  <span className="text-[#3d2b00] text-base font-bold uppercase tracking-widest font-['Cormorant_Garamond',_serif] block w-full transition-colors duration-200 hover:text-[#c4a84f] cursor-default">
                     {item.label}
                   </span>
                 ) : (
-                  <a
+                  <Link
                     href={item.href || "#"}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-[#3d2b00] no-underline text-base font-bold uppercase tracking-widest font-['Cormorant_Garamond',_serif] block w-full"
+                    className="text-[#3d2b00] no-underline text-base font-bold uppercase tracking-widest font-['Cormorant_Garamond',_serif] block w-full transition-colors duration-200 hover:text-[#c4a84f]"
                   >
                     {item.label}
-                  </a>
+                  </Link>
                 )}
               </div>
               {item.children && (
                 <div className="flex flex-col gap-4 pl-4 mt-4 border-l border-[#c4a84f]/20">
                   {item.children.map((child) => (
-                    <a
+                    <Link
                       key={child.label}
                       href={child.href || "#"}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="text-[#666] no-underline text-sm font-['Cormorant_Garamond',_serif] hover:text-[#c4a84f] transition-colors"
                     >
                       {child.label}
-                    </a>
+                    </Link>
                   ))}
                 </div>
               )}

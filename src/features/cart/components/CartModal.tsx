@@ -5,13 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useCart from "../hooks/useCart";
-
-const formatImageUrl = (url?: string) => {
-  if (!url) return "https://placehold.co/80x80";
-  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) return url;
-  const base = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "https://res.cloudinary.com/dls9re0ux/image/upload";
-  return `${base.endsWith("/") ? base : base + "/"}${url}`;
-};
+import { cloudinaryLoader, formatCloudinaryUrl } from "@/src/lib/cloudinary";
 
 const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
 
@@ -35,6 +29,12 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
       return;
     }
     setLoginWarning(false);
+    if (cart && cart.items && cart.items.length > 0) {
+      const allIds = cart.items
+        .map((item) => item.product?.id || item.product?._id)
+        .filter(Boolean);
+      localStorage.setItem("checkout_selected_ids", JSON.stringify(allIds));
+    }
     onClose();
     router.push("/checkout");
   };
@@ -107,7 +107,7 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                 const p = item.product;
                 const isDeleted = !p || (!p.id && !p._id);
                 const pid = isDeleted ? `deleted-${item.price}-${item.quantity}` : ((p.id || p._id) as string);
-                const imgSrc = isDeleted ? "" : formatImageUrl(p?.imageUrl?.[0] || p?.images?.[0]);
+                const imgSrc = isDeleted ? "" : formatCloudinaryUrl(p?.imageUrl?.[0] || p?.images?.[0], { width: 144, quality: 80 });
 
                 if (isDeleted) {
                   return (
@@ -141,6 +141,7 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                         src={imgSrc}
                         alt={p.name}
                         fill
+                        loader={imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined}
                         className="object-cover"
                         sizes="72px"
                       />
@@ -175,30 +176,37 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                       )}
 
                       {/* Qty controls + giá — cùng hàng */}
-                      <div className="flex items-center justify-between mt-2.5">
-                        <div className="flex items-center border border-[#ddd] rounded overflow-hidden">
-                          <button
-                            onClick={() => changeQty(pid, item.quantity, -1)}
-                            disabled={loading}
-                            className="w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
-                          >
-                            -
-                          </button>
-                          <span className="w-8 text-center text-xs font-semibold text-[#2c1a00]">
-                            {item.quantity}
+                      <div className="flex items-end justify-between mt-2.5">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center border border-[#ddd] rounded overflow-hidden w-fit">
+                            <button
+                              onClick={() => changeQty(pid, item.quantity, -1)}
+                              disabled={loading}
+                              className="w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                            >
+                              -
+                            </button>
+                            <span className="w-8 text-center text-xs font-semibold text-[#2c1a00]">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => changeQty(pid, item.quantity, 1)}
+                              disabled={loading}
+                              className="w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <span className="text-[11px] text-gray-500 font-medium">
+                            {fmt(item.price)}
                           </span>
-                          <button
-                            onClick={() => changeQty(pid, item.quantity, 1)}
-                            disabled={loading}
-                            className="w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
-                          >
-                            +
-                          </button>
                         </div>
 
-                        <span className="text-sm font-bold text-[#c4a84f]" style={serif}>
-                          {fmt(item.price * item.quantity)}
-                        </span>
+                        <div className="text-right">
+                          <span className="text-sm font-bold text-red-600 block" style={serif}>
+                            {fmt(item.price * item.quantity)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -212,7 +220,7 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                 <span className="text-sm font-bold uppercase tracking-wider text-[#2c1a00]">
                   Tổng tiền:
                 </span>
-                <span className="text-base font-bold text-[#c4a84f]">
+                <span className="text-base font-bold text-red-600">
                   {fmt(summary.subtotal)}
                 </span>
               </div>
