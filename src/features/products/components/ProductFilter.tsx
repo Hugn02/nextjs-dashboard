@@ -96,11 +96,10 @@ export default function ProductFilter({
             {/* Filter Button */}
             <button
                 onClick={() => setFilterOpen(!filterOpen)}
-                className={`font-['Cormorant_Garamond',_Georgia,_serif] flex cursor-pointer items-center gap-1.5 rounded-[2px] border px-4 py-2 text-[13px] text-[#3d2b00] transition-all ${
-                    filterOpen || hasActiveFilters
-                        ? "border-[#c4a84f] bg-[#c4a84f]/5"
-                        : "border-[#ddd] bg-transparent hover:border-[#c4a84f]"
-                }`}
+                className={`font-['Cormorant_Garamond',_Georgia,_serif] flex cursor-pointer items-center gap-1.5 rounded-[2px] border px-4 py-2 text-[13px] text-[#3d2b00] transition-all ${filterOpen || hasActiveFilters
+                    ? "border-[#c4a84f] bg-[#c4a84f]/5"
+                    : "border-[#ddd] bg-transparent hover:border-[#c4a84f]"
+                    }`}
             >
                 <span>Bộ lọc</span>
                 {hasActiveFilters && (
@@ -109,9 +108,8 @@ export default function ProductFilter({
                     </span>
                 )}
                 <span
-                    className={`text-[10px] transition-transform duration-200 ${
-                        filterOpen ? "rotate-180" : ""
-                    }`}
+                    className={`text-[10px] transition-transform duration-200 ${filterOpen ? "rotate-180" : ""
+                        }`}
                 >
                     ▾
                 </span>
@@ -121,7 +119,7 @@ export default function ProductFilter({
             {filterOpen && (
                 <div className="absolute right-0 sm:left-0 top-full z-[999] mt-2 w-[290px] border border-[#ede0c4] bg-white shadow-[0_12px_40px_rgba(196,168,79,0.15)] rounded-[3px]">
                     <div className="max-h-[70vh] overflow-y-auto">
-                        
+
                         {/* ── CATEGORY SECTION ── */}
                         <div className="border-b border-[#f0e8d6]">
                             <button
@@ -135,9 +133,8 @@ export default function ProductFilter({
                                     )}
                                 </span>
                                 <span
-                                    className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${
-                                        expandedSection === "category" ? "rotate-45" : ""
-                                    }`}
+                                    className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${expandedSection === "category" ? "rotate-45" : ""
+                                        }`}
                                 >
                                     +
                                 </span>
@@ -156,11 +153,10 @@ export default function ProductFilter({
                                                     className="accent-[#c4a84f] w-3.5 h-3.5 cursor-pointer"
                                                 />
                                                 <span
-                                                    className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${
-                                                        selectedCategory === null
-                                                            ? "font-semibold text-[#c4a84f]"
-                                                            : "text-[#3d2b00]"
-                                                    }`}
+                                                    className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${selectedCategory === null
+                                                        ? "font-semibold text-[#c4a84f]"
+                                                        : "text-[#3d2b00]"
+                                                        }`}
                                                 >
                                                     Tất cả loại sản phẩm
                                                 </span>
@@ -178,11 +174,10 @@ export default function ProductFilter({
                                                         className="accent-[#c4a84f] w-3.5 h-3.5 cursor-pointer"
                                                     />
                                                     <span
-                                                        className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${
-                                                            selectedCategory === cat.slug
-                                                                ? "font-semibold text-[#c4a84f]"
-                                                                : "text-[#3d2b00]"
-                                                        }`}
+                                                        className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${selectedCategory === cat.slug
+                                                            ? "font-semibold text-[#c4a84f]"
+                                                            : "text-[#3d2b00]"
+                                                            }`}
                                                     >
                                                         {cat.name}
                                                     </span>
@@ -202,11 +197,10 @@ export default function ProductFilter({
                                                         key={cat._id || cat.id || cat.slug}
                                                         href={`/categories/${cat.slug}`}
                                                         onClick={() => setFilterOpen(false)}
-                                                        className={`block rounded-[2px] px-2 py-1.5 font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] no-underline transition-all hover:bg-[#faf7f2] hover:translate-x-0.5 ${
-                                                            cat.slug === currentCategorySlug
-                                                                ? "font-semibold text-[#c4a84f] bg-[#faf7f2]"
-                                                                : "text-[#3d2b00]"
-                                                        }`}
+                                                        className={`block rounded-[2px] px-2 py-1.5 font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] no-underline transition-all hover:bg-[#faf7f2] hover:translate-x-0.5 ${cat.slug === currentCategorySlug
+                                                            ? "font-semibold text-[#c4a84f] bg-[#faf7f2]"
+                                                            : "text-[#3d2b00]"
+                                                            }`}
                                                     >
                                                         {cat.slug === currentCategorySlug ? "✓ " : "○ "}
                                                         {cat.name}
@@ -232,9 +226,8 @@ export default function ProductFilter({
                                     )}
                                 </span>
                                 <span
-                                    className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${
-                                        expandedSection === "collection" ? "rotate-45" : ""
-                                    }`}
+                                    className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${expandedSection === "collection" ? "rotate-45" : ""
+                                        }`}
                                 >
                                     +
                                 </span>
@@ -253,11 +246,10 @@ export default function ProductFilter({
                                                     className="accent-[#c4a84f] w-3.5 h-3.5 cursor-pointer"
                                                 />
                                                 <span
-                                                    className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${
-                                                        selectedCollection === null
-                                                            ? "font-semibold text-[#c4a84f]"
-                                                            : "text-[#3d2b00]"
-                                                    }`}
+                                                    className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${selectedCollection === null
+                                                        ? "font-semibold text-[#c4a84f]"
+                                                        : "text-[#3d2b00]"
+                                                        }`}
                                                 >
                                                     Tất cả bộ sưu tập
                                                 </span>
@@ -275,11 +267,10 @@ export default function ProductFilter({
                                                         className="accent-[#c4a84f] w-3.5 h-3.5 cursor-pointer"
                                                     />
                                                     <span
-                                                        className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${
-                                                            selectedCollection === col.slug
-                                                                ? "font-semibold text-[#c4a84f]"
-                                                                : "text-[#3d2b00]"
-                                                        }`}
+                                                        className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${selectedCollection === col.slug
+                                                            ? "font-semibold text-[#c4a84f]"
+                                                            : "text-[#3d2b00]"
+                                                            }`}
                                                     >
                                                         {col.name}
                                                     </span>
@@ -299,11 +290,10 @@ export default function ProductFilter({
                                                         key={col._id || col.id || col.slug}
                                                         href={`/collections/${col.slug}`}
                                                         onClick={() => setFilterOpen(false)}
-                                                        className={`block rounded-[2px] px-2 py-1.5 font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] no-underline transition-all hover:bg-[#faf7f2] hover:translate-x-0.5 ${
-                                                            col.slug === currentCollectionSlug
-                                                                ? "font-semibold text-[#c4a84f] bg-[#faf7f2]"
-                                                                : "text-[#3d2b00]"
-                                                        }`}
+                                                        className={`block rounded-[2px] px-2 py-1.5 font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] no-underline transition-all hover:bg-[#faf7f2] hover:translate-x-0.5 ${col.slug === currentCollectionSlug
+                                                            ? "font-semibold text-[#c4a84f] bg-[#faf7f2]"
+                                                            : "text-[#3d2b00]"
+                                                            }`}
                                                     >
                                                         {col.slug === currentCollectionSlug ? "✓ " : "○ "}
                                                         {col.name}
@@ -327,9 +317,8 @@ export default function ProductFilter({
                                     {priceRange && <span className="h-1.5 w-1.5 rounded-full bg-[#c4a84f]" />}
                                 </span>
                                 <span
-                                    className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${
-                                        expandedSection === "price" ? "rotate-45" : ""
-                                    }`}
+                                    className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${expandedSection === "price" ? "rotate-45" : ""
+                                        }`}
                                 >
                                     +
                                 </span>
@@ -346,9 +335,8 @@ export default function ProductFilter({
                                             className="accent-[#c4a84f] w-3.5 h-3.5 cursor-pointer"
                                         />
                                         <span
-                                            className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${
-                                                priceRange === null ? "font-semibold text-[#c4a84f]" : "text-[#3d2b00]"
-                                            }`}
+                                            className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${priceRange === null ? "font-semibold text-[#c4a84f]" : "text-[#3d2b00]"
+                                                }`}
                                         >
                                             Tất cả mức giá
                                         </span>
@@ -369,9 +357,8 @@ export default function ProductFilter({
                                                     className="accent-[#c4a84f] w-3.5 h-3.5 cursor-pointer"
                                                 />
                                                 <span
-                                                    className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${
-                                                        isActive ? "font-semibold text-[#c4a84f]" : "text-[#3d2b00]"
-                                                    }`}
+                                                    className={`font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] ${isActive ? "font-semibold text-[#c4a84f]" : "text-[#3d2b00]"
+                                                        }`}
                                                 >
                                                     {preset.label}
                                                 </span>
@@ -413,7 +400,7 @@ export default function ProductFilter({
                         </div>
 
                         {/* ── UNIMPLEMENTED SECTIONS ── */}
-                        {showUnimplementedSections &&
+                        {/* {showUnimplementedSections &&
                             ["Phong cách thiết kế", "Chất liệu", "Sản phẩm lẻ/Bộ", "Mục đích sử dụng"].map((title) => (
                                 <div key={title} className="border-b border-[#f0e8d6] last:border-b-0">
                                     <div className="flex items-center justify-between px-4 py-3 opacity-40 cursor-not-allowed">
@@ -423,7 +410,7 @@ export default function ProductFilter({
                                         <span className="text-[16px] text-[#c4a84f]">+</span>
                                     </div>
                                 </div>
-                            ))}
+                            ))} */}
                     </div>
                 </div>
             )}
@@ -500,8 +487,8 @@ export function ActiveFilters({
                     {priceRange.min !== undefined && priceRange.max !== undefined
                         ? `${priceRange.min.toLocaleString("vi-VN")}đ – ${priceRange.max.toLocaleString("vi-VN")}đ`
                         : priceRange.max !== undefined
-                        ? `Dưới ${priceRange.max.toLocaleString("vi-VN")}đ`
-                        : `Trên ${priceRange.min?.toLocaleString("vi-VN")}đ`}
+                            ? `Dưới ${priceRange.max.toLocaleString("vi-VN")}đ`
+                            : `Trên ${priceRange.min?.toLocaleString("vi-VN")}đ`}
                     <button
                         onClick={() => setPriceRange(null)}
                         className="text-[#c4a84f] hover:text-[#8b6914] cursor-pointer bg-transparent border-none text-[14px] leading-none"
