@@ -106,7 +106,7 @@ export default function CartPage() {
     setLoginWarning(false);
     handleSaveNote();
     localStorage.setItem("checkout_selected_ids", JSON.stringify([...selectedIds]));
-    router.push("/checkout/address");
+    router.push("/checkout");
   };
 
   const handleRemoveItem = (id: string) => {

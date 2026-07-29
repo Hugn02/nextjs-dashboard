@@ -12,6 +12,7 @@ import {
   getUserLocations,
 } from "@/src/features/location/services/location.service";
 import SelectedAddressBanner from "@/src/features/location/components/SelectedAddressBanner";
+import LocationPickerModal from "@/src/features/location/components/LocationPickerModal";
 import { estimateCheckout } from "@/src/features/checkout/services/checkout.service";
 import {
   CheckoutEstimateResponse,
@@ -36,6 +37,7 @@ export default function CheckoutPage() {
   const [selectedLocation, setSelectedLocation] = useState<UserLocation | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [noLocationWarning, setNoLocationWarning] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   // ─── Form state ──────────────────────────────────────────────────────────────
   const [form, setForm] = useState({
@@ -360,7 +362,8 @@ export default function CheckoutPage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-[#faf8f5]">
+    <>
+      <div className="min-h-screen bg-[#faf8f5]">
       {/* Brand logo bar */}
       <div className="bg-white border-b border-[#ede0c4] py-4 text-center">
         <Link href="/">
@@ -385,13 +388,6 @@ export default function CheckoutPage() {
               className="hover:underline text-[#8b6914] no-underline whitespace-nowrap"
             >
               Giỏ hàng
-            </Link>
-            <span className="mx-1.5 text-gray-400">›</span>
-            <Link
-              href="/checkout/address"
-              className="hover:underline text-[#8b6914] no-underline whitespace-nowrap"
-            >
-              Địa chỉ nhận hàng
             </Link>
             <span className="mx-1.5 text-gray-400">›</span>
             <span className="text-gray-800 font-medium whitespace-nowrap">
@@ -421,12 +417,13 @@ export default function CheckoutPage() {
                 <p className="text-xs text-amber-600 mb-3">
                   Vui lòng thêm địa chỉ để tiếp tục đặt hàng.
                 </p>
-                <Link
-                  href="/checkout/address"
-                  className="inline-block bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded hover:bg-amber-600 transition-colors no-underline"
+                <button
+                  type="button"
+                  onClick={() => setShowLocationPicker(true)}
+                  className="inline-block bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded hover:bg-amber-600 transition-colors"
                 >
                   Thêm địa chỉ ngay →
-                </Link>
+                </button>
               </div>
             </div>
           ) : selectedLocation ? (
@@ -728,6 +725,29 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* LocationPickerModal - dùng khi chưa có địa chỉ */}
+      {showLocationPicker && (
+        <LocationPickerModal
+          locations={allLocations}
+          selectedId={selectedLocation?.id ?? null}
+          onSelect={(loc) => {
+            handleLocationChange(loc);
+            setNoLocationWarning(false);
+            setShowLocationPicker(false);
+          }}
+          onClose={() => setShowLocationPicker(false)}
+          onLocationsChange={(updated) => {
+            setAllLocations(updated);
+            const def = updated.find((l) => l.isDefault) ?? updated[0];
+            if (def) {
+              handleLocationChange(def);
+              setNoLocationWarning(false);
+            }
+          }}
+        />
+      )}
+    </>
   );
 }
