@@ -731,8 +731,8 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                         <button
                                             onClick={() => handleFilterChange("all")}
                                             className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${ratingFilter === "all"
-                                                    ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
-                                                    : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
+                                                ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
+                                                : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
                                                 }`}
                                         >
                                             Tất Cả ({counts.all})
@@ -742,8 +742,8 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                                 key={star}
                                                 onClick={() => handleFilterChange(star)}
                                                 className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${ratingFilter === star
-                                                        ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
-                                                        : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
+                                                    ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
+                                                    : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
                                                     }`}
                                             >
                                                 {star} Sao ({counts[star as 1 | 2 | 3 | 4 | 5]})
@@ -776,24 +776,6 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                                         {new Date(r.createdAt).toLocaleString('vi-VN')}
                                                     </span>
 
-                                                    {/* Attributes */}
-                                                    {(r.qualityFeedback || r.descriptionFeedback) && (
-                                                        <div className="mt-1 space-y-1 text-[15px]">
-                                                            {r.qualityFeedback && (
-                                                                <div>
-                                                                    <span className="text-[#888]">Chất lượng sản phẩm:</span>{" "}
-                                                                    <span className="text-[#333]">{r.qualityFeedback}</span>
-                                                                </div>
-                                                            )}
-                                                            {r.descriptionFeedback && (
-                                                                <div>
-                                                                    <span className="text-[#888]">Đúng với mô tả:</span>{" "}
-                                                                    <span className="text-[#333]">{r.descriptionFeedback}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-
                                                     {/* Comment */}
                                                     <p className="mt-2 text-[15px] text-[#333] leading-relaxed whitespace-pre-line m-0">
                                                         {r.comment}
@@ -820,8 +802,8 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                                     key={page}
                                                     onClick={() => setCurrentPage(page)}
                                                     className={`px-3 py-1.5 rounded-[2px] border transition-all cursor-pointer ${currentPage === page
-                                                            ? "border-[#ee4d2d] bg-[#ee4d2d] text-white"
-                                                            : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
+                                                        ? "border-[#ee4d2d] bg-[#ee4d2d] text-white"
+                                                        : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
                                                         }`}
                                                 >
                                                     {page}

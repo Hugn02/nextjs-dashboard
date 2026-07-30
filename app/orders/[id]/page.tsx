@@ -74,8 +74,6 @@ export default function OrderDetailPage() {
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
     const [reviewRating, setReviewRating] = useState(5);
-    const [qualityFeedback, setQualityFeedback] = useState("");
-    const [descriptionFeedback, setDescriptionFeedback] = useState("");
     const [reviewComment, setReviewComment] = useState("");
     const [submittingReview, setSubmittingReview] = useState(false);
     const [reviewError, setReviewError] = useState<string | null>(null);
@@ -123,8 +121,6 @@ export default function OrderDetailPage() {
     const handleOpenReviewModal = (product: any) => {
         setSelectedProduct(product);
         setReviewRating(5);
-        setQualityFeedback("");
-        setDescriptionFeedback("");
         setReviewComment("");
         setReviewError(null);
         setShowReviewModal(true);
@@ -151,8 +147,6 @@ export default function OrderDetailPage() {
                     productId: selectedProduct.id || selectedProduct._id,
                     orderId: id,
                     rating: reviewRating,
-                    qualityFeedback: qualityFeedback || undefined,
-                    descriptionFeedback: descriptionFeedback || undefined,
                     comment: reviewComment,
                 }),
             });
@@ -309,11 +303,10 @@ export default function OrderDetailPage() {
                                     {/* Left: icon + vertical line */}
                                     <div className="flex flex-col items-center">
                                         <div
-                                            className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all duration-300 ${
-                                                isCompleted
-                                                    ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
-                                                    : "bg-white border-gray-200 text-gray-400"
-                                            } ${isActive ? "ring-4 ring-[#c4a84f]/20 scale-110" : ""}`}
+                                            className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all duration-300 ${isCompleted
+                                                ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
+                                                : "bg-white border-gray-200 text-gray-400"
+                                                } ${isActive ? "ring-4 ring-[#c4a84f]/20 scale-110" : ""}`}
                                         >
                                             <StepIcon className="w-4 h-4" />
                                         </div>
@@ -328,9 +321,8 @@ export default function OrderDetailPage() {
                                     {/* Right: label */}
                                     <div className={`flex items-start pt-2 pb-5 flex-1 min-w-[130px] ${isLast ? "pb-0" : ""}`}>
                                         <div>
-                                            <p className={`text-sm font-bold tracking-[0.3px] font-sans leading-tight ${
-                                                isCompleted ? "text-[#2c1a00]" : "text-gray-400"
-                                            }`}>
+                                            <p className={`text-sm font-bold tracking-[0.3px] font-sans leading-tight ${isCompleted ? "text-[#2c1a00]" : "text-gray-400"
+                                                }`}>
                                                 {step.label}
                                             </p>
                                             {isActive && (
@@ -364,18 +356,16 @@ export default function OrderDetailPage() {
                         return (
                             <div key={step.key} className="flex flex-col items-center gap-2 flex-1 z-10">
                                 <div
-                                    className={`w-11 h-11 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                                        isCompleted
-                                            ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
-                                            : "bg-white border-gray-200 text-gray-400"
-                                    } ${isActive ? "ring-4 ring-[#c4a84f]/20 scale-110" : ""}`}
+                                    className={`w-11 h-11 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isCompleted
+                                        ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
+                                        : "bg-white border-gray-200 text-gray-400"
+                                        } ${isActive ? "ring-4 ring-[#c4a84f]/20 scale-110" : ""}`}
                                 >
                                     <StepIcon className="w-5 h-5" />
                                 </div>
                                 <div className="text-center">
-                                    <p className={`text-xs font-bold tracking-[0.5px] uppercase font-sans ${
-                                        isCompleted ? "text-[#2c1a00]" : "text-gray-400"
-                                    }`}>
+                                    <p className={`text-xs font-bold tracking-[0.5px] uppercase font-sans ${isCompleted ? "text-[#2c1a00]" : "text-gray-400"
+                                        }`}>
                                         {step.label}
                                     </p>
                                     {isActive && (
@@ -753,28 +743,6 @@ export default function OrderDetailPage() {
                                             {reviewRating === 1 && "Rất không hài lòng"}
                                         </span>
                                     </div>
-                                </div>
-
-                                {/* Quality and Description Feedback */}
-                                <div className="space-y-4">
-                                    <label htmlFor="quality-feedback" className="block text-xs font-bold uppercase text-gray-400 mb-1">Chất lượng sản phẩm</label>
-                                    <input
-                                        id="quality-feedback"
-                                        type="text"
-                                        value={qualityFeedback}
-                                        onChange={(e) => setQualityFeedback(e.target.value)}
-                                        placeholder="Cảm nhận của bạn về chất lượng..."
-                                        className="w-full px-3 py-2 border border-gray-200 rounded focus:border-[#c4a84f] focus:outline-none text-sm font-sans"
-                                    />
-                                    <label htmlFor="description-feedback" className="block text-xs font-bold uppercase text-gray-400 mb-1">Đúng với mô tả</label>
-                                    <input
-                                        id="description-feedback"
-                                        type="text"
-                                        value={descriptionFeedback}
-                                        onChange={(e) => setDescriptionFeedback(e.target.value)}
-                                        placeholder="Sản phẩm có giống như hình ảnh/mô tả?"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded focus:border-[#c4a84f] focus:outline-none text-sm font-sans"
-                                    />
                                 </div>
 
                                 {/* Review Comment */}
