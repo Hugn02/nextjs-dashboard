@@ -355,7 +355,11 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
                   : "Tạo tài khoản mới"
       }
       onClose={onClose}
-      width={user && mode === 'profile' ? 780 : 480}
+      // Khi modal con (thêm/sửa địa chỉ) đang mở, không cho phép modal cha đóng khi click ra ngoài.
+      // Điều này ngăn việc click vào modal con bị coi là click "ra ngoài" modal cha.
+      closeOnClickOutside={!showAddressForm}
+      width={user && mode === 'profile' ? 780 : 480
+      }
     >
       {/* ── MODE PROFILE VỚI SIDEBAR BÊN TRÁI ── */}
       {user && mode === 'profile' ? (

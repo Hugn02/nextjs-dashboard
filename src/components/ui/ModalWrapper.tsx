@@ -6,6 +6,7 @@ interface ModalWrapperProps {
   title?: string;
   onClose: () => void;
   children: React.ReactNode;
+  closeOnClickOutside?: boolean; // Thêm prop này
   width?: number; // px, mặc định 480
 }
 
@@ -13,6 +14,7 @@ export default function ModalWrapper({
   title,
   onClose,
   children,
+  closeOnClickOutside = true, // Mặc định là true
   width = 480,
 }: ModalWrapperProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -20,7 +22,10 @@ export default function ModalWrapper({
   // Đóng khi click ra ngoài panel
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+      if (
+        closeOnClickOutside && // Chỉ đóng khi prop này là true
+        panelRef.current && !panelRef.current.contains(e.target as Node)
+      ) {
         onClose();
       }
     };
@@ -38,7 +43,7 @@ export default function ModalWrapper({
       document.removeEventListener("mousedown", handleClick);
       document.removeEventListener("keydown", handleKey);
     };
-  }, [onClose]);
+  }, [onClose, closeOnClickOutside]); // Thêm closeOnClickOutside vào dependency array
 
   return (
     <>
