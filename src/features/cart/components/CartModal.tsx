@@ -11,7 +11,7 @@ const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
 
 export default function CartModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
-  const { cart, summary, updateItem, removeItem, loading } = useCart();
+  const { cart, summary, updateItem, removeItem, loading, updatingIds } = useCart();
   const [loginWarning, setLoginWarning] = useState(false);
 
   const fmt = (n: number) => n.toLocaleString("vi-VN") + "₫";
@@ -123,7 +123,7 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                       </div>
                       <button
                         onClick={() => removeItem(pid)}
-                        disabled={loading}
+                        disabled={loading || updatingIds.has(pid)}
                         className="text-gray-300 hover:text-red-500 bg-transparent border-none cursor-pointer text-sm leading-none transition-colors p-1"
                         title="Xóa sản phẩm"
                       >
@@ -161,7 +161,7 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                         {/* Nút xóa — góc trên phải, tách rõ */}
                         <button
                           onClick={() => removeItem(pid)}
-                          disabled={loading}
+                          disabled={loading || updatingIds.has(pid)}
                           className="flex-shrink-0 text-gray-300 hover:text-red-500 bg-transparent border-none cursor-pointer text-base leading-none transition-colors disabled:opacity-40 pt-0.5"
                           title="Xóa sản phẩm"
                         >
@@ -181,7 +181,7 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                           <div className="flex items-center border border-[#ddd] rounded overflow-hidden w-fit">
                             <button
                               onClick={() => changeQty(pid, item.quantity, -1)}
-                              disabled={loading}
+                              disabled={loading || updatingIds.has(pid)}
                               className="w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
                             >
                               -
@@ -191,7 +191,7 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                             </span>
                             <button
                               onClick={() => changeQty(pid, item.quantity, 1)}
-                              disabled={loading}
+                              disabled={loading || updatingIds.has(pid)}
                               className="w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
                             >
                               +

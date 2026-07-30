@@ -13,6 +13,15 @@ interface SelectedAddressBannerProps {
 
 const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
 
+const formatPhone = (phone?: string) => {
+  if (!phone) return "";
+  const trimmed = phone.trim();
+  if (trimmed.startsWith("0")) {
+    return `(+84) ${trimmed.slice(1)}`;
+  }
+  return trimmed;
+};
+
 export default function SelectedAddressBanner({
   location,
   allLocations,
@@ -23,7 +32,7 @@ export default function SelectedAddressBanner({
 
   return (
     <>
-      <div className="mb-6 bg-white border border-[#ede0c4] rounded-lg p-4 shadow-sm">
+      <div className="mb-6 bg-white border border-[#ede0c4] rounded-lg p-4 shadow-sm font-sans">
         {/* Header row */}
         <div className="flex items-center gap-2 mb-3">
           <svg
@@ -39,8 +48,7 @@ export default function SelectedAddressBanner({
             />
           </svg>
           <span
-            className="text-sm font-bold text-[#e4393c] uppercase tracking-wider"
-            style={serif}
+            className="text-sm font-bold text-[#e4393c] uppercase tracking-wider font-sans"
           >
             Địa Chỉ Nhận Hàng
           </span>
@@ -50,11 +58,11 @@ export default function SelectedAddressBanner({
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
-              <span className="font-bold text-[#2c1a00] text-sm">
+              <span className="font-bold text-[#2c1a00] text-sm font-sans">
                 {location.receiverName}
               </span>
-              <span className="text-gray-400 text-xs">
-                {location.phone}
+              <span className="text-gray-500 font-semibold text-xs font-sans tracking-wide">
+                {formatPhone(location.phone)}
               </span>
               {location.isDefault && (
                 <span className="inline-block border border-[#e4393c] text-[#e4393c] text-[10px] px-1.5 py-0.5 rounded font-semibold leading-tight">

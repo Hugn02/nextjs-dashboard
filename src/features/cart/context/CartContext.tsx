@@ -9,6 +9,7 @@ interface CartContextType {
   summary: CartSummary;
   loading: boolean;
   error: string | null;
+  updatingIds: Set<string>;
   refreshCart: () => Promise<void>;
   addToCart: (productId: string, quantity?: number) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
@@ -33,6 +34,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [summary, setSummary] = useState<CartSummary>(initialSummary);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  // Track items currently performing API update / remove requests
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   // Lưu selectedIds ở Context để persist qua navigate (mà không cần backend)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -88,6 +91,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateQuantity = async (productId: string, quantity: number) => {
     if (quantity < 1) return;
+    if (updatingIds.has(productId)) return; // Prevent concurrent requests for same item
+
+    setUpdatingIds((prev) => new Set(prev).add(productId));
+
     // Optimistic update: cập nhật UI ngay lập tức
     const previousCart = cart;
     const previousSummary = summary;
@@ -114,11 +121,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCart(previousCart);
       setSummary(previousSummary);
       setError(err.message || "Failed to update quantity");
+    } finally {
+      setUpdatingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
     }
   };
 
 
   const removeFromCart = async (productId: string) => {
+    if (updatingIds.has(productId)) return;
+    setUpdatingIds((prev) => new Set(prev).add(productId));
+
     // Optimistic update: xóa item khỏi UI ngay
     const previousCart = cart;
     const previousSummary = summary;
@@ -144,6 +160,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCart(previousCart);
       setSummary(previousSummary);
       setError(err.message || "Failed to remove item");
+    } finally {
+      setUpdatingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
     }
   };
 
@@ -172,6 +194,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         summary,
         loading,
         error,
+        updatingIds,
         refreshCart,
         addToCart,
         updateQuantity,

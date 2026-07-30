@@ -46,7 +46,8 @@ export default function ModalWrapper({
 
       <div
         ref={panelRef}
-        className="fixed top-[88px] md:top-[114px] right-0 w-full md:w-[480px] max-h-[calc(100vh-88px)] md:max-h-[calc(100vh-114px)] overflow-y-auto bg-white z-[200] shadow-[-2px_4px_24px_rgba(0,0,0,0.13)] border-l border-b border-[#eee] p-6 md:p-[36px_40px_40px] flex flex-col gap-0 animate-[dropDown_0.22s_ease]"
+        style={{ width: width ? `${width}px` : undefined, maxWidth: "100vw" }}
+        className="fixed top-[88px] md:top-[114px] right-0 w-full max-h-[calc(100vh-88px)] md:max-h-[calc(100vh-114px)] overflow-y-auto bg-white z-[200] shadow-[-2px_4px_24px_rgba(0,0,0,0.13)] border-l border-b border-[#eee] p-6 md:p-[28px_32px_36px] flex flex-col gap-0 animate-[dropDown_0.22s_ease]"
       >
         {title && (
           <div className="mb-1.5 text-center">

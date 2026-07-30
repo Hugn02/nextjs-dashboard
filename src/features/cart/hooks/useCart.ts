@@ -11,6 +11,7 @@ export default function useCart() {
     cartCount: context.summary.itemCount,
     loading: context.loading,
     error: context.error,
+    updatingIds: context.updatingIds,
     refreshCart: context.refreshCart,
     addItem: context.addToCart,
     updateItem: context.updateQuantity,

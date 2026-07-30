@@ -19,7 +19,14 @@ interface LocationPickerModalProps {
   onLocationsChange: (updated: UserLocation[]) => void;
 }
 
-const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
+const formatPhone = (phone?: string) => {
+  if (!phone) return "";
+  const trimmed = phone.trim();
+  if (trimmed.startsWith("0")) {
+    return `(+84) ${trimmed.slice(1)}`;
+  }
+  return trimmed;
+};
 
 export default function LocationPickerModal({
   locations,
@@ -109,17 +116,14 @@ export default function LocationPickerModal({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-[9990] flex items-center justify-center p-4"
+        className="fixed inset-0 z-[9990] flex items-center justify-center p-4 font-sans"
         style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-white rounded-lg shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200 border border-[#ede0c4] overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[#ede0c4] flex-shrink-0">
-            <h2
-              className="text-lg font-bold text-[#2c1a00] uppercase tracking-wide"
-              style={serif}
-            >
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#ede0c4] flex-shrink-0 bg-[#faf8f5]">
+            <h2 className="text-base font-bold text-[#2c1a00] uppercase tracking-wider font-sans">
               Địa Chỉ Của Tôi
             </h2>
             <button
@@ -128,7 +132,7 @@ export default function LocationPickerModal({
                 e.stopPropagation();
                 onClose();
               }}
-              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors text-xl font-light"
+              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors text-lg font-light"
               aria-label="Đóng"
             >
               ✕
@@ -137,35 +141,35 @@ export default function LocationPickerModal({
 
           {/* Error banner */}
           {actionError && (
-            <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded p-3 flex-shrink-0">
+            <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-600 text-xs rounded p-3 flex-shrink-0 font-sans">
               {actionError}
             </div>
           )}
 
           {/* List */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
+          <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3 font-sans">
             {locations.length === 0 ? (
-              <p className="text-gray-400 text-sm text-center py-6 italic">
+              <p className="text-gray-400 text-sm text-center py-6 italic font-sans">
                 Bạn chưa có địa chỉ nào.
               </p>
             ) : (
               locations.map((loc) => (
                 <div
                   key={loc.id}
-                  className={`flex gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all duration-150 ${
+                  className={`flex gap-3 p-4 rounded-lg border cursor-pointer transition-all duration-150 ${
                     localSelected === loc.id
-                      ? "border-[#e4393c] bg-[#fff8f8]"
-                      : "border-[#ede0c4] hover:border-[#c4a84f] bg-white"
+                      ? "border-[#e4393c] bg-[#fffcfc] shadow-sm ring-1 ring-[#e4393c]/30"
+                      : "border-[#ede0c4] hover:border-[#c4a84f] bg-white hover:shadow-sm"
                   }`}
                   onClick={() => setLocalSelected(loc.id)}
                 >
                   {/* Radio */}
                   <div className="pt-0.5 flex-shrink-0">
                     <div
-                      className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
                         localSelected === loc.id
                           ? "border-[#e4393c]"
-                          : "border-gray-400"
+                          : "border-gray-300"
                       }`}
                       style={{ width: 18, height: 18 }}
                     >
@@ -180,25 +184,27 @@ export default function LocationPickerModal({
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-0.5">
-                      <span className="font-semibold text-[#2c1a00] text-sm">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1">
+                      <span className="font-bold text-[#1a1a1a] text-sm font-sans">
                         {loc.receiverName}
                       </span>
-                      <span className="text-gray-400 text-xs">|</span>
-                      <span className="text-gray-600 text-sm">{loc.phone}</span>
+                      <span className="text-gray-300 text-xs font-sans">|</span>
+                      <span className="text-gray-600 font-semibold text-xs font-sans tracking-wide">
+                        {formatPhone(loc.phone)}
+                      </span>
                     </div>
-                    <p className="text-xs text-gray-500 leading-relaxed">
+                    <p className="text-xs text-gray-500 leading-relaxed font-sans">
                       {loc.address}
                       <br />
                       {loc.wardName}, {loc.districtName}, {loc.provinceName}
                     </p>
-                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <div className="flex flex-wrap items-center gap-2 mt-2 font-sans">
                       {loc.isDefault && (
-                        <span className="inline-block border border-[#e4393c] text-[#e4393c] text-[10px] px-2 py-0.5 rounded font-semibold">
+                        <span className="inline-flex items-center border border-red-200 bg-red-50 text-[#e4393c] text-[10px] px-2 py-0.5 rounded font-semibold">
                           Mặc định
                         </span>
                       )}
-                      <span className="inline-block bg-[#f3ebdb] text-[#8b6914] text-[10px] px-2 py-0.5 rounded">
+                      <span className="inline-flex items-center bg-[#faf6ed] border border-[#ede0c4] text-[#8b6914] text-[10px] px-2 py-0.5 rounded font-medium">
                         {loc.label}
                       </span>
                     </div>
@@ -206,7 +212,7 @@ export default function LocationPickerModal({
 
                   {/* Actions */}
                   <div
-                    className="flex flex-col gap-1 flex-shrink-0 items-end"
+                    className="flex flex-col gap-1.5 flex-shrink-0 items-end font-sans"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
@@ -217,7 +223,7 @@ export default function LocationPickerModal({
                         setShowForm(true);
                         setActionError(null);
                       }}
-                      className="text-xs text-[#c4a84f] hover:text-[#a8893a] hover:underline font-semibold transition-colors"
+                      className="text-xs text-[#c4a84f] hover:text-[#a8893a] hover:underline font-medium transition-colors"
                     >
                       Cập nhật
                     </button>
@@ -227,7 +233,7 @@ export default function LocationPickerModal({
                           type="button"
                           onClick={(e) => handleSetDefault(loc, e)}
                           disabled={settingDefault === loc.id}
-                          className="text-xs text-blue-500 hover:text-blue-700 hover:underline font-semibold transition-colors disabled:opacity-50"
+                          className="text-xs text-blue-500 hover:text-blue-700 hover:underline font-medium transition-colors disabled:opacity-50"
                         >
                           {settingDefault === loc.id
                             ? "Đang đặt..."
@@ -237,7 +243,7 @@ export default function LocationPickerModal({
                           type="button"
                           onClick={(e) => handleDelete(loc, e)}
                           disabled={deleting === loc.id}
-                          className="text-xs text-red-400 hover:text-red-600 hover:underline font-semibold transition-colors disabled:opacity-50"
+                          className="text-xs text-red-500 hover:text-red-700 hover:underline font-medium transition-colors disabled:opacity-50"
                         >
                           {deleting === loc.id ? "Đang xóa..." : "Xóa"}
                         </button>
@@ -250,7 +256,7 @@ export default function LocationPickerModal({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-[#ede0c4] flex flex-col sm:flex-row gap-3 flex-shrink-0">
+          <div className="px-6 py-4 border-t border-[#ede0c4] flex flex-col sm:flex-row gap-3 flex-shrink-0 bg-[#faf8f5] font-sans">
             <button
               type="button"
               onClick={(e) => {
@@ -259,17 +265,15 @@ export default function LocationPickerModal({
                 setShowForm(true);
                 setActionError(null);
               }}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded border-2 border-dashed border-[#c4a84f] text-[#c4a84f] text-xs font-bold uppercase tracking-wider hover:bg-[#fffdf7] transition-colors"
-              style={serif}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded border border-dashed border-[#c4a84f] text-[#c4a84f] text-xs font-bold uppercase tracking-wider hover:bg-[#fffdf7] transition-all font-sans cursor-pointer"
             >
-              <span className="text-lg leading-none">+</span> Thêm Địa Chỉ Mới
+              <span className="text-base leading-none">+</span> Thêm Địa Chỉ Mới
             </button>
             <button
               type="button"
               onClick={handleConfirm}
               disabled={!localSelected}
-              className="flex-1 py-3 rounded bg-[#e4393c] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#c42d30] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              style={serif}
+              className="flex-1 py-2.5 rounded bg-[#e4393c] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#c42d30] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow font-sans cursor-pointer"
             >
               Xác nhận
             </button>
