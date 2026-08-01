@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { SitePage } from "../types/page.type";
+import YouTubeFacade from "@/src/components/YouTubeFacade";
 
 interface Props {
     page: SitePage;
@@ -133,16 +134,14 @@ export default function AboutPage({ page }: Props) {
                     />
                 </Section>
 
-                {/* Video YouTube (nếu có) */}
+                {/* Video YouTube (nếu có) — dùng YouTubeFacade để lazy load + youtube-nocookie.com */}
                 {youtubeId && (
                     <Section label="Giới thiệu video">
                         <div className="relative aspect-video w-full max-w-3xl mx-auto rounded-[3px] overflow-hidden border border-[#ede0c4] shadow-lg">
-                            <iframe
-                                src={`https://www.youtube.com/embed/${youtubeId}`}
+                            <YouTubeFacade
+                                videoId={youtubeId}
                                 title="Giới thiệu Bát Tràng"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                className="absolute inset-0 w-full h-full"
+                                className="absolute inset-0"
                             />
                         </div>
                     </Section>

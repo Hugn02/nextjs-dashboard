@@ -1,6 +1,6 @@
-"use client";
+import YouTubeFacade from "@/src/components/YouTubeFacade";
 
-import Image from "next/image";
+const VIDEO_ID = "zznr9ZZWQ48";
 
 export default function ArtOfWhite() {
   return (
@@ -43,21 +43,16 @@ export default function ArtOfWhite() {
           </div>
         </div>
 
-        {/* Right Column: Embedded YouTube Video */}
+        {/* Right Column: YouTube Video (Lazy load facade) */}
         <div className="relative group w-full flex justify-center p-2 sm:p-4 md:p-6">
           <div className="relative w-full max-w-[560px]">
             {/* Decorative gold accent frame */}
             <div className="absolute -inset-3 sm:-inset-4 border border-[#c4a84f] rounded-[2px] opacity-40 pointer-events-none" />
             <div className="relative w-full aspect-video rounded-[2px] shadow-[12px_18px_35px_rgba(44,26,0,0.35)] overflow-hidden z-10">
-              <iframe
-                className="w-full h-full rounded-[2px]"
-                src="https://www.youtube.com/embed/zznr9ZZWQ48?si=A3HzC7FyA0MzOo2n"
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              ></iframe>
+              <YouTubeFacade
+                videoId={VIDEO_ID}
+                title="Nghệ thuật men hỏa biến - Bát Tràng Vietnam"
+              />
             </div>
           </div>
         </div>
