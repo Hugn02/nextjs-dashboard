@@ -23,7 +23,13 @@ export default function ChatWidget() {
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [showPing, setShowPing] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowPing(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Tự động cuộn xuống cuối khi có tin nhắn mới
   const scrollToBottom = () => {
@@ -126,8 +132,10 @@ export default function ChatWidget() {
           className="relative group flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-tr from-[#8b6914] via-[#c4a84f] to-[#8b6914] text-white shadow-[0_8px_30px_rgb(196,168,79,0.4)] cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 hover:rotate-12"
           aria-label="Mở cửa sổ Chat"
         >
-          {/* Vòng tròn hiệu ứng sóng phát ra xung quanh */}
-          <span className="absolute inset-0 rounded-full bg-[#c4a84f]/30 animate-ping opacity-75"></span>
+          {/* Vòng tròn hiệu ứng sóng phát ra xung quanh (chỉ chạy 5s đầu để tránh tốn CPU) */}
+          {showPing && (
+            <span className="absolute inset-0 rounded-full bg-[#c4a84f]/30 animate-ping opacity-75"></span>
+          )}
 
           <svg
             xmlns="http://www.w3.org/2000/svg"

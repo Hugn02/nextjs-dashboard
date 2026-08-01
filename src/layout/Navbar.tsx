@@ -2,10 +2,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import UserModal from "../features/auth/components/UserModal";
-import CartModal from "../features/cart/components/CartModal";
-import SearchModal from "../features/search/components/SearchModal";
+import dynamic from "next/dynamic";
 import useCart from "../features/cart/hooks/useCart";
+
+// Lazy load modals — chỉ tải JS khi người dùng thực sự mở modal
+const UserModal = dynamic(() => import("../features/auth/components/UserModal"), { ssr: false });
+const CartModal = dynamic(() => import("../features/cart/components/CartModal"), { ssr: false });
+const SearchModal = dynamic(() => import("../features/search/components/SearchModal"), { ssr: false });
 
 type Category = {
   _id: string;

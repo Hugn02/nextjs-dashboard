@@ -15,10 +15,13 @@ function formatPrice(n: number) {
 // ─── Global cache for collections ─────────────────────────────────────────────
 let collectionsCache: Map<string, string> | null = null;
 let collectionsFetchPromise: Promise<Map<string, string>> | null = null;
+let collectionsCacheTime = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 phút
 
 async function fetchAndCacheCollections(): Promise<Map<string, string>> {
-    // Nếu cache đã có, trả về ngay lập tức
-    if (collectionsCache) {
+    const now = Date.now();
+    // Nếu cache còn hiệu lực (< 5 phút), trả về ngay lập tức
+    if (collectionsCache && now - collectionsCacheTime < CACHE_TTL) {
         return collectionsCache;
     }
 
@@ -27,7 +30,7 @@ async function fetchAndCacheCollections(): Promise<Map<string, string>> {
         return collectionsFetchPromise;
     }
 
-    // Nếu chưa có cache và cũng chưa có request nào, tạo một request mới
+    // Nếu chưa có cache hoặc đã hết hạn, tạo một request mới
     collectionsFetchPromise = (async () => {
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections?isActive=true`);
@@ -35,13 +38,14 @@ async function fetchAndCacheCollections(): Promise<Map<string, string>> {
                 const colData = await res.json();
                 const list = Array.isArray(colData) ? colData : colData.data || [];
                 collectionsCache = new Map(list.map((c: any) => [c._id || c.id, c.name]));
+                collectionsCacheTime = Date.now();
                 return collectionsCache;
             }
         } catch (error) {
             console.error("Failed to fetch collections for ProductCard:", error);
-            collectionsFetchPromise = null; // Reset promise nếu có lỗi để có thể thử lại
+            collectionsFetchPromise = null;
         }
-        return new Map(); // Trả về map rỗng nếu lỗi
+        return new Map();
     })();
 
     return collectionsFetchPromise;
