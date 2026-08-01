@@ -29,6 +29,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "placehold.co",
       },
+      {
+        // YouTube thumbnail CDN — dùng bởi YouTubeFacade component
+        protocol: "https",
+        hostname: "i.ytimg.com",
+      },
     ],
   },
 };

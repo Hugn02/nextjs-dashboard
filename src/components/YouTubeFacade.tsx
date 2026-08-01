@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 
 interface YouTubeFacadeProps {
   videoId: string;
@@ -41,13 +40,12 @@ export default function YouTubeFacade({ videoId, title = "Video player", classNa
       className="group relative w-full h-full cursor-pointer border-none p-0 bg-transparent"
       aria-label={`Phát video: ${title}`}
     >
-      {/* Thumbnail */}
-      <Image
+      {/* Thumbnail — dùng <img> thường vì YouTube CDN đã tối ưu sẵn */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={thumbnailUrl}
         alt={title}
-        fill
-        sizes="(max-width: 768px) 100vw, 560px"
-        className="object-cover"
+        className="absolute inset-0 w-full h-full object-cover"
         onError={(e) => {
           // Fallback sang hqdefault nếu maxresdefault không tồn tại
           (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
