@@ -11,7 +11,7 @@ interface CartContextType {
   error: string | null;
   updatingIds: Set<string>;
   refreshCart: () => Promise<void>;
-  addToCart: (productId: string, quantity?: number) => Promise<void>;
+  addToCart: (productId: string, quantity?: number) => Promise<boolean>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -61,6 +61,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshCart = useCallback(async () => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setCart(null);
+        setSummary(initialSummary);
+        setLoading(false);
+        return;
+      }
+    }
     setLoading(true);
     setError(null);
     try {
@@ -74,13 +83,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [calculateSummary]);
 
-  const addToCart = async (productId: string, quantity = 1) => {
+  const addToCart = async (productId: string, quantity = 1): Promise<boolean> => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        window.dispatchEvent(new CustomEvent("open-login-modal"));
+        return false;
+      }
+    }
     setLoading(true);
     setError(null);
     try {
       const data = await cartService.addToCart(productId, quantity);
       setCart(data);
       setSummary(calculateSummary(data));
+      return true;
     } catch (err: any) {
       setError(err.message || "Failed to add item to cart");
       throw err;

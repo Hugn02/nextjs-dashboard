@@ -191,8 +191,8 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                             </span>
                             <button
                               onClick={() => changeQty(pid, item.quantity, 1)}
-                              disabled={loading || updatingIds.has(pid)}
-                              className="w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                              disabled={loading || updatingIds.has(pid) || (p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock)}
+                              className="w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               +
                             </button>

@@ -167,12 +167,13 @@ export default function ProductCard({ product }: { product: Product }) {
 
             {/* Nút hành động */}
             <div className="px-[14px] pb-[14px]">
-                {product.isContact ? (
+                {product.isContact || product.inStock === false || (product.stock !== undefined && product.stock !== null && product.stock <= 0) ? (
                     <button
-                        className="w-full cursor-pointer rounded-[2px] border border-[#c4a84f] bg-white py-2.5 text-[11px] font-bold uppercase text-[#8b6914] transition-all duration-200 hover:bg-[#c4a84f] hover:text-white"
+                        className="w-full cursor-not-allowed rounded-[2px] border border-[#d29f13]/40 bg-gray-100 py-2.5 text-[11px] font-bold uppercase text-gray-500 transition-all duration-200"
                         style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: 1.5 }}
+                        disabled
                     >
-                        Liên hệ đặt hàng
+                        {product.isContact ? "Liên hệ đặt hàng" : "Hết hàng"}
                     </button>
                 ) : !showQty ? (
                     /* ── State 1: Nút "Thêm vào giỏ hàng" với sweep animation ── */
@@ -210,8 +211,16 @@ export default function ProductCard({ product }: { product: Product }) {
                                 {qty}
                             </span>
                             <button
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQty(q => q + 1); }}
-                                className="w-7 h-7 flex items-center justify-center bg-transparent border-none cursor-pointer text-[#d29f13] text-base font-bold hover:bg-[#fef9ec] rounded-full transition-colors"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (product.stock !== undefined && product.stock !== null && qty >= product.stock) {
+                                        return;
+                                    }
+                                    setQty(q => q + 1);
+                                }}
+                                disabled={product.stock !== undefined && product.stock !== null && qty >= product.stock}
+                                className="w-7 h-7 flex items-center justify-center bg-transparent border-none cursor-pointer text-[#d29f13] text-base font-bold hover:bg-[#fef9ec] rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                                 +
                             </button>
@@ -223,17 +232,23 @@ export default function ProductCard({ product }: { product: Product }) {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 if (adding) return;
+                                if (product.stock !== undefined && product.stock !== null && qty > product.stock) {
+                                    alert(`Số lượng tồn kho chỉ còn ${product.stock} sản phẩm.`);
+                                    return;
+                                }
                                 setAdding(true);
                                 try {
-                                    await addItem(product.id || product._id, qty);
-                                    setQty(1);
-                                    setShowQty(false);
-                                    // Phát sự kiện — modal sẽ hiện ở app level
-                                    window.dispatchEvent(
-                                        new CustomEvent("cart-added", {
-                                            detail: { productName: product.name },
-                                        })
-                                    );
+                                    const added = await addItem(product.id || product._id, qty);
+                                    if (added) {
+                                        setQty(1);
+                                        setShowQty(false);
+                                        // Phát sự kiện — modal sẽ hiện ở app level
+                                        window.dispatchEvent(
+                                            new CustomEvent("cart-added", {
+                                                detail: { productName: product.name },
+                                            })
+                                        );
+                                    }
                                 } catch (err: any) {
                                     alert(err.message || "Có lỗi xảy ra");
                                 } finally {

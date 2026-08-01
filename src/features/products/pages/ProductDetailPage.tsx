@@ -221,7 +221,8 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
         if (!product) return;
 
         try {
-            await addItem(product.id, quantity);
+            const added = await addItem(product.id, quantity);
+            if (!added) return; // Chưa đăng nhập, modal đăng nhập đã tự động hiển thị
 
             // Dispatch event for CartAddedNotification to show popup
             window.dispatchEvent(
@@ -232,6 +233,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
         } catch (err: any) {
             console.error("Failed to add to cart:", err);
             setToastMessage(err.message || "Thêm vào giỏ hàng thất bại!");
+            setTimeout(() => setToastMessage(null), 3000);
         }
     };
 
