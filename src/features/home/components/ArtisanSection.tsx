@@ -43,7 +43,6 @@ export default function ArtisanSection() {
                   fill
                   className="object-cover object-center"
                   sizes="(max-width: 768px) 90vw, 420px"
-                  priority
                 />
                 {/* Subtle gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[rgba(44,26,0,0.25)] to-transparent rounded-[20px]" />
