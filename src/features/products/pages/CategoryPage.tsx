@@ -56,8 +56,9 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
     const [totalCount, setTotalCount] = useState(0);
 
     // Filters hook & local state
-    const { collections, categories } = useProductFilterOptions();
+    const { collections, categories, functions } = useProductFilterOptions();
     const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+    const [selectedFunction, setSelectedFunction] = useState<string | null>(null);
     const [priceRange, setPriceRange] = useState<{ min?: number; max?: number } | null>(null);
 
     const LIMIT = 24;
@@ -96,6 +97,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                 const { products: fetchedProducts, totalCount: count } = await fetchProducts({
                     category: slug,
                     collection: selectedCollection || undefined,
+                    function: selectedFunction || undefined,
                     minPrice: priceRange?.min,
                     maxPrice: priceRange?.max,
                     sortBy: sortField === 'newest' ? 'createdAt' : sortField,
@@ -115,7 +117,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
             }
         };
         loadProducts();
-    }, [slug, sortBy, selectedCollection, priceRange]);
+    }, [slug, sortBy, selectedCollection, selectedFunction, priceRange]);
 
     const handleLoadMore = async () => {
         if (loadingMore || products.length >= totalCount) return;
@@ -127,6 +129,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
             const { products: fetchedProducts } = await fetchProducts({
                 category: slug,
                 collection: selectedCollection || undefined,
+                function: selectedFunction || undefined,
                 minPrice: priceRange?.min,
                 maxPrice: priceRange?.max,
                 sortBy: sortField === 'newest' ? 'createdAt' : sortField,
@@ -147,10 +150,11 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
     const categoryName = category?.name || (slug || "").replace(/-/g, " ").toUpperCase();
     const categoryBanner = "/assets/category2.png";
 
-    const hasActiveFilters = selectedCollection !== null || priceRange !== null;
+    const hasActiveFilters = selectedCollection !== null || selectedFunction !== null || priceRange !== null;
 
     const clearAllFilters = () => {
         setSelectedCollection(null);
+        setSelectedFunction(null);
         setPriceRange(null);
     };
 
@@ -223,8 +227,11 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                     <ActiveFilters
                         categories={categories}
                         collections={collections}
+                        functions={functions}
                         selectedCollection={selectedCollection}
                         setSelectedCollection={setSelectedCollection}
+                        selectedFunction={selectedFunction}
+                        setSelectedFunction={setSelectedFunction}
                         priceRange={priceRange}
                         setPriceRange={setPriceRange}
                         clearAllFilters={clearAllFilters}
@@ -241,8 +248,11 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                             <ProductFilter
                                 categories={categories}
                                 collections={collections}
+                                functions={functions}
                                 selectedCollection={selectedCollection}
                                 setSelectedCollection={setSelectedCollection}
+                                selectedFunction={selectedFunction}
+                                setSelectedFunction={setSelectedFunction}
                                 priceRange={priceRange}
                                 setPriceRange={setPriceRange}
                                 currentCategorySlug={slug}

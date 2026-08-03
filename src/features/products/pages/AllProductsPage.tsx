@@ -42,9 +42,10 @@ export default function AllProductsPage() {
     const [totalCount, setTotalCount] = useState(0);
 
     // Filters hook & local state
-    const { collections, categories } = useProductFilterOptions();
+    const { collections, categories, functions } = useProductFilterOptions();
     const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [selectedFunction, setSelectedFunction] = useState<string | null>(null);
     const [priceRange, setPriceRange] = useState<{ min?: number; max?: number } | null>(null);
 
     // Load initial products when component mounts or sortBy/filters change
@@ -58,6 +59,7 @@ export default function AllProductsPage() {
                 const { products: fetchedProducts, totalCount: count } = await fetchProducts({
                     category: selectedCategory || undefined,
                     collection: selectedCollection || undefined,
+                    function: selectedFunction || undefined,
                     minPrice: priceRange?.min,
                     maxPrice: priceRange?.max,
                     sortBy: sortField === 'newest' ? 'createdAt' : sortField,
@@ -78,7 +80,7 @@ export default function AllProductsPage() {
         };
 
         loadInitialProducts();
-    }, [sortBy, selectedCategory, selectedCollection, priceRange]);
+    }, [sortBy, selectedCategory, selectedCollection, selectedFunction, priceRange]);
 
     // Load more products when button clicked
     const handleLoadMore = async () => {
@@ -91,6 +93,7 @@ export default function AllProductsPage() {
             const { products: fetchedProducts } = await fetchProducts({
                 category: selectedCategory || undefined,
                 collection: selectedCollection || undefined,
+                function: selectedFunction || undefined,
                 minPrice: priceRange?.min,
                 maxPrice: priceRange?.max,
                 sortBy: sortField === 'newest' ? 'createdAt' : sortField,
@@ -115,6 +118,7 @@ export default function AllProductsPage() {
     const clearAllFilters = () => {
         setSelectedCategory(null);
         setSelectedCollection(null);
+        setSelectedFunction(null);
         setPriceRange(null);
     };
 
@@ -164,10 +168,13 @@ export default function AllProductsPage() {
                     <ActiveFilters
                         categories={categories}
                         collections={collections}
+                        functions={functions}
                         selectedCategory={selectedCategory}
                         setSelectedCategory={setSelectedCategory}
                         selectedCollection={selectedCollection}
                         setSelectedCollection={setSelectedCollection}
+                        selectedFunction={selectedFunction}
+                        setSelectedFunction={setSelectedFunction}
                         priceRange={priceRange}
                         setPriceRange={setPriceRange}
                         clearAllFilters={clearAllFilters}
@@ -184,10 +191,13 @@ export default function AllProductsPage() {
                             <ProductFilter
                                 categories={categories}
                                 collections={collections}
+                                functions={functions}
                                 selectedCategory={selectedCategory}
                                 setSelectedCategory={setSelectedCategory}
                                 selectedCollection={selectedCollection}
                                 setSelectedCollection={setSelectedCollection}
+                                selectedFunction={selectedFunction}
+                                setSelectedFunction={setSelectedFunction}
                                 priceRange={priceRange}
                                 setPriceRange={setPriceRange}
                             />

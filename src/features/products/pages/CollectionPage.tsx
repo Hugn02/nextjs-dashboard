@@ -59,8 +59,9 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
     const [totalCount, setTotalCount] = useState(0);
 
     // Filters hook & local state
-    const { collections, categories } = useProductFilterOptions();
+    const { collections, categories, functions } = useProductFilterOptions();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [selectedFunction, setSelectedFunction] = useState<string | null>(null);
     const [priceRange, setPriceRange] = useState<{ min?: number; max?: number } | null>(null);
 
     const LIMIT = 24;
@@ -101,6 +102,7 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                 const { products: fetchedProducts, totalCount: count } = await fetchProducts({
                     collection: slug,
                     category: selectedCategory || undefined,
+                    function: selectedFunction || undefined,
                     minPrice: priceRange?.min,
                     maxPrice: priceRange?.max,
                     sortBy: sortField === 'newest' ? 'createdAt' : sortField,
@@ -120,7 +122,7 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
             }
         };
         loadProducts();
-    }, [slug, sortBy, selectedCategory, priceRange]);
+    }, [slug, sortBy, selectedCategory, selectedFunction, priceRange]);
 
     const handleLoadMore = async () => {
         if (loadingMore || products.length >= totalCount) return;
@@ -132,6 +134,7 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
             const { products: fetchedProducts } = await fetchProducts({
                 collection: slug,
                 category: selectedCategory || undefined,
+                function: selectedFunction || undefined,
                 minPrice: priceRange?.min,
                 maxPrice: priceRange?.max,
                 sortBy: sortField === 'newest' ? 'createdAt' : sortField,
@@ -151,10 +154,11 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
 
     const collectionName = collection?.name || (slug || "").replace(/-/g, " ").toUpperCase();
     const collectionBanner = "/assets/collection.png";
-    const hasActiveFilters = selectedCategory !== null || priceRange !== null;
+    const hasActiveFilters = selectedCategory !== null || selectedFunction !== null || priceRange !== null;
 
     const clearAllFilters = () => {
         setSelectedCategory(null);
+        setSelectedFunction(null);
         setPriceRange(null);
     };
 
@@ -231,8 +235,11 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                     <ActiveFilters
                         categories={categories}
                         collections={collections}
+                        functions={functions}
                         selectedCategory={selectedCategory}
                         setSelectedCategory={setSelectedCategory}
+                        selectedFunction={selectedFunction}
+                        setSelectedFunction={setSelectedFunction}
                         priceRange={priceRange}
                         setPriceRange={setPriceRange}
                         clearAllFilters={clearAllFilters}
@@ -250,8 +257,11 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                             <ProductFilter
                                 categories={categories}
                                 collections={collections}
+                                functions={functions}
                                 selectedCategory={selectedCategory}
                                 setSelectedCategory={setSelectedCategory}
+                                selectedFunction={selectedFunction}
+                                setSelectedFunction={setSelectedFunction}
                                 priceRange={priceRange}
                                 setPriceRange={setPriceRange}
                                 currentCollectionSlug={slug}

@@ -190,7 +190,7 @@ export default function Navbar() {
                 )}
 
                 {item.children && (
-                  <div className="absolute top-full left-0 min-w-[280px] bg-white rounded shadow-xl py-2 opacity-0 invisible translate-y-2.5 transition-all duration-[250ms] group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 z-[999]">
+                  <div className="absolute top-full left-0 min-w-[280px] max-h-[350px] overflow-y-auto bg-white rounded shadow-xl py-2 opacity-0 invisible translate-y-2.5 transition-all duration-[250ms] group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 z-[999] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#c4a84f]/40 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-[#faf7f2]">
                     {item.children.map((child) => (
                       <Link
                         key={child.label}

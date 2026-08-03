@@ -16,18 +16,28 @@ export interface CollectionOption {
     isActive?: boolean;
 }
 
+export interface FunctionOption {
+    _id?: string;
+    id?: string;
+    name: string;
+    slug: string;
+    isActive?: boolean;
+}
+
 export function useProductFilterOptions() {
     const [collections, setCollections] = useState<CollectionOption[]>([]);
     const [categories, setCategories] = useState<CategoryOption[]>([]);
+    const [functions, setFunctions] = useState<FunctionOption[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadFilterOptions = async () => {
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
-                const [colRes, catRes] = await Promise.all([
+                const [colRes, catRes, funcRes] = await Promise.all([
                     fetch(`${apiUrl}/collections?isActive=true`),
                     fetch(`${apiUrl}/categories?isActive=true`),
+                    fetch(`${apiUrl}/functions?isActive=true`),
                 ]);
 
                 if (colRes.ok) {
@@ -40,6 +50,11 @@ export function useProductFilterOptions() {
                     const list: CategoryOption[] = Array.isArray(catData) ? catData : catData.data || [];
                     setCategories(list.filter((c) => c.isActive !== false));
                 }
+                if (funcRes && funcRes.ok) {
+                    const funcData = await funcRes.json();
+                    const list: FunctionOption[] = Array.isArray(funcData) ? funcData : funcData.data || [];
+                    setFunctions(list.filter((f) => f.isActive !== false));
+                }
             } catch (err) {
                 console.error("Lỗi fetch options bộ lọc:", err);
             } finally {
@@ -49,5 +64,5 @@ export function useProductFilterOptions() {
         loadFilterOptions();
     }, []);
 
-    return { collections, categories, loading };
+    return { collections, categories, functions, loading };
 }

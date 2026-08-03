@@ -54,7 +54,7 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
     const [totalCount, setTotalCount] = useState(0);
 
     // Filters hook & local state
-    const { collections, categories } = useProductFilterOptions();
+    const { collections, categories, functions } = useProductFilterOptions();
     const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [priceRange, setPriceRange] = useState<{ min?: number; max?: number } | null>(null);
@@ -225,6 +225,7 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
                     <ActiveFilters
                         categories={categories}
                         collections={collections}
+                        functions={functions}
                         selectedCategory={selectedCategory}
                         setSelectedCategory={setSelectedCategory}
                         selectedCollection={selectedCollection}
@@ -245,12 +246,14 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
                             <ProductFilter
                                 categories={categories}
                                 collections={collections}
+                                functions={functions}
                                 selectedCategory={selectedCategory}
                                 setSelectedCategory={setSelectedCategory}
                                 selectedCollection={selectedCollection}
                                 setSelectedCollection={setSelectedCollection}
                                 priceRange={priceRange}
                                 setPriceRange={setPriceRange}
+                                currentFunctionSlug={slug}
                             />
 
                             {/* Sắp xếp */}
