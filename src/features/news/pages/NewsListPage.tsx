@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { formatCloudinaryUrl } from "@/src/lib/cloudinary";
 import { fetchNewsList } from "../services/news.service";
 import { NewsArticle } from "../types/news.type";
 
-const CLOUDINARY_DOMAIN = "https://res.cloudinary.com/dls9re0ux/image/upload/";
 const ITEMS_PER_PAGE = 6;
 
 function SkeletonCard() {
@@ -113,9 +113,7 @@ export default function NewsListPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {displayedArticles.map((article) => {
                                     const articleImage = article.thumbnail
-                                        ? article.thumbnail.startsWith("http")
-                                            ? article.thumbnail
-                                            : `${CLOUDINARY_DOMAIN}${article.thumbnail}`
+                                        ? formatCloudinaryUrl(article.thumbnail)
                                         : "https://placehold.co/800x500/faf7f2/c4a84f?text=Bat+Trang+Blog";
 
                                     const dateStr = article.publishedAt
@@ -208,11 +206,10 @@ export default function NewsListPage() {
                                                 <button
                                                     key={page}
                                                     onClick={() => handlePageChange(page)}
-                                                    className={`w-8 h-8 rounded-[2px] text-xs font-semibold transition-all border ${
-                                                        currentPage === page
-                                                            ? "bg-[#2c1a00] text-[#c4a84f] border-[#2c1a00] shadow-xs"
-                                                            : "bg-white text-[#2c1a00] border-[#ede0c4] hover:bg-[#faf7f2] hover:border-[#c4a84f]"
-                                                    }`}
+                                                    className={`w-8 h-8 rounded-[2px] text-xs font-semibold transition-all border ${currentPage === page
+                                                        ? "bg-[#2c1a00] text-[#c4a84f] border-[#2c1a00] shadow-xs"
+                                                        : "bg-white text-[#2c1a00] border-[#ede0c4] hover:bg-[#faf7f2] hover:border-[#c4a84f]"
+                                                        }`}
                                                 >
                                                     {page}
                                                 </button>

@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { formatCloudinaryUrl } from "@/src/lib/cloudinary";
 import { fetchNewsBySlug, fetchNewsList } from "../services/news.service";
 import { NewsArticle } from "../types/news.type";
-
-const CLOUDINARY_DOMAIN = "https://res.cloudinary.com/dls9re0ux/image/upload/";
 
 interface Props {
     slug: string;
@@ -78,17 +77,15 @@ export default function NewsDetailPage({ slug }: Props) {
     }
 
     const featuredImage = article.thumbnail
-        ? article.thumbnail.startsWith("http")
-            ? article.thumbnail
-            : `${CLOUDINARY_DOMAIN}${article.thumbnail}`
+        ? formatCloudinaryUrl(article.thumbnail)
         : null;
 
     const dateStr = article.publishedAt
         ? new Date(article.publishedAt).toLocaleDateString("vi-VN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-          })
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        })
         : null;
 
     return (
@@ -231,9 +228,7 @@ export default function NewsDetailPage({ slug }: Props) {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {related.map((item) => {
                                     const relatedImage = item.thumbnail
-                                        ? item.thumbnail.startsWith("http")
-                                            ? item.thumbnail
-                                            : `${CLOUDINARY_DOMAIN}${item.thumbnail}`
+                                        ? formatCloudinaryUrl(item.thumbnail)
                                         : "https://placehold.co/400x250/faf7f2/c4a84f?text=Gom+Bat+Trang";
 
                                     return (

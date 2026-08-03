@@ -4,24 +4,11 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { SitePage } from "../types/page.type";
+import { formatCloudinaryUrl } from "@/src/lib/cloudinary";
 import YouTubeFacade from "@/src/components/YouTubeFacade";
 
 interface Props {
     page: SitePage;
-}
-
-interface Collection {
-    id: string;
-    name: string;
-    slug: string;
-    image?: string;
-}
-
-const CLOUDINARY = "https://res.cloudinary.com/dls9re0ux/image/upload/";
-
-function resolveImage(url?: string, fallback = "") {
-    if (!url) return fallback;
-    return url.startsWith("http") ? url : `${CLOUDINARY}${url}`;
 }
 
 function SkeletonCard() {
@@ -56,6 +43,13 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 }
 
 export default function AboutPage({ page }: Props) {
+    interface Collection {
+        id: string;
+        name: string;
+        slug: string;
+        image?: string;
+    }
+
     const title = page.title || DEFAULT_TITLE;
     const subtitle = page.subtitle || DEFAULT_SUBTITLE;
     const content = page.content || DEFAULT_CONTENT;
@@ -205,10 +199,10 @@ export default function AboutPage({ page }: Props) {
                                     <a
                                         key={col.id}
                                         href={`/collections/${col.slug}`}
-                                        className="group block no-underline relative overflow-hidden rounded-[2px] border border-[#c4a84f]/30 aspect-[3/4] bg-[#3d2b00]"
+                                        className="group block no-underline relative overflow-hidden rounded-[2px] border border-[#c4a84f]/30 aspect-[3/4] bg-[#3d2b00]" // Changed from resolveImage to formatCloudinaryUrl
                                     >
                                         <Image
-                                            src={resolveImage(col.image, `https://placehold.co/400x600/3d2b00/c4a84f?text=BST`)}
+                                            src={formatCloudinaryUrl(col.image, { width: 400, quality: 80 }) || `https://placehold.co/400x600/3d2b00/c4a84f?text=BST`}
                                             alt={col.name}
                                             fill
                                             sizes="220px"
