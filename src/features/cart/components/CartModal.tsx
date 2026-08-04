@@ -106,12 +106,13 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
               {cart.items.map((item) => {
                 const p = item.product;
                 const isDeleted = !p || (!p.id && !p._id);
-                const pid = isDeleted ? `deleted-${item.price}-${item.quantity}` : ((p.id || p._id) as string);
+                const cid = item.id; // cartId — dùng để gọi PATCH/DELETE /carts/:cartId
+                const pid = isDeleted ? `deleted-${cid}` : ((p.id || p._id) as string); // productId
                 const imgSrc = isDeleted ? "" : formatCloudinaryUrl(p?.imageUrl?.[0] || p?.images?.[0], { width: 144, quality: 80 });
 
                 if (isDeleted) {
                   return (
-                    <div key={pid} className="flex items-center gap-3 py-3 px-1 bg-red-50/50 rounded my-1 border-l-2 border-red-300">
+                    <div key={cid || pid} className="flex items-center gap-3 py-3 px-1 bg-red-50/50 rounded my-1 border-l-2 border-red-300">
                       <div className="w-[50px] h-[50px] flex-shrink-0 bg-red-50 border border-dashed border-red-200 rounded flex items-center justify-center">
                         <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -122,8 +123,8 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                         <p className="text-[10px] text-gray-400">Đã bị xóa khỏi hệ thống</p>
                       </div>
                       <button
-                        onClick={() => removeItem(pid)}
-                        disabled={loading || updatingIds.has(pid)}
+                        onClick={() => removeItem(cid)}
+                        disabled={loading || updatingIds.has(cid)}
                         className="text-gray-300 hover:text-red-500 bg-transparent border-none cursor-pointer text-sm leading-none transition-colors p-1"
                         title="Xóa sản phẩm"
                       >
@@ -134,7 +135,7 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                 }
 
                 return (
-                  <div key={pid} className="flex gap-3 py-4 items-start">
+                  <div key={cid} className="flex gap-3 py-4 items-start">
                     {/* Ảnh sản phẩm */}
                     <div className="relative w-[72px] h-[72px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
                       <Image
@@ -160,8 +161,8 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                         </Link>
                         {/* Nút xóa — góc trên phải, tách rõ */}
                         <button
-                          onClick={() => removeItem(pid)}
-                          disabled={loading || updatingIds.has(pid)}
+                          onClick={() => removeItem(cid)}
+                          disabled={loading || updatingIds.has(cid)}
                           className="flex-shrink-0 text-gray-300 hover:text-red-500 bg-transparent border-none cursor-pointer text-base leading-none transition-colors disabled:opacity-40 pt-0.5"
                           title="Xóa sản phẩm"
                         >
@@ -180,8 +181,8 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center border border-[#ddd] rounded overflow-hidden w-fit">
                             <button
-                              onClick={() => changeQty(pid, item.quantity, -1)}
-                              disabled={loading || updatingIds.has(pid)}
+                              onClick={() => changeQty(cid, item.quantity, -1)}
+                              disabled={loading || updatingIds.has(cid)}
                               className="w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
                             >
                               -
@@ -190,8 +191,8 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                               {item.quantity}
                             </span>
                             <button
-                              onClick={() => changeQty(pid, item.quantity, 1)}
-                              disabled={loading || updatingIds.has(pid) || (p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock)}
+                              onClick={() => changeQty(cid, item.quantity, 1)}
+                              disabled={loading || updatingIds.has(cid) || (p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock)}
                               className="w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               +

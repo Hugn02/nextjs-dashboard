@@ -12,8 +12,8 @@ interface CartContextType {
   updatingIds: Set<string>;
   refreshCart: () => Promise<void>;
   addToCart: (productId: string, quantity?: number) => Promise<boolean>;
-  updateQuantity: (productId: string, quantity: number) => Promise<void>;
-  removeFromCart: (productId: string) => Promise<void>;
+  updateQuantity: (cartId: string, quantity: number) => Promise<void>;
+  removeFromCart: (cartId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   // Trạng thái checkbox giỏ hàng — persist qua navigate, reset khi F5
   selectedIds: Set<string>;
@@ -106,29 +106,28 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateQuantity = async (productId: string, quantity: number) => {
+  const updateQuantity = async (cartId: string, quantity: number) => {
     if (quantity < 1) return;
-    if (updatingIds.has(productId)) return; // Prevent concurrent requests for same item
+    if (updatingIds.has(cartId)) return; // Prevent concurrent requests for same item
 
-    setUpdatingIds((prev) => new Set(prev).add(productId));
+    setUpdatingIds((prev) => new Set(prev).add(cartId));
 
-    // Optimistic update: cập nhật UI ngay lập tức
+    // Optimistic update: cập nhật UI ngay lập tức theo cartId (item.id)
     const previousCart = cart;
     const previousSummary = summary;
     if (cart) {
       const optimisticCart: typeof cart = {
         ...cart,
-        items: cart.items.map((item) => {
-          const pid = item.product?.id || item.product?._id;
-          return pid === productId ? { ...item, quantity } : item;
-        }),
+        items: cart.items.map((item) =>
+          item.id === cartId ? { ...item, quantity } : item
+        ),
       };
       setCart(optimisticCart);
       setSummary(calculateSummary(optimisticCart));
     }
-    // Gọi API ngầm
+    // Gọi API ngầm với cartId
     try {
-      const data = await cartService.updateCartItem(productId, quantity);
+      const data = await cartService.updateCartItem(cartId, quantity);
       if (data !== null) {
         setCart(data);
         setSummary(calculateSummary(data));
@@ -141,33 +140,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setUpdatingIds((prev) => {
         const next = new Set(prev);
-        next.delete(productId);
+        next.delete(cartId);
         return next;
       });
     }
   };
 
 
-  const removeFromCart = async (productId: string) => {
-    if (updatingIds.has(productId)) return;
-    setUpdatingIds((prev) => new Set(prev).add(productId));
+  const removeFromCart = async (cartId: string) => {
+    if (updatingIds.has(cartId)) return;
+    setUpdatingIds((prev) => new Set(prev).add(cartId));
 
-    // Optimistic update: xóa item khỏi UI ngay
+    // Optimistic update: xóa item khỏi UI ngay theo cartId (item.id)
     const previousCart = cart;
     const previousSummary = summary;
     if (cart) {
       const optimisticCart: typeof cart = {
         ...cart,
-        items: cart.items.filter((item) => {
-          const pid = item.product?.id || item.product?._id;
-          return pid !== productId;
-        }),
+        items: cart.items.filter((item) => item.id !== cartId),
       };
       setCart(optimisticCart);
       setSummary(calculateSummary(optimisticCart));
     }
     try {
-      const data = await cartService.removeFromCart(productId);
+      const data = await cartService.removeFromCart(cartId);
       if (data !== null) {
         setCart(data);
         setSummary(calculateSummary(data));
@@ -180,7 +176,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setUpdatingIds((prev) => {
         const next = new Set(prev);
-        next.delete(productId);
+        next.delete(cartId);
         return next;
       });
     }

@@ -109,13 +109,13 @@ export default function CartPage() {
     router.push("/checkout");
   };
 
-  const handleRemoveItem = (id: string) => {
-    // Gọi hàm xóa gốc từ hook
-    removeItem(id);
-    // Cập nhật lại selectedIds để loại bỏ id của sản phẩm vừa xóa
+  const handleRemoveItem = (cartId: string, productId: string) => {
+    // Gọi hàm xóa theo cartId (id bản ghi cart)
+    removeItem(cartId);
+    // Cập nhật lại selectedIds để loại bỏ productId của sản phẩm vừa xóa
     setSelectedIds(prev => {
       const next = new Set(prev);
-      next.delete(id);
+      next.delete(productId);
       return next;
     });
   };
@@ -189,13 +189,14 @@ export default function CartPage() {
                       const p = item.product;
                       // Guard: product có thể bị xóa khỏi DB
                       const isDeleted = !p || (!p.id && !p._id);
-                      const pid = isDeleted ? `deleted-${Math.random()}` : ((p.id || p._id) as string);
+                      const cid = item.id; // cartId — dùng để gọi PATCH/DELETE /carts/:cartId
+                      const pid = isDeleted ? `deleted-${cid}` : ((p.id || p._id) as string); // productId — dùng cho checkbox selection
                       const imgSrc = isDeleted ? "" : formatImageUrl(p?.imageUrl?.[0] || p?.images?.[0]);
                       const isChecked = !isDeleted && selectedIds.has(pid);
 
                       return (
                         <div
-                          key={isDeleted ? `deleted-${item.price}-${item.quantity}` : pid}
+                          key={cid || pid}
                           className={`transition-colors duration-150 ${isDeleted ? "bg-red-50 border-l-2 border-red-300" : isChecked ? "bg-[#fffdf7]" : "bg-white"}`}
                         >
                           {/* ── IF DELETED PRODUCT ── */}
@@ -212,8 +213,8 @@ export default function CartPage() {
                               </div>
                               <button
                                 type="button"
-                                onClick={() => handleRemoveItem(pid)}
-                                disabled={loading || updatingIds.has(pid)}
+                                onClick={() => handleRemoveItem(cid, pid)}
+                                disabled={loading || updatingIds.has(cid)}
                                 className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-[10px] text-gray-300 hover:text-red-500 border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
                                 title="Xóa sản phẩm"
                               >
@@ -255,8 +256,8 @@ export default function CartPage() {
                                     {/* Qty */}
                                     <div className="flex items-center border border-[#ddd] rounded overflow-hidden">
                                       <button
-                                        onClick={() => changeQty(pid, item.quantity, -1)}
-                                        disabled={loading || updatingIds.has(pid)}
+                                        onClick={() => changeQty(cid, item.quantity, -1)}
+                                        disabled={loading || updatingIds.has(cid)}
                                         className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
                                       >
                                         −
@@ -265,8 +266,8 @@ export default function CartPage() {
                                         {item.quantity}
                                       </span>
                                       <button
-                                        onClick={() => changeQty(pid, item.quantity, 1)}
-                                        disabled={loading || updatingIds.has(pid)}
+                                        onClick={() => changeQty(cid, item.quantity, 1)}
+                                        disabled={loading || updatingIds.has(cid)}
                                         className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
                                       >
                                         +
@@ -280,8 +281,8 @@ export default function CartPage() {
 
                                     {/* Delete */}
                                     <button
-                                      onClick={() => handleRemoveItem(pid)}
-                                      disabled={loading || updatingIds.has(pid)}
+                                      onClick={() => handleRemoveItem(cid, pid)}
+                                      disabled={loading || updatingIds.has(cid)}
                                       className="w-7 h-7 flex items-center justify-center text-[10px] text-gray-300 hover:text-red-500 border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
                                       title="Xóa sản phẩm"
                                     >
@@ -327,8 +328,8 @@ export default function CartPage() {
                                 {/* Qty */}
                                 <div className="flex items-center justify-center border border-[#ddd] rounded overflow-hidden w-[110px] shrink-0">
                                   <button
-                                    onClick={() => changeQty(pid, item.quantity, -1)}
-                                    disabled={loading || updatingIds.has(pid)}
+                                    onClick={() => changeQty(cid, item.quantity, -1)}
+                                    disabled={loading || updatingIds.has(cid)}
                                     className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
                                   >
                                     −
@@ -337,8 +338,8 @@ export default function CartPage() {
                                     {item.quantity}
                                   </span>
                                   <button
-                                    onClick={() => changeQty(pid, item.quantity, 1)}
-                                    disabled={loading || updatingIds.has(pid)}
+                                    onClick={() => changeQty(cid, item.quantity, 1)}
+                                    disabled={loading || updatingIds.has(cid)}
                                     className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
                                   >
                                     +
@@ -355,8 +356,8 @@ export default function CartPage() {
                                 {/* Delete */}
                                 <div className="w-[44px] flex justify-center">
                                   <button
-                                    onClick={() => handleRemoveItem(pid)}
-                                    disabled={loading || updatingIds.has(pid)}
+                                    onClick={() => handleRemoveItem(cid, pid)}
+                                    disabled={loading || updatingIds.has(cid)}
                                     className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 bg-transparent border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
                                     title="Xóa sản phẩm"
                                   >
