@@ -38,10 +38,57 @@ export default function BusinessPage({ page }: Props) {
         <>
             <style jsx global>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&display=swap');
+                .business-content {
+                    display: flow-root !important;
+                }
+                .business-content::after {
+                    content: "";
+                    display: block;
+                    clear: both;
+                }
+                .business-content h1,
+                .business-content h2,
+                .business-content h3 {
+                    clear: both;
+                }
                 .business-content p { margin-bottom: 1.5rem; line-height: 1.8; color: #3f3f46; }
                 .business-content h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.4rem; font-weight: 600; color: #2c1a00; margin: 2rem 0 1rem; }
                 .business-content h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.2rem; font-weight: 600; color: #2c1a00; margin: 1.5rem 0 0.75rem; }
                 .business-content blockquote { border-left: 3px solid #c4a84f; padding: 0.75rem 1.25rem; margin: 1.5rem 0; font-style: italic; color: #71717a; background: #faf7f2; }
+                .business-content img { border-radius: 4px; max-width: 100%; height: auto; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
+                .business-content .image-grid,
+                .business-content div[style*="grid"] {
+                    display: grid !important;
+                    gap: 12px !important;
+                    margin: 1.5rem 0;
+                    clear: both !important;
+                }
+                .business-content .image-grid img,
+                .business-content div[style*="grid"] img {
+                    margin: 0 !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    object-fit: cover !important;
+                }
+                .business-content .grid-2x1 { grid-template-columns: repeat(2, 1fr) !important; }
+                .business-content .grid-3x1 { grid-template-columns: repeat(3, 1fr) !important; }
+                .business-content .grid-2x2 { grid-template-columns: repeat(2, 1fr) !important; }
+                .business-content .grid-3x2 { grid-template-columns: repeat(3, 1fr) !important; }
+                .business-content .grid-3x3 { grid-template-columns: repeat(3, 1fr) !important; }
+
+
+                /* Grid Sizes */
+                .business-content .grid-size-full { width: 100% !important; max-width: 100% !important; }
+                .business-content .grid-size-large { width: 75% !important; max-width: 650px !important; }
+                .business-content .grid-size-medium { width: 50% !important; max-width: 450px !important; }
+
+                /* Grid Alignments */
+                .business-content .grid-align-center { margin-left: auto !important; margin-right: auto !important; float: none !important; clear: both !important; }
+                .business-content .grid-align-left { float: left !important; margin-right: 1.5rem !important; margin-bottom: 1rem !important; margin-left: 0 !important; }
+                .business-content .grid-align-right { float: right !important; margin-left: 1.5rem !important; margin-bottom: 1rem !important; margin-right: 0 !important; }
+
+
+
             `}</style>
 
             <main className="min-h-screen bg-[#faf7f2] mt-[100px] lg:mt-[120px]">

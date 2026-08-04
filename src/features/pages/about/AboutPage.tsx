@@ -72,8 +72,6 @@ export default function AboutPage({ page }: Props) {
                 const response = await res.json();
                 const data = Array.isArray(response) ? response : (response.data || []);
                 setCollections(data);
-            } catch (error) {
-                console.error("Error fetching featured collections:", error);
             } finally {
                 setLoadingCollections(false);
             }
@@ -85,14 +83,59 @@ export default function AboutPage({ page }: Props) {
         <>
             <style jsx global>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&display=swap');
+                .about-content {
+                    display: flow-root !important;
+                }
+                .about-content::after {
+                    content: "";
+                    display: block;
+                    clear: both;
+                }
+                .about-content h1,
+                .about-content h2,
+                .about-content h3 {
+                    clear: both;
+                }
                 .about-content p { margin-bottom: 1.5rem; line-height: 1.8; color: #3f3f46; }
                 .about-content h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.4rem; font-weight: 600; color: #2c1a00; margin: 2rem 0 1rem; }
                 .about-content h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.2rem; font-weight: 600; color: #2c1a00; margin: 1.5rem 0 0.75rem; }
                 .about-content blockquote { border-left: 3px solid #c4a84f; padding: 0.75rem 1.25rem; margin: 1.5rem 0; font-style: italic; color: #71717a; background: #faf7f2; }
-                .about-content img { border-radius: 2px; margin: 2rem auto; max-width: 100%; height: auto; box-shadow: 0 4px 12px rgba(0,0,0,.05); display: block; }
+                .about-content img { border-radius: 4px; max-width: 100%; height: auto; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
                 .about-content ul { list-style: none; padding: 0; margin: 1.5rem 0; }
                 .about-content ul li { padding: 0.4rem 0 0.4rem 1.5rem; position: relative; color: #3f3f46; line-height: 1.7; }
                 .about-content ul li::before { content: '✦'; position: absolute; left: 0; color: #c4a84f; font-size: 0.65rem; top: 0.6rem; }
+                .about-content .image-grid,
+                .about-content div[style*="grid"] {
+                    display: grid !important;
+                    gap: 12px !important;
+                    margin: 1.5rem 0;
+                    clear: both !important;
+                }
+                .about-content .image-grid img,
+                .about-content div[style*="grid"] img {
+                    margin: 0 !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    object-fit: cover !important;
+                }
+                .about-content .grid-2x1 { grid-template-columns: repeat(2, 1fr) !important; }
+                .about-content .grid-3x1 { grid-template-columns: repeat(3, 1fr) !important; }
+                .about-content .grid-2x2 { grid-template-columns: repeat(2, 1fr) !important; }
+                .about-content .grid-3x2 { grid-template-columns: repeat(3, 1fr) !important; }
+                .about-content .grid-3x3 { grid-template-columns: repeat(3, 1fr) !important; }
+
+                /* Grid Sizes */
+                .about-content .grid-size-full { width: 100% !important; max-width: 100% !important; }
+                .about-content .grid-size-large { width: 75% !important; max-width: 650px !important; }
+                .about-content .grid-size-medium { width: 50% !important; max-width: 450px !important; }
+
+                /* Grid Alignments */
+                .about-content .grid-align-center { margin-left: auto !important; margin-right: auto !important; float: none !important; clear: both !important; }
+                .about-content .grid-align-left { float: left !important; margin-right: 1.5rem !important; margin-bottom: 1rem !important; margin-left: 0 !important; }
+                .about-content .grid-align-right { float: right !important; margin-left: 1.5rem !important; margin-bottom: 1rem !important; margin-right: 0 !important; }
+
+
+
             `}</style>
 
             <main className="min-h-screen bg-[#faf7f2] mt-[100px] lg:mt-[120px]">

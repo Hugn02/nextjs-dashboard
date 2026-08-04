@@ -124,13 +124,55 @@ export default function NewsDetailPage({ slug }: Props) {
                     padding-top: 0.5rem;
                     padding-bottom: 0.5rem;
                 }
+                .article-body-content {
+                    display: flow-root !important;
+                }
+                .article-body-content::after {
+                    content: "";
+                    display: block;
+                    clear: both;
+                }
+                .article-body-content h1,
+                .article-body-content h2,
+                .article-body-content h3 {
+                    clear: both;
+                }
                 .article-body-content img {
-                    border-radius: 2px;
-                    margin: 2rem auto;
+                    border-radius: 4px;
                     max-width: 100%;
                     height: auto;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
                 }
+                .article-body-content .image-grid,
+                .article-body-content div[style*="grid"] {
+                    display: grid !important;
+                    gap: 12px !important;
+                    margin-top: 1.5rem;
+                    margin-bottom: 1.5rem;
+                }
+                .article-body-content .image-grid img,
+                .article-body-content div[style*="grid"] img {
+                    margin: 0 !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    object-fit: cover !important;
+                }
+                .article-body-content .grid-2x1 { grid-template-columns: repeat(2, 1fr) !important; }
+                .article-body-content .grid-3x1 { grid-template-columns: repeat(3, 1fr) !important; }
+                .article-body-content .grid-2x2 { grid-template-columns: repeat(2, 1fr) !important; }
+                .article-body-content .grid-3x2 { grid-template-columns: repeat(3, 1fr) !important; }
+                .article-body-content .grid-3x3 { grid-template-columns: repeat(3, 1fr) !important; }
+
+                /* Grid Sizes */
+                .article-body-content .grid-size-full { width: 100% !important; max-width: 100% !important; }
+                .article-body-content .grid-size-large { width: 75% !important; max-width: 650px !important; }
+                .article-body-content .grid-size-medium { width: 50% !important; max-width: 450px !important; }
+
+                /* Grid Alignments */
+                .article-body-content .grid-align-center { margin-left: auto !important; margin-right: auto !important; float: none !important; clear: both !important; }
+                .article-body-content .grid-align-left { float: left !important; margin-right: 1.5rem !important; margin-bottom: 1rem !important; margin-left: 0 !important; }
+                .article-body-content .grid-align-right { float: right !important; margin-left: 1.5rem !important; margin-bottom: 1rem !important; margin-right: 0 !important; }
+
+
             `}</style>
 
             <main className="min-h-screen bg-[#faf7f2] pb-24 pt-8 mt-[100px] lg:mt-[120px]">
