@@ -69,14 +69,13 @@ export default function OrderDetailPage() {
     const [cancelling, setCancelling] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
 
-    // Reviews management state
+    // Batch Review state (Hybrid Modal - đánh giá cả đơn hàng 1 lần)
     const [myReviews, setMyReviews] = useState<any[]>([]);
-    const [showReviewModal, setShowReviewModal] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
-    const [reviewRating, setReviewRating] = useState(5);
-    const [reviewComment, setReviewComment] = useState("");
-    const [submittingReview, setSubmittingReview] = useState(false);
-    const [reviewError, setReviewError] = useState<string | null>(null);
+    const [showBatchModal, setShowBatchModal] = useState(false);
+    // batchReviews: map productId -> { rating, comment, selected }
+    const [batchReviews, setBatchReviews] = useState<Record<string, { rating: number; comment: string; selected?: boolean }>>({});
+    const [submittingBatch, setSubmittingBatch] = useState(false);
+    const [batchError, setBatchError] = useState<string | null>(null);
 
     const formatPrice = (n: number) => {
         return n.toLocaleString("vi-VN") + "₫";
@@ -98,56 +97,88 @@ export default function OrderDetailPage() {
         fetchMyReviews();
     }, []);
 
+    const isSameOrder = (rOrder: any, currentOrder: any) => {
+        if (!rOrder || !currentOrder) return false;
+        const currentIds = [currentOrder.id, currentOrder._id, currentOrder.publicId].filter(Boolean);
+        if (typeof rOrder === "string") {
+            return currentIds.includes(rOrder);
+        }
+        if (typeof rOrder === "object") {
+            const rIds = [rOrder.id, rOrder._id, rOrder.publicId].filter(Boolean);
+            return rIds.some((rId) => currentIds.includes(rId));
+        }
+        return false;
+    };
+
     const checkIsReviewed = (productId: string) => {
-        return myReviews.some(
-            (r) =>
+        if (!order) return false;
+        return myReviews.some((r) => {
+            const matchProduct =
                 r.product?.id === productId ||
                 r.product?._id === productId ||
-                (typeof r.product === "string" && r.product === productId)
-        );
+                (typeof r.product === "string" && r.product === productId);
+            return matchProduct && isSameOrder(r.order, order);
+        });
     };
 
-    const getReviewStars = (productId: string) => {
-        const r = myReviews.find(
-            (r) =>
+    const getReviewInfo = (productId: string) => {
+        if (!order) return null;
+        return myReviews.find((r) => {
+            const matchProduct =
                 r.product?.id === productId ||
                 r.product?._id === productId ||
-                (typeof r.product === "string" && r.product === productId)
+                (typeof r.product === "string" && r.product === productId);
+            return matchProduct && isSameOrder(r.order, order);
+        }) || null;
+    };
+
+    // Kiểm tra tất cả sản phẩm trong đơn đã được đánh giá hết chưa
+    const allReviewed = order?.items.every((item) =>
+        checkIsReviewed(item.product?.id || item.product?._id)
+    ) ?? false;
+
+    // Mở Batch Modal và khởi tạo state rating mặc định 5 sao & selected=true cho từng sản phẩm chưa đánh giá
+    const handleOpenBatchModal = () => {
+        if (!order) return;
+        const initial: Record<string, { rating: number; comment: string; selected: boolean }> = {};
+        order.items.forEach((item) => {
+            const pid = item.product?.id || item.product?._id;
+            if (pid && !checkIsReviewed(pid)) {
+                initial[pid] = { rating: 5, comment: "", selected: true };
+            }
+        });
+        setBatchReviews(initial);
+        setBatchError(null);
+        setShowBatchModal(true);
+    };
+
+    const handleBatchSubmit = async () => {
+        if (!order || !id) return;
+
+        // Chỉ lọc các sản phẩm được tích chọn (selected === true)
+        const selectedEntries = Object.entries(batchReviews).filter(
+            ([_, val]) => val.selected
         );
-        if (!r) return "";
-        return "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
-    };
 
-    const handleOpenReviewModal = (product: any) => {
-        setSelectedProduct(product);
-        setReviewRating(5);
-        setReviewComment("");
-        setReviewError(null);
-        setShowReviewModal(true);
-    };
-
-    const handleSubmitReview = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedProduct || !id) return;
-        if (!reviewComment.trim()) {
-            setReviewError("Vui lòng nhập nội dung đánh giá.");
+        if (selectedEntries.length === 0) {
+            setBatchError("Vui lòng chọn ít nhất 1 sản phẩm để gửi đánh giá.");
             return;
         }
 
-        setSubmittingReview(true);
-        setReviewError(null);
+        setSubmittingBatch(true);
+        setBatchError(null);
 
         try {
-            const res = await fetchWithAuth(`${API_URL}/reviews`, {
+            const res = await fetchWithAuth(`${API_URL}/reviews/batch`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    productId: selectedProduct.id || selectedProduct._id,
                     orderId: id,
-                    rating: reviewRating,
-                    comment: reviewComment,
+                    reviews: selectedEntries.map(([productId, { rating, comment }]) => ({
+                        productId,
+                        rating,
+                        comment: comment.trim() || `Đánh giá ${rating} sao`,
+                    })),
                 }),
             });
 
@@ -156,13 +187,21 @@ export default function OrderDetailPage() {
                 throw new Error(data.message || "Gửi đánh giá thất bại.");
             }
 
-            setShowReviewModal(false);
+            setShowBatchModal(false);
             await fetchMyReviews();
         } catch (err: any) {
-            setReviewError(err.message || "Đã xảy ra lỗi.");
+            setBatchError(err.message || "Đã xảy ra lỗi.");
         } finally {
-            setSubmittingReview(false);
+            setSubmittingBatch(false);
         }
+    };
+
+    const STAR_LABELS: Record<number, string> = {
+        5: "Cực kỳ hài lòng",
+        4: "Hài lòng",
+        3: "Bình thường",
+        2: "Không hài lòng",
+        1: "Rất không hài lòng",
     };
 
     const fetchOrder = async () => {
@@ -602,37 +641,25 @@ export default function OrderDetailPage() {
                                                 </button>
                                             )}
 
-                                            {order.status === 'completed' && order.paymentStatus === 'paid' && (
+                                            {order.status === 'completed' && (
                                                 <div className="space-y-3 border-b border-gray-100 pb-3">
-                                                    <p className="text-xs text-gray-500 font-sans">Viết đánh giá cho sản phẩm đã mua:</p>
-                                                    {order.items.map((item, idx) => {
-                                                        const p = item.product;
-                                                        const isReviewed = checkIsReviewed(p.id || p._id);
-                                                        return (
-                                                            <div key={idx} className="flex flex-col gap-1.5 p-3 bg-slate-50 border border-slate-200 rounded">
-                                                                <span className="text-xs font-semibold text-slate-850 font-sans line-clamp-1">
-                                                                    {p.productName}
-                                                                </span>
-                                                                {isReviewed ? (
-                                                                    <div className="flex items-center gap-1.5 mt-1">
-                                                                        <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200 uppercase font-sans">
-                                                                            Đã đánh giá
-                                                                        </span>
-                                                                        <span className="text-[#ee4d2d] font-sans text-xs tracking-tighter">
-                                                                            {getReviewStars(p.id || p._id)}
-                                                                        </span>
-                                                                    </div>
-                                                                ) : (
-                                                                    <button
-                                                                        onClick={() => handleOpenReviewModal(p)}
-                                                                        className="w-full bg-[#c4a84f] text-white hover:bg-[#a8893a] text-[10px] font-bold tracking-[1px] uppercase py-2 rounded transition-all font-sans cursor-pointer text-center border-none shadow-sm"
-                                                                    >
-                                                                        Viết đánh giá
-                                                                    </button>
-                                                                )}
+                                                    {allReviewed ? (
+                                                        <div className="flex items-center gap-2 py-2 px-3 bg-green-50 border border-green-200 rounded">
+                                                            <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                                            <div>
+                                                                <p className="text-xs font-bold text-green-700 font-sans">Đã đánh giá đơn hàng</p>
+                                                                <p className="text-[10px] text-green-600 font-sans mt-0.5">Cảm ơn bạn đã chia sẻ đánh giá!</p>
                                                             </div>
-                                                        );
-                                                    })}
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={handleOpenBatchModal}
+                                                            className="w-full flex items-center justify-center gap-2 bg-[#c4a84f] text-white hover:bg-[#a8893a] text-xs font-bold tracking-[1.5px] uppercase py-3.5 rounded transition-all font-sans cursor-pointer border-none shadow-sm"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                                                            Đánh giá đơn hàng
+                                                        </button>
+                                                    )}
                                                 </div>
                                             )}
 
@@ -689,98 +716,188 @@ export default function OrderDetailPage() {
                     </div>
                 </div>
             )}
-            {/* Write Review Modal */}
-            {showReviewModal && selectedProduct && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full border border-[#ede0c4] overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans">
-                        <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4 flex justify-between items-center">
-                            <h3 className="text-base font-bold text-[#2c1a00] uppercase tracking-[1px]">Đánh giá sản phẩm</h3>
+            {/* Batch Review Modal (Hybrid - Đánh giá tất cả sản phẩm trong 1 Modal) */}
+            {showBatchModal && order && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 md:p-6 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col border border-[#ede0c4] overflow-hidden">
+                        {/* Header */}
+                        <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4 flex justify-between items-center flex-shrink-0">
+                            <div>
+                                <h3 className="text-base font-bold text-[#2c1a00] uppercase tracking-[1px] font-sans">Đánh giá đơn hàng</h3>
+                                <p className="text-[10px] text-gray-400 font-sans mt-0.5">Mã đơn: <span className="font-mono text-[#c4a84f]">{order.publicId}</span></p>
+                            </div>
                             <button
-                                onClick={() => setShowReviewModal(false)}
-                                className="text-gray-400 hover:text-gray-650 bg-transparent border-none text-xl leading-none cursor-pointer"
+                                onClick={() => setShowBatchModal(false)}
+                                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 bg-transparent border-none rounded-full cursor-pointer text-lg leading-none transition-colors"
                             >
                                 &times;
                             </button>
                         </div>
-                        <form onSubmit={handleSubmitReview}>
-                            <div className="p-6 space-y-4">
-                                <div className="flex gap-3 items-center bg-gray-55 p-3 rounded">
-                                    <div className="relative w-12 h-12 bg-white border border-[#ede0c4] rounded overflow-hidden flex-shrink-0">
-                                        <Image
-                                            src={selectedProduct.imageUrl?.[0] || "https://placehold.co/60x60"}
-                                            alt={selectedProduct.productName || "Sản phẩm"}
-                                            fill
-                                            className="object-cover"
-                                            sizes="48px"
-                                        />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Sản phẩm đánh giá</span>
-                                        <p className="text-xs font-bold text-gray-800 truncate m-0">{selectedProduct.productName}</p>
-                                    </div>
-                                </div>
 
-                                {/* Star Picker */}
-                                <div>
-                                    <label className="block text-xs font-bold uppercase text-gray-400 mb-1.5">Chọn mức độ đánh giá *</label>
-                                    <div className="flex gap-1.5 items-center">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                type="button"
-                                                onClick={() => setReviewRating(star)}
-                                                className={`text-3xl transition-all cursor-pointer bg-transparent border-none p-0.5 ${star <= reviewRating ? "text-amber-500 scale-110" : "text-gray-300 hover:text-amber-400"
-                                                    }`}
-                                            >
-                                                ★
-                                            </button>
-                                        ))}
-                                        <span className="text-xs font-semibold text-[#c4a84f] ml-2">
-                                            {reviewRating === 5 && "Cực kỳ hài lòng"}
-                                            {reviewRating === 4 && "Hài lòng"}
-                                            {reviewRating === 3 && "Bình thường"}
-                                            {reviewRating === 2 && "Không hài lòng"}
-                                            {reviewRating === 1 && "Rất không hài lòng"}
-                                        </span>
-                                    </div>
-                                </div>
+                        {/* Scrollable product list */}
+                        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 font-sans">
+                            {(() => {
+                                const reviewableItemsCount = order.items.filter(item => {
+                                    const pid = item.product?.id || item.product?._id;
+                                    return pid && !checkIsReviewed(pid);
+                                }).length;
 
-                                {/* Review Comment */}
-                                <div>
-                                    <label htmlFor="review-comment" className="block text-xs font-bold uppercase text-gray-400 mb-1">Bình luận chi tiết *</label>
-                                    <textarea
-                                        id="review-comment"
-                                        value={reviewComment}
-                                        onChange={(e) => setReviewComment(e.target.value)}
-                                        placeholder="Nhập nội dung chia sẻ cảm nhận thực tế của bạn về sản phẩm..."
-                                        rows={4}
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-200 rounded focus:border-[#c4a84f] focus:outline-none text-sm font-sans resize-none"
-                                    />
-                                </div>
+                                return order.items.map((item, idx) => {
+                                    const p = item.product;
+                                    const pid = p?.id || p?._id || "";
+                                    const imgUrl = p?.imageUrl?.[0] || "https://placehold.co/64x64";
+                                    const alreadyReviewed = checkIsReviewed(pid);
+                                    const reviewInfo = alreadyReviewed ? getReviewInfo(pid) : null;
+                                    const entry = batchReviews[pid];
+                                    const isSelected = entry?.selected ?? false;
 
-                                {reviewError && (
-                                    <p className="text-xs text-red-500 font-semibold m-0">{reviewError}</p>
-                                )}
-                            </div>
-                            <div className="bg-[#fbfaf8] border-t border-[#ede0c4] px-6 py-4 flex justify-end gap-3">
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`rounded-xl border p-4 transition-all ${alreadyReviewed
+                                                    ? "bg-green-50/60 border-green-200"
+                                                    : isSelected
+                                                        ? "bg-white border-[#ede0c4] shadow-sm"
+                                                        : "bg-gray-50/70 border-dashed border-gray-300 opacity-60"
+                                                }`}
+                                        >
+                                            {/* Product info row & Checkbox */}
+                                            <div className="flex gap-3 items-center mb-3">
+                                                {!alreadyReviewed && entry && reviewableItemsCount > 1 && (
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={(e) =>
+                                                            setBatchReviews((prev) => ({
+                                                                ...prev,
+                                                                [pid]: { ...prev[pid], selected: e.target.checked },
+                                                            }))
+                                                        }
+                                                        title="Tích chọn để đánh giá sản phẩm này"
+                                                        className="w-5 h-5 accent-[#c4a84f] rounded cursor-pointer flex-shrink-0"
+                                                    />
+                                                )}
+                                                <div className="relative w-14 h-14 flex-shrink-0 border border-[#ede0c4] rounded-lg overflow-hidden bg-[#faf7f2]">
+                                                    <Image src={imgUrl} alt={p?.productName || "Sản phẩm"} fill className="object-cover" sizes="56px" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-bold text-[#2c1a00] line-clamp-2 leading-snug">{p?.productName || "Sản phẩm"}</p>
+                                                    {p?.sku && <span className="text-[10px] font-mono text-gray-400">SKU: {p.sku}</span>}
+                                                </div>
+                                                {alreadyReviewed ? (
+                                                    <div className="flex-shrink-0 flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full border border-green-200">
+                                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                                                        Đã đánh giá
+                                                    </div>
+                                                ) : (
+                                                    <span className={`text-[11px] font-semibold ${isSelected ? "text-[#c4a84f]" : "text-gray-400"}`}>
+                                                        {isSelected ? "Bật đánh giá" : "Bỏ qua lần này"}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {alreadyReviewed && reviewInfo ? (
+                                                /* Hiển thị đánh giá đã gửi */
+                                                <div className="bg-white rounded-lg border border-green-200 p-3 space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-amber-500 text-sm tracking-widest">{"\u2605".repeat(reviewInfo.rating)}{"\u2606".repeat(5 - reviewInfo.rating)}</span>
+                                                        <span className="text-xs text-gray-400 font-sans">{STAR_LABELS[reviewInfo.rating]}</span>
+                                                    </div>
+                                                    {reviewInfo.comment && (
+                                                        <p className="text-xs text-gray-600 italic leading-relaxed">&ldquo;{reviewInfo.comment}&rdquo;</p>
+                                                    )}
+                                                </div>
+                                            ) : entry && isSelected ? (
+                                                /* Form đánh giá khi được tích chọn */
+                                                <div className="space-y-3 pt-1 border-t border-gray-100">
+                                                    {/* Star Picker */}
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Mức độ hài lòng</label>
+                                                        <div className="flex items-center gap-1">
+                                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                                <button
+                                                                    key={star}
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        setBatchReviews((prev) => ({
+                                                                            ...prev,
+                                                                            [pid]: { ...prev[pid], rating: star },
+                                                                        }))
+                                                                    }
+                                                                    className={`text-2xl transition-all cursor-pointer bg-transparent border-none p-0.5 leading-none ${star <= entry.rating
+                                                                            ? "text-amber-500 scale-110"
+                                                                            : "text-gray-300 hover:text-amber-400"
+                                                                        }`}
+                                                                >
+                                                                    ★
+                                                                </button>
+                                                            ))}
+                                                            <span className="text-xs font-semibold text-[#c4a84f] ml-2">{STAR_LABELS[entry.rating]}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Comment */}
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Nhận xét <span className="text-gray-300 font-normal normal-case">(tùy chọn)</span></label>
+                                                        <textarea
+                                                            value={entry.comment}
+                                                            onChange={(e) =>
+                                                                setBatchReviews((prev) => ({
+                                                                    ...prev,
+                                                                    [pid]: { ...prev[pid], comment: e.target.value },
+                                                                }))
+                                                            }
+                                                            placeholder={`Chia sẻ cảm nhận của bạn về ${p?.productName}...`}
+                                                            rows={3}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-[#c4a84f] focus:ring-2 focus:ring-[#c4a84f]/20 focus:outline-none text-sm font-sans resize-none transition"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ) : entry && !isSelected ? (
+                                                <p className="text-xs text-gray-400 italic m-0 pt-1">Tích chọn ở góc trái nếu muốn gửi đánh giá cho sản phẩm này.</p>
+                                            ) : null}
+                                        </div>
+                                    );
+                                });
+                            })()}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex-shrink-0 bg-[#fbfaf8] border-t border-[#ede0c4] px-5 py-4">
+                            {batchError && (
+                                <p className="text-xs text-red-500 font-semibold font-sans mb-3">{batchError}</p>
+                            )}
+                            <div className="flex justify-end gap-3">
                                 <button
                                     type="button"
-                                    onClick={() => setShowReviewModal(false)}
-                                    disabled={submittingReview}
-                                    className="px-5 py-2.5 bg-gray-150 text-gray-700 text-xs font-bold tracking-[1px] uppercase rounded hover:bg-gray-200 transition font-sans cursor-pointer"
+                                    onClick={() => setShowBatchModal(false)}
+                                    disabled={submittingBatch}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-xs font-bold tracking-[1px] uppercase rounded-lg hover:bg-gray-50 transition font-sans cursor-pointer disabled:opacity-50"
                                 >
                                     Đóng
                                 </button>
-                                <button
-                                    type="submit"
-                                    disabled={submittingReview}
-                                    className="px-5 py-2.5 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[1px] uppercase rounded transition shadow-sm disabled:opacity-50 font-sans cursor-pointer"
-                                >
-                                    {submittingReview ? "Đang gửi..." : "Gửi đánh giá"}
-                                </button>
+                                {!allReviewed && (
+                                    <button
+                                        type="button"
+                                        onClick={handleBatchSubmit}
+                                        disabled={submittingBatch || Object.values(batchReviews).filter((r) => r.selected).length === 0}
+                                        className="px-6 py-2.5 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[1.5px] uppercase rounded-lg transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed font-sans cursor-pointer flex items-center gap-2"
+                                    >
+                                        {submittingBatch ? (
+                                            <>
+                                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                Đang gửi...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                                                Gửi {Object.values(batchReviews).filter((r) => r.selected).length} đánh giá
+                                            </>
+                                        )}
+                                    </button>
+                                )}
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             )}
