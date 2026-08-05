@@ -653,30 +653,25 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                             )}
 
                             {/* Basic description */}
-                            {(product.shortDescription || product.description) && (
+                            {product.description && (
                                 <div className="border-t border-[#f0e8d6] pt-6 flex flex-col gap-3">
                                     <h3 className="m-0 text-xs font-bold uppercase tracking-widest text-[#3d2b00] font-['Cormorant_Garamond',_serif]">
                                         Thông tin cơ bản
                                     </h3>
                                     <div className="font-['Cormorant_Garamond',_serif] text-[#555] text-sm leading-relaxed flex flex-col gap-2.5">
-                                        {product.shortDescription && (
-                                            <p className="m-0 font-medium text-[#2c1a00]">{product.shortDescription}</p>
-                                        )}
-                                        {product.description && (
-                                            <div className="relative">
-                                                <p className={`m-0 text-justify ${!descExpanded ? "line-clamp-4" : ""}`}>
-                                                    {product.description}
-                                                </p>
-                                                {product.description.length > 200 && (
-                                                    <button
-                                                        onClick={() => setDescExpanded(!descExpanded)}
-                                                        className="mt-1 bg-none border-none text-[#c4a84f] font-semibold text-xs cursor-pointer hover:underline p-0"
-                                                    >
-                                                        {descExpanded ? "Thu gọn..." : "Xem thêm..."}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
+                                        <div className="relative">
+                                            <p className={`m-0 text-justify ${!descExpanded ? "line-clamp-4" : ""}`}>
+                                                {product.description}
+                                            </p>
+                                            {product.description.length > 200 && (
+                                                <button
+                                                    onClick={() => setDescExpanded(!descExpanded)}
+                                                    className="mt-1 bg-none border-none text-[#c4a84f] font-semibold text-xs cursor-pointer hover:underline p-0"
+                                                >
+                                                    {descExpanded ? "Thu gọn..." : "Xem thêm..."}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}

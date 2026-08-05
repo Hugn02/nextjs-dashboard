@@ -27,7 +27,6 @@ const mapProductData = (p: any): Product => ({
   inStock: p.stock > 0,
   sku: p.sku || "",
   description: p.description || "",
-  shortDescription: p.shortDescription || "",
   stock: p.stock ?? 0,
   status: p.status || "active",
   isFeatured: !!p.isFeatured,

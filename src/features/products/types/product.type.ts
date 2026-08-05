@@ -26,7 +26,6 @@ export interface Product {
     inStock: boolean;
     sku?: string;
     description?: string;
-    shortDescription?: string;
     stock?: number;
     status?: string;
     isFeatured?: boolean;

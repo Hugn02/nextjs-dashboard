@@ -16,10 +16,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             const imageUrls = product.images && product.images.length > 0 ? product.images : [];
             return {
                 title: product.name,
-                description: product.shortDescription || product.description || `Mua sản phẩm ${product.name} chất lượng cao cấp chế tác thủ công từ làng nghề gốm sứ Bát Tràng cổ truyền.`,
+                description: product.description || `Mua sản phẩm ${product.name} chất lượng cao cấp chế tác thủ công từ làng nghề gốm sứ Bát Tràng cổ truyền.`,
                 openGraph: {
                     title: `${product.name} | Bát Tràng`,
-                    description: product.shortDescription || product.description,
+                    description: product.description,
                     images: imageUrls,
                 }
             };
@@ -69,7 +69,7 @@ export default async function Page({ params: paramsPromise }: { params: Promise<
         "@type": "Product",
         "name": product.name,
         "image": product.images && product.images.length > 0 ? product.images : [],
-        "description": product.shortDescription || product.description || product.name,
+        "description": product.description || product.name,
         "sku": product.sku || product.id,
         "brand": {
             "@type": "Brand",
