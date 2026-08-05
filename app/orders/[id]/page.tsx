@@ -718,7 +718,7 @@ export default function OrderDetailPage() {
             )}
             {/* Batch Review Modal (Hybrid - Đánh giá tất cả sản phẩm trong 1 Modal) */}
             {showBatchModal && order && (
-                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 md:p-6 backdrop-blur-sm">
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 md:p-6 pt-28 backdrop-blur-sm">
                     <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col border border-[#ede0c4] overflow-hidden">
                         {/* Header */}
                         <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4 flex justify-between items-center flex-shrink-0 sticky top-0 z-10">
