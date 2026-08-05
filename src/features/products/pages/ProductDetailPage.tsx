@@ -510,7 +510,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                         />
                                     )}
                                     {imagesList.length > 1 && (
-                                        <Image
+                                        <ImageWithFallback
                                             src={imagesList[imagesList.length - 1]}
                                             alt={`${product.name} - ảnh lặp`}
                                             fill
