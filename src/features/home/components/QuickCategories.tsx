@@ -56,24 +56,26 @@ export default async function QuickCategories() {
           <div className="w-[60px] h-px bg-gradient-to-r from-transparent via-[#c4a84f] to-transparent mx-auto mt-4" />
         </div>
 
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
           {displayCategories.map((cat) => {
             const imgSrc = resolveImageUrl(cat.image, cat.name);
             return (
               <a
                 key={cat.slug}
                 href={`/categories/${cat.slug}`}
-                className="group flex flex-col items-center gap-2.5 px-3 py-5 rounded border border-[#ede0c4] no-underline bg-[#fdfaf4] transition-all duration-[250ms] cursor-pointer hover:bg-[#fff8e8] hover:border-[#c4a84f] hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(196,168,79,0.20)]"
+                className="group flex flex-col items-center gap-3 w-[130px] sm:w-[150px] p-4 rounded-xl border border-[#ede0c4] no-underline bg-[#fdfaf4] transition-all duration-300 cursor-pointer hover:bg-[#fff8e8] hover:border-[#c4a84f] hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(196,168,79,0.18)]"
               >
-                <ImageWithFallback
-                  src={imgSrc}
-                  alt={cat.name}
-                  width={100}
-                  height={100}
-                  className="object-contain transition-transform duration-300 group-hover:scale-105"
-                  fallbackSrc={`https://placehold.co/100x100/faf7f2/c4a84f?text=${encodeURIComponent(cat.name.slice(0, 6))}`}
-                />
-                <span className="text-[14px] md:text-[15px] text-[#3d2b00] font-['Cormorant_Garamond',_serif] font-semibold text-center leading-[1.4]">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-[#faf7f2] border border-[#ede0c4]/60 flex-shrink-0 shadow-xs">
+                  <ImageWithFallback
+                    src={imgSrc}
+                    alt={cat.name}
+                    fill
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                    sizes="(max-width: 640px) 80px, 96px"
+                    fallbackSrc={`https://placehold.co/200x200/faf7f2/c4a84f.png?text=${encodeURIComponent(cat.name.slice(0, 6))}`}
+                  />
+                </div>
+                <span className="text-[13px] sm:text-[14px] text-[#3d2b00] font-['Cormorant_Garamond',_serif] font-semibold text-center leading-[1.3] line-clamp-2 min-h-[2.4em] flex items-center justify-center">
                   {cat.name}
                 </span>
               </a>
