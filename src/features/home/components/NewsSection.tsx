@@ -1,6 +1,6 @@
-// Server Component - fetch data ngay trên server, không cần useEffect/useState
+// Server Component - fetch data ngày trên server, không cần useEffect/useState
 import Link from "next/link";
-import Image from "next/image";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import { fetchNewsList } from "../../news/services/news.service";
 import { NewsArticle } from "../../news/types/news.type";
 import { formatImageUrl } from "@/src/lib/cloudinary";
@@ -39,15 +39,18 @@ export default async function NewsSection() {
 
                         return (
                             <article key={article.id} className="group flex flex-col overflow-hidden rounded-[3px] border border-[#ede0c4] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(196,168,79,0.08)]">
-                                <Link href={`/news/${article.slug}`} className="relative aspect-[16/10] overflow-hidden bg-slate-50 block">
-                                    <Image 
-                                        src={articleImage} 
-                                        alt={article.title} 
-                                        fill 
-                                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" 
-                                        sizes="(max-width: 768px) 100vw, 33vw" 
-                                    />
-                                </Link>
+                                <div className="p-3 pb-0">
+                                    <Link href={`/news/${article.slug}`} className="relative aspect-[16/10] overflow-hidden bg-slate-50 block rounded-lg">
+                                        <ImageWithFallback
+                                            src={articleImage} 
+                                            alt={article.title} 
+                                            fill 
+                                            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" 
+                                            sizes="(max-width: 768px) 100vw, 33vw"
+                                            fallbackSrc="https://placehold.co/800x500/faf7f2/c4a84f?text=Bat+Trang+Blog"
+                                        />
+                                    </Link>
+                                </div>
                                 <div className="p-6 flex flex-col flex-1">
                                     <div className="flex items-center gap-3 text-xs text-[#a08060] font-['Cormorant_Garamond',_Georgia,_serif] mb-3">
                                         {dateStr && <span>{dateStr}</span>}

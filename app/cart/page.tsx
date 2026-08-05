@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import Image from "next/image";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/src/layout/Navbar";
@@ -232,7 +232,7 @@ export default function CartPage() {
 
                                 {/* Product image */}
                                 <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
-                                  <Image src={imgSrc} alt={p.name} fill loader={imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined} className="object-cover" sizes="80px" />
+                                  <ImageWithFallback src={imgSrc} alt={p.name} fill loader={typeof imgSrc === "string" && imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined} className="object-cover" sizes="80px" />
                                 </div>
 
                                 {/* Right side: name + controls */}
@@ -299,7 +299,7 @@ export default function CartPage() {
 
                                 {/* Image */}
                                 <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
-                                  <Image src={imgSrc} alt={p.name} fill loader={imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined} className="object-cover" sizes="80px" />
+                                  <ImageWithFallback src={imgSrc} alt={p.name} fill loader={typeof imgSrc === "string" && imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined} className="object-cover" sizes="80px" />
                                 </div>
 
                                 {/* Name + SKU */}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useCart from "../hooks/useCart";
@@ -138,11 +138,11 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                   <div key={cid} className="flex gap-3 py-4 items-start">
                     {/* Ảnh sản phẩm */}
                     <div className="relative w-[72px] h-[72px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
-                      <Image
+                      <ImageWithFallback
                         src={imgSrc}
                         alt={p.name}
                         fill
-                        loader={imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined}
+                        loader={typeof imgSrc === "string" && imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined}
                         className="object-cover"
                         sizes="72px"
                       />

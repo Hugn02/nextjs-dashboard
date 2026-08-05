@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Navbar from "@/src/layout/Navbar";
@@ -147,7 +147,7 @@ export default function OrderSuccessPage() {
                       <div key={idx} className="flex justify-between items-center text-sm font-sans">
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-12 bg-white border border-[#ede0c4] rounded overflow-hidden flex-shrink-0">
-                            <Image
+                            <ImageWithFallback
                               src={imageUrl}
                               alt={p.productName || "Product"}
                               fill

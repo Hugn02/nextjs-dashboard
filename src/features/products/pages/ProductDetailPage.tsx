@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import { fetchProductBySlug, fetchProducts } from "../services/product.service";
 import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
@@ -454,7 +454,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                                 : "border-[#ede0c4] hover:border-[#c4a84f]"
                                                 }`}
                                         >
-                                            <Image
+                                            <ImageWithFallback
                                                 src={img}
                                                 alt={`${product.name} thumbnail ${idx + 1}`}
                                                 fill
@@ -487,7 +487,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                     {/* Render all images in a single column */}
                                     {imagesList.map((img, idx) => (
                                         <div key={img + idx} className="absolute inset-0 h-full w-full" style={{ transform: `translateY(${idx * 100}%)` }}>
-                                            <Image
+                                            <ImageWithFallback
                                                 src={img}
                                                 alt={`${product.name} - ảnh ${idx + 1}`}
                                                 fill
@@ -499,7 +499,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                     ))}
                                     {/* Add clones for seamless looping */}
                                     {imagesList.length > 1 && (
-                                        <Image
+                                        <ImageWithFallback
                                             src={imagesList[0]}
                                             alt={`${product.name} - ảnh lặp`}
                                             fill

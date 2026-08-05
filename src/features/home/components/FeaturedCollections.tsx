@@ -1,6 +1,6 @@
 // Server Component — fetch data ngay trên server, không cần useEffect/useState
-import Image from "next/image";
 import { formatImageUrl } from "@/src/lib/cloudinary";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 
 interface Collection {
   id: string;
@@ -10,7 +10,7 @@ interface Collection {
 }
 
 const resolveImageUrl = (image?: string) => {
-  if (!image) return `https://placehold.co/400x600/3d2b00/c4a84f?text=BST`;
+  if (!image) return `https://placehold.co/400x600/3d2b00/c4a84f.png?text=BST`;
   // Sử dụng formatImageUrl để resize ảnh ngay trên server (width: 440 cho 220px card)
   return formatImageUrl(image, { width: 440 });
 };
@@ -56,12 +56,13 @@ export default async function FeaturedCollections() {
                 href={`/collections/${col.slug}`}
                 className="group block no-underline relative overflow-hidden rounded-[2px] border border-[#c4a84f]/30 aspect-[3/4] bg-[#3d2b00]"
               >
-                <Image
+                <ImageWithFallback
                   src={imgSrc}
                   alt={col.name}
                   fill
                   sizes="220px"
                   className="object-cover opacity-85 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
+                  fallbackSrc="https://placehold.co/440x660/3d2b00/c4a84f?text=B%E1%BB%99+S%C6%B0u+T%E1%BA%ADp"
                 />
                 <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#1e0a00]/90 to-transparent p-[32px_20px_20px]">
                   <h3 className="text-[#fdf8ef] text-[22px] font-normal mb-1">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import Image from 'next/image';
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import { Product } from "../types/product.type";
 import useCart from "../../cart/hooks/useCart";
 import { cloudinaryLoader } from "@/src/lib/cloudinary";
@@ -58,8 +58,6 @@ export default function ProductCard({ product }: { product: Product }) {
     const [showQty, setShowQty] = useState(false);   // sau click: hiện qty controls
     const [qty, setQty] = useState(1);
     const [hovered, setHovered] = useState(false);
-    const [imgError, setImgError] = useState(false);
-    const [imgError2, setImgError2] = useState(false);
     const [collectionName, setCollectionName] = useState<string | undefined>(() => {
         // Nếu product.collection đã là string (đã được xử lý ở component cha), dùng luôn
         if (typeof product.collection === 'string' && !product.collection.match(/^[0-9a-fA-F]{24}$/)) {
@@ -68,12 +66,8 @@ export default function ProductCard({ product }: { product: Product }) {
         return undefined;
     });
 
-    const firstImage =
-        !imgError && product.images?.[0]
-            ? product.images[0]
-            : `https://placehold.co/400x400/faf7f2/c4a84f?text=${encodeURIComponent(product.name.slice(0, 12))}`;
-
-    const secondImage = !imgError2 && product.images?.[1] ? product.images[1] : null;
+    const firstImage = product.images?.[0] || '';
+    const secondImage = product.images?.[1] || null;
 
     useEffect(() => {
         // Chỉ fetch nếu product.collection là một ID và chưa có collectionName
@@ -99,25 +93,25 @@ export default function ProductCard({ product }: { product: Product }) {
         >
             {/* Ảnh sản phẩm */}
             <div className="relative aspect-square overflow-hidden bg-[#faf7f2]">
-                <Image
+                <ImageWithFallback
                     src={firstImage}
                     alt={product.name}
                     fill
-                    loader={firstImage.includes("res.cloudinary.com") ? cloudinaryLoader : undefined}
+                    loader={typeof firstImage === 'string' && firstImage.includes("res.cloudinary.com") ? cloudinaryLoader : undefined}
                     className={`object-cover transition-all duration-300 ease-in-out ${hovered ? "scale-105" : "scale-100"} ${hovered && secondImage ? "opacity-0" : "opacity-100"}`}
-                    onError={() => setImgError(true)}
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                    fallbackSrc={`https://placehold.co/400x400/faf7f2/c4a84f.png?text=${encodeURIComponent(product.name.slice(0, 12))}`}
                 />
                 {secondImage && (
-                    <Image
+                    <ImageWithFallback
                         src={secondImage}
                         alt={`${product.name} - ảnh 2`}
                         fill
-                        loader={secondImage.includes("res.cloudinary.com") ? cloudinaryLoader : undefined}
+                        loader={typeof secondImage === 'string' && secondImage.includes("res.cloudinary.com") ? cloudinaryLoader : undefined}
                         className={`object-cover transition-all duration-300 ease-in-out ${hovered ? "scale-105 opacity-100" : "scale-100 opacity-0"}`}
-                        onError={() => setImgError2(true)}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                         priority={false}
+                        fallbackSrc={`https://placehold.co/400x400/faf7f2/c4a84f.png?text=${encodeURIComponent(product.name.slice(0, 12))}`}
                     />
                 )}
 

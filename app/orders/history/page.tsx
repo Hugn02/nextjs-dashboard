@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import Navbar from "@/src/layout/Navbar";
 import Footer from "@/src/layout/Footer";
 import { User } from "@/src/features/auth/types/auth.types";
@@ -291,7 +291,7 @@ export default function OrderHistoryPage() {
                                                         return (
                                                             <div key={itemIdx} className="py-4 flex gap-4 items-center">
                                                                 <div className="relative w-16 h-16 bg-white border border-[#ede0c4] rounded overflow-hidden flex-shrink-0">
-                                                                    <Image
+                                                                    <ImageWithFallback
                                                                         src={imgUrl}
                                                                         alt={p.productName || "Sản phẩm"}
                                                                         fill

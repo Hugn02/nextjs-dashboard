@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import Image from "next/image";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useCart from "@/src/features/cart/hooks/useCart";
@@ -616,7 +616,7 @@ export default function CheckoutPage() {
           </h2>
 
           {/* Product Items */}
-          <div className="max-h-[300px] overflow-y-auto pr-1 flex flex-col gap-4 border-b border-[#ede0c4] pb-4 mb-4">
+          <div className="max-h-[300px] overflow-y-auto pt-2 pb-4 pr-1 flex flex-col gap-4 border-b border-[#ede0c4] mb-4">
             {checkoutItems.length === 0 ? (
               <p className="text-xs text-gray-400 text-center py-4">
                 Không có sản phẩm nào được chọn.
@@ -637,11 +637,13 @@ export default function CheckoutPage() {
                       className="flex gap-3 items-center justify-between p-2 rounded bg-red-50/60 border border-red-200"
                     >
                       <div className="flex gap-3 items-center min-w-0 flex-1">
-                        <div className="relative w-12 h-12 bg-red-100/70 border border-red-200 rounded flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                        <div className="relative w-12 h-12 flex-shrink-0">
+                          <div className="w-full h-full bg-red-100/70 border border-red-200 rounded flex items-center justify-center overflow-hidden">
+                            <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </div>
+                          <span className="absolute -top-1.5 -right-1.5 z-10 bg-red-600 text-white text-[9px] rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center font-bold shadow-sm">
                             {item.quantity}
                           </span>
                         </div>
@@ -667,15 +669,17 @@ export default function CheckoutPage() {
                     className="flex gap-3 items-center justify-between"
                   >
                     <div className="flex gap-3 items-center">
-                      <div className="relative w-12 h-12 bg-[#faf7f2] border border-[#ede0c4] rounded overflow-hidden">
-                        <Image
-                          src={imageUrl}
-                          alt={p.name}
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                        />
-                        <span className="absolute -top-1.5 -right-1.5 bg-[#8b6914] text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                      <div className="relative w-12 h-12 flex-shrink-0">
+                        <div className="w-full h-full bg-[#faf7f2] border border-[#ede0c4] rounded overflow-hidden relative">
+                          <ImageWithFallback
+                            src={imageUrl}
+                            alt={p.name}
+                            fill
+                            className="object-cover"
+                            sizes="48px"
+                          />
+                        </div>
+                        <span className="absolute -top-1.5 -right-1.5 z-10 bg-[#8b6914] text-white text-[9px] rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center font-bold shadow-sm">
                           {item.quantity}
                         </span>
                       </div>

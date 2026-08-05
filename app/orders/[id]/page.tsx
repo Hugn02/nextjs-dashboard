@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Navbar from "@/src/layout/Navbar";
@@ -501,7 +501,7 @@ export default function OrderDetailPage() {
                                                     <div key={idx} className="py-4 flex gap-3 sm:gap-4 items-start sm:items-center">
                                                         {/* Image */}
                                                         <div className="relative w-14 h-14 sm:w-16 sm:h-16 bg-white border border-[#ede0c4] rounded overflow-hidden flex-shrink-0 mt-0.5 sm:mt-0">
-                                                            <Image
+                                                            <ImageWithFallback
                                                                 src={imgUrl}
                                                                 alt={p.productName || "Sản phẩm"}
                                                                 fill
@@ -778,7 +778,7 @@ export default function OrderDetailPage() {
                                                     />
                                                 )}
                                                 <div className="relative w-14 h-14 flex-shrink-0 border border-[#ede0c4] rounded-lg overflow-hidden bg-[#faf7f2]">
-                                                    <Image src={imgUrl} alt={p?.productName || "Sản phẩm"} fill className="object-cover" sizes="56px" />
+                                                    <ImageWithFallback src={imgUrl} alt={p?.productName || "Sản phẩm"} fill className="object-cover" sizes="56px" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-bold text-[#2c1a00] line-clamp-2 leading-snug">{p?.productName || "Sản phẩm"}</p>
