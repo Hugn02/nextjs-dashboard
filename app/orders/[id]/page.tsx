@@ -721,7 +721,7 @@ export default function OrderDetailPage() {
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 md:p-6 backdrop-blur-sm">
                     <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col border border-[#ede0c4] overflow-hidden">
                         {/* Header */}
-                        <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4 flex justify-between items-center flex-shrink-0">
+                        <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4 flex justify-between items-center flex-shrink-0 sticky top-0 z-10">
                             <div>
                                 <h3 className="text-base font-bold text-[#2c1a00] uppercase tracking-[1px] font-sans">Đánh giá đơn hàng</h3>
                                 <p className="text-[10px] text-gray-400 font-sans mt-0.5">Mã đơn: <span className="font-mono text-[#c4a84f]">{order.publicId}</span></p>
@@ -755,10 +755,10 @@ export default function OrderDetailPage() {
                                         <div
                                             key={idx}
                                             className={`rounded-xl border p-4 transition-all ${alreadyReviewed
-                                                    ? "bg-green-50/60 border-green-200"
-                                                    : isSelected
-                                                        ? "bg-white border-[#ede0c4] shadow-sm"
-                                                        : "bg-gray-50/70 border-dashed border-gray-300 opacity-60"
+                                                ? "bg-green-50/60 border-green-200"
+                                                : isSelected
+                                                    ? "bg-white border-[#ede0c4] shadow-sm"
+                                                    : "bg-gray-50/70 border-dashed border-gray-300 opacity-60"
                                                 }`}
                                         >
                                             {/* Product info row & Checkbox */}
@@ -825,8 +825,8 @@ export default function OrderDetailPage() {
                                                                         }))
                                                                     }
                                                                     className={`text-2xl transition-all cursor-pointer bg-transparent border-none p-0.5 leading-none ${star <= entry.rating
-                                                                            ? "text-amber-500 scale-110"
-                                                                            : "text-gray-300 hover:text-amber-400"
+                                                                        ? "text-amber-500 scale-110"
+                                                                        : "text-gray-300 hover:text-amber-400"
                                                                         }`}
                                                                 >
                                                                     ★
