@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { formatCloudinaryUrl } from "@/src/lib/cloudinary";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
+import { formatImageUrl } from "@/src/lib/cloudinary";
 import { fetchNewsList } from "../services/news.service";
 import { NewsArticle } from "../types/news.type";
 
@@ -12,7 +12,9 @@ const ITEMS_PER_PAGE = 6;
 function SkeletonCard() {
     return (
         <div className="overflow-hidden rounded-[2px] border border-[#ede0c4] bg-white">
-            <div className="aspect-[16/10] animate-pulse bg-[#f0e8d6]" />
+            <div className="p-3 pb-0">
+                <div className="aspect-[16/10] animate-pulse bg-[#f0e8d6] rounded-lg" />
+            </div>
             <div className="p-5 space-y-3">
                 <div className="h-3 w-1/4 rounded bg-[#f0e8d6] animate-pulse" />
                 <div className="h-5 w-full rounded bg-[#f0e8d6] animate-pulse" />
@@ -113,7 +115,7 @@ export default function NewsListPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {displayedArticles.map((article) => {
                                     const articleImage = article.thumbnail
-                                        ? formatCloudinaryUrl(article.thumbnail)
+                                        ? formatImageUrl(article.thumbnail, { width: 600 })
                                         : "https://placehold.co/800x500/faf7f2/c4a84f?text=Bat+Trang+Blog";
 
                                     const dateStr = article.publishedAt
@@ -130,20 +132,23 @@ export default function NewsListPage() {
                                             className="group flex flex-col overflow-hidden rounded-[3px] border border-[#ede0c4] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(196,168,79,0.08)]"
                                         >
                                             {/* Image wrapper */}
-                                            <Link href={`/news/${article.slug}`} className="relative aspect-[16/10] overflow-hidden bg-slate-50 block">
-                                                <Image
-                                                    src={articleImage}
-                                                    alt={article.title}
-                                                    fill
-                                                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                                                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                                />
-                                                {article.tags && article.tags.length > 0 && (
-                                                    <span className="absolute left-4 top-4 bg-[#2c1a00]/80 text-[#d4b896] text-[10px] uppercase tracking-wider font-semibold py-1 px-2.5 rounded-[2px] backdrop-blur-xs font-['Cormorant_Garamond',_Georgia,_serif]">
-                                                        {article.tags[0]}
-                                                    </span>
-                                                )}
-                                            </Link>
+                                            <div className="p-3 pb-0">
+                                                <Link href={`/news/${article.slug}`} className="relative aspect-[16/10] overflow-hidden bg-slate-50 block rounded-lg">
+                                                    <ImageWithFallback
+                                                        src={articleImage}
+                                                        alt={article.title}
+                                                        fill
+                                                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                                                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                                        fallbackSrc="https://placehold.co/800x500/faf7f2/c4a84f?text=Bat+Trang+Blog"
+                                                    />
+                                                    {article.tags && article.tags.length > 0 && (
+                                                        <span className="absolute left-3 top-3 bg-[#2c1a00]/80 text-[#d4b896] text-[10px] uppercase tracking-wider font-semibold py-1 px-2.5 rounded-[2px] backdrop-blur-xs font-['Cormorant_Garamond',_Georgia,_serif]">
+                                                            {article.tags[0]}
+                                                        </span>
+                                                    )}
+                                                </Link>
+                                            </div>
 
                                             {/* Content info */}
                                             <div className="p-6 flex flex-col flex-1">

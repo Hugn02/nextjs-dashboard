@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { formatCloudinaryUrl } from "@/src/lib/cloudinary";
+import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
+import { formatImageUrl } from "@/src/lib/cloudinary";
 import { fetchNewsBySlug, fetchNewsList } from "../services/news.service";
 import { NewsArticle } from "../types/news.type";
 
@@ -77,7 +77,7 @@ export default function NewsDetailPage({ slug }: Props) {
     }
 
     const featuredImage = article.thumbnail
-        ? formatCloudinaryUrl(article.thumbnail)
+        ? formatImageUrl(article.thumbnail, { width: 1200 })
         : null;
 
     const dateStr = article.publishedAt
@@ -211,13 +211,14 @@ export default function NewsDetailPage({ slug }: Props) {
 
                     {/* Featured Image */}
                     {featuredImage && (
-                        <div className="relative aspect-[16/9] w-full mb-10 overflow-hidden rounded-[2px] border border-[#ede0c4]">
-                            <Image
+                        <div className="relative aspect-[16/9] w-full mb-10 overflow-hidden rounded-lg border border-[#ede0c4]">
+                            <ImageWithFallback
                                 src={featuredImage}
                                 alt={article.title}
                                 fill
                                 className="object-cover"
                                 priority
+                                fallbackSrc="https://placehold.co/1200x675/faf7f2/c4a84f?text=Bat+Trang+Blog"
                             />
                         </div>
                     )}
@@ -270,22 +271,25 @@ export default function NewsDetailPage({ slug }: Props) {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {related.map((item) => {
                                     const relatedImage = item.thumbnail
-                                        ? formatCloudinaryUrl(item.thumbnail)
-                                        : "https://placehold.co/400x250/faf7f2/c4a84f?text=Gom+Bat+Trang";
+                                        ? formatImageUrl(item.thumbnail, { width: 600 })
+                                        : "https://placehold.co/800x500/faf7f2/c4a84f?text=Bat+Trang+Blog";
 
                                     return (
                                         <div
                                             key={item.id}
-                                            className="group flex flex-col bg-white rounded-[2px] border border-[#ede0c4] overflow-hidden hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-shadow"
+                                            className="group flex flex-col bg-white rounded-[3px] border border-[#ede0c4] overflow-hidden hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-shadow"
                                         >
-                                            <Link href={`/news/${item.slug}`} className="relative aspect-[16/10] overflow-hidden block">
-                                                <Image
-                                                    src={relatedImage}
-                                                    alt={item.title}
-                                                    fill
-                                                    className="object-cover transition-transform duration-300 group-hover:scale-103"
-                                                />
-                                            </Link>
+                                            <div className="p-3 pb-0">
+                                                <Link href={`/news/${item.slug}`} className="relative aspect-[16/10] overflow-hidden block rounded-lg bg-slate-50">
+                                                    <ImageWithFallback
+                                                        src={relatedImage}
+                                                        alt={item.title}
+                                                        fill
+                                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                                        fallbackSrc="https://placehold.co/800x500/faf7f2/c4a84f?text=Bat+Trang+Blog"
+                                                    />
+                                                </Link>
+                                            </div>
                                             <div className="p-4 flex flex-col flex-1">
                                                 <h4 className="font-['Cormorant_Garamond',_Georgia,_serif] text-sm font-semibold leading-snug m-0 line-clamp-2 flex-1">
                                                     <Link
