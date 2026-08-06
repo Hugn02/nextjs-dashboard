@@ -70,7 +70,9 @@ export const fetchProducts = async (query: FetchProductsQuery): Promise<FetchPro
     const url = `${API_URL}?${params.toString()}`;
     console.log("Fetching products from:", url);
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+        next: { tags: ['products'] }
+    });
     if (!res.ok) {
         throw new Error(`Failed to fetch products: ${res.statusText}`);
     }
@@ -91,7 +93,9 @@ export const fetchProductBySlug = async (slug: string): Promise<Product | null> 
     const url = `${API_URL}?${params.toString()}`;
     console.log("Fetching product by slug from:", url);
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+        next: { tags: ['products'] }
+    });
     if (!res.ok) {
         throw new Error(`Failed to fetch product by slug: ${res.statusText}`);
     }

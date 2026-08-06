@@ -5,7 +5,7 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api
 export async function fetchPageByKey(key: string): Promise<SitePage> {
     try {
         const res = await fetch(`${API_URL}/${key}`, {
-            next: { revalidate: 60 },
+            next: { tags: ['pages'] },
         });
 
         if (!res.ok) {

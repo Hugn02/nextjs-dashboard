@@ -19,7 +19,7 @@ async function fetchFeaturedCollections(): Promise<Collection[]> {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/collections?showOnHome=true&isActive=true`,
-      { next: { revalidate: 300 } } // Cache 5 phút
+      { next: { tags: ['collections'] } }
     );
     if (!res.ok) return [];
     const response = await res.json();

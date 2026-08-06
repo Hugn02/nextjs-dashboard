@@ -21,9 +21,9 @@ export async function fetchNewsList(query: FetchNewsQuery = {}): Promise<NewsArt
         // Mặc định ở website chỉ tải bài đã xuất bản
         params.append('isPublished', 'true');
     }
-    
+
     const res = await fetch(`${API_URL}?${params.toString()}`, {
-        next: { revalidate: 60 } // Cache 60s
+        next: { tags: ['news'] }
     });
 
     if (!res.ok) {
@@ -38,7 +38,7 @@ export async function fetchNewsList(query: FetchNewsQuery = {}): Promise<NewsArt
 
 export async function fetchNewsBySlug(slug: string): Promise<NewsArticle> {
     const res = await fetch(`${API_URL}/slug/${slug}`, {
-        next: { revalidate: 60 }
+        next: { tags: ['news'] }
     });
 
     if (!res.ok) {

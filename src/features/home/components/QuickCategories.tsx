@@ -21,7 +21,7 @@ const resolveImageUrl = (image?: string, name?: string) => {
 async function fetchCategories(): Promise<Category[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
-      next: { revalidate: 300 }, // Cache 5 phút
+      next: { tags: ['categories'] },
     });
     if (!res.ok) return [];
     const response = await res.json();
