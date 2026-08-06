@@ -13,32 +13,41 @@ function handleSessionExpired() {
     }
 }
 
-export async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
-    const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`;
+export async function fetchWithAuth(
+    endpoint: string,
+    options: RequestInit = {}
+): Promise<Response> {
+    const url = endpoint.startsWith('http')
+        ? endpoint
+        : `${BASE_URL}${endpoint}`;
+
     let response = await fetch(url, {
         ...options,
         credentials: 'include',
     });
 
-    // Tự động làm mới access_token nếu bị lỗi 401 Unauthorized (hết hạn 15 phút)
     if (response.status === 401 && !url.includes('/auth/refresh-token')) {
         try {
             const refreshRes = await fetch(`${BASE_URL}/auth/refresh-token`, {
                 method: 'POST',
                 credentials: 'include',
             });
-            if (refreshRes.ok) {
-                // Thử lại request gốc sau khi cookie access_token đã được làm mới
-                response = await fetch(url, {
-                    ...options,
-                    credentials: 'include',
-                });
-            } else {
-                // Nếu refresh_token cũng hết hạn (quá 7 ngày), tự động đăng xuất
+
+            if (!refreshRes.ok) {
+                handleSessionExpired();
+                return response;
+            }
+
+            response = await fetch(url, {
+                ...options,
+                credentials: 'include',
+            });
+
+            if (response.status === 401) {
                 handleSessionExpired();
             }
-        } catch (err) {
-            console.error('Failed to auto-refresh access token:', err);
+        } catch (error) {
+            console.error('Failed to auto-refresh access token:', error);
             handleSessionExpired();
         }
     }
