@@ -119,9 +119,20 @@ export default function Navbar() {
   }, []); // Mảng rỗng đảm bảo effect này chỉ chạy một lần
 
   useEffect(() => {
-    // Effect này chỉ để kiểm tra lại trạng thái đăng nhập khi modal thay đổi
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      setIsLoggedIn(!!(token || user));
+    };
+
+    checkAuth();
+
+    window.addEventListener('storage', checkAuth);
+    window.addEventListener('auth-state-changed', checkAuth);
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('auth-state-changed', checkAuth);
+    };
   }, [activeModal]);
 
   useEffect(() => {

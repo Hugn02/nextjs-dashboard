@@ -4,6 +4,7 @@ import { Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import ChatWidget from "@/src/layout/ChatWidget";
 import { CartProvider } from "@/src/features/cart/context/CartContext";
+import SessionExpiredHandler from "@/src/components/SessionExpiredHandler";
 import CartAddedNotification from "@/src/features/cart/components/CartAddedNotification";
 
 export const metadata: Metadata = {
@@ -90,6 +91,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-white text-[#2c1a00]">
         <CartProvider>
+          <SessionExpiredHandler />
           {children}
           <ChatWidget />
           <CartAddedNotification />

@@ -1,15 +1,24 @@
+import { useAuthStore } from '@/src/features/auth/hooks/useAuth';
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
 
 interface RequestOptions extends RequestInit {
     token?: string;
 }
 
-function handleSessionExpired() {
+export function handleSessionExpired() {
     if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        // Chuyển hướng về trang chủ kèm cờ hết phiên để giao diện reset
-        window.location.href = '/?session_expired=true';
+        try {
+            useAuthStore.getState().logout();
+        } catch (e) {}
+
+        window.dispatchEvent(new Event('auth-state-changed'));
+
+        if (!window.location.search.includes('session_expired=true')) {
+            window.location.href = '/?session_expired=true';
+        }
     }
 }
 
@@ -21,8 +30,16 @@ export async function fetchWithAuth(
         ? endpoint
         : `${BASE_URL}${endpoint}`;
 
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const headers = new Headers(options.headers);
+
+    if (token && !headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${token}`);
+    }
+
     let response = await fetch(url, {
         ...options,
+        headers,
         credentials: 'include',
     });
 
@@ -38,8 +55,29 @@ export async function fetchWithAuth(
                 return response;
             }
 
+            const refreshData = await refreshRes.json().catch(() => ({}));
+            const newToken = refreshData?.data?.accessToken || refreshData?.accessToken;
+
+            if (newToken && typeof window !== 'undefined') {
+                localStorage.setItem('token', newToken);
+                try {
+                    const currentUser = useAuthStore.getState().user;
+                    if (currentUser) {
+                        useAuthStore.getState().login(currentUser, newToken);
+                    }
+                } catch (e) {}
+            }
+
+            const retryHeaders = new Headers(options.headers);
+            if (newToken) {
+                retryHeaders.set('Authorization', `Bearer ${newToken}`);
+            } else if (token) {
+                retryHeaders.set('Authorization', `Bearer ${token}`);
+            }
+
             response = await fetch(url, {
                 ...options,
+                headers: retryHeaders,
                 credentials: 'include',
             });
 
@@ -77,3 +115,4 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
 
     return response.json() as Promise<T>;
 }
+

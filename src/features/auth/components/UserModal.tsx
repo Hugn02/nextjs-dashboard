@@ -127,6 +127,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
     }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    window.dispatchEvent(new Event("auth-state-changed"));
     setUser(null);
     window.location.reload();
   };
