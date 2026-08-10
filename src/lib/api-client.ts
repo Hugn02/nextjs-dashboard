@@ -9,7 +9,6 @@ interface RequestOptions extends RequestInit {
 export function handleSessionExpired() {
     if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
-        localStorage.removeItem('user');
         try {
             useAuthStore.getState().logout();
         } catch (e) {}
@@ -60,12 +59,6 @@ export async function fetchWithAuth(
 
             if (newToken && typeof window !== 'undefined') {
                 localStorage.setItem('token', newToken);
-                try {
-                    const currentUser = useAuthStore.getState().user;
-                    if (currentUser) {
-                        useAuthStore.getState().login(currentUser, newToken);
-                    }
-                } catch (e) {}
             }
 
             const retryHeaders = new Headers(options.headers);

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Navbar from '@/src/layout/Navbar';
 import Footer from '@/src/layout/Footer';
 import { User } from '@/src/features/auth/types/auth.types';
+import { useAuthStore } from '@/src/features/auth/hooks/useAuth';
 import AddressFormModal from '@/src/features/location/components/AddressFormModal';
 import {
     getUserLocations,
@@ -41,6 +42,7 @@ const getOrderStatusConfig = (status: string) => {
 
 function ProfilePageContent() {
     const router = useRouter();
+    const { user: authUser, setUser: setAuthUser, token, logout } = useAuthStore();
     const searchParams = useSearchParams();
     const initialTab = searchParams.get('tab') || 'info';
 
@@ -76,20 +78,16 @@ function ProfilePageContent() {
     const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:3002/auth";
 
     useEffect(() => {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-            try {
-                const parsed = JSON.parse(savedUser) as User;
-                setUser(parsed);
-                setFullNameInput(parsed.fullName || '');
-            } catch (e) {
-                setUser(null);
-                router.push('/'); // Redirect if user data is invalid
-            }
-        } else {
-            router.push('/'); // Redirect if not logged in
+        const savedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (!savedToken) {
+            router.push('/');
+            return;
         }
-    }, [router]);
+        if (authUser) {
+            setUser(authUser);
+            setFullNameInput(authUser.fullName || '');
+        }
+    }, [authUser, router]);
 
     useEffect(() => {
         const tab = searchParams.get('tab') || 'info';
@@ -147,7 +145,7 @@ function ProfilePageContent() {
     const handleSaveProfileName = () => {
         if (!fullNameInput.trim() || !user) return;
         const updatedUser = { ...user, fullName: fullNameInput.trim() };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setAuthUser(updatedUser);
         setUser(updatedUser);
         setEditingName(false);
         setMessage({ text: "Cập nhật tên thành công!", type: 'success' });
@@ -226,8 +224,7 @@ function ProfilePageContent() {
             if (res.ok || result.statusCode === 200) {
                 setChangePasswordMessage({ text: "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.", type: 'success' });
                 setTimeout(() => {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
+                    logout();
                     router.push('/');
                 }, 2500);
             } else {

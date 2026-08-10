@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useCart from "@/src/features/cart/hooks/useCart";
 import { User } from "@/src/features/auth/types/auth.types";
+import { useAuthStore } from "@/src/features/auth/hooks/useAuth";
 import type { UserLocation } from "@/src/features/location/types/location.types";
 import {
   getDefaultLocation,
@@ -22,6 +23,7 @@ import CheckoutEstimateIssuesBanner from "@/src/features/checkout/components/Che
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { user: authUser, token } = useAuthStore();
   const { cart, refreshCart, loading } = useCart();
 
   const [user, setUser] = useState<User | null>(null);
@@ -71,26 +73,20 @@ export default function CheckoutPage() {
       }
     }
 
-    // Lấy thông tin user
-    const savedUser = localStorage.getItem("user");
-    if (!savedUser) {
-      // Không có user → redirect về trang chủ (Phương án B)
+    // Kiểm tra token xác thực
+    const savedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!savedToken) {
       router.replace("/");
       return;
     }
 
-    try {
-      const currentUser = JSON.parse(savedUser) as User;
-      setUser(currentUser);
+    if (authUser) {
+      setUser(authUser);
       setForm((prev) => ({
         ...prev,
-        customerName: currentUser.fullName || "",
-        email: currentUser.email || "",
+        customerName: authUser.fullName || "",
+        email: authUser.email || "",
       }));
-    } catch {
-      console.error("Failed to parse user data");
-      router.replace("/");
-      return;
     }
 
     // Kiểm tra địa chỉ đã chọn từ bước /checkout/address

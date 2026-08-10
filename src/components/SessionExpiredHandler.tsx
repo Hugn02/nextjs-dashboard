@@ -8,9 +8,8 @@ export default function SessionExpiredHandler() {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get("session_expired") === "true") {
-        // Xóa token và user khỏi localStorage khi phiên đăng nhập hết hạn
+        // Xóa token khỏi localStorage khi phiên đăng nhập hết hạn
         localStorage.removeItem("token");
-        localStorage.removeItem("user");
 
         // Reset state trong useAuthStore
         try {

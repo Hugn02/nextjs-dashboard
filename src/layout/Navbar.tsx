@@ -121,8 +121,7 @@ export default function Navbar() {
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('token');
-      const user = localStorage.getItem('user');
-      setIsLoggedIn(!!(token || user));
+      setIsLoggedIn(!!token);
     };
 
     checkAuth();

@@ -23,7 +23,7 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
 
   const handleCheckout = (e: React.MouseEvent) => {
     e.preventDefault();
-    const isLoggedIn = !!(localStorage.getItem("user") || localStorage.getItem("token"));
+    const isLoggedIn = !!localStorage.getItem("token");
     if (!isLoggedIn) {
       setLoginWarning(true);
       return;

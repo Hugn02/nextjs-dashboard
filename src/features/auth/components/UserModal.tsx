@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, ChangeEvent } from "react";
+import { useState, ChangeEvent } from "react";
 import ModalWrapper from "@/src/components/ui/ModalWrapper";
-import { User } from "@/src/features/auth/types/auth.types";
+import { useAuthStore } from "@/src/features/auth/hooks/useAuth";
 
 const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:3002/auth";
 const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
 
 export default function UserModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
+  const { user, login, logout } = useAuthStore();
   const [mode, setMode] = useState<'login' | 'register' | 'forgot-password'>('login');
-  const [user, setUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -24,17 +24,6 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser) as User;
-        setUser(parsed);
-      } catch (e) {
-        setUser(null);
-      }
-    }
-  }, []);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -82,8 +71,8 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
         });
         const result = await res.json();
         if (result.statusCode === 200) {
-          localStorage.setItem('token', result.data.accessToken);
-          localStorage.setItem('user', JSON.stringify(result.data.user));
+          // Lưu token vào localStorage, gọi /auth/me để lấy user vào Zustand store
+          await login(result.data.accessToken);
           window.location.reload();
         } else {
           setMessage({ text: result.message || "Đăng nhập thất bại", type: 'error' });
@@ -126,9 +115,8 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
       console.error("Failed to call logout API", e);
     }
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
     window.dispatchEvent(new Event("auth-state-changed"));
-    setUser(null);
+    logout();
     window.location.reload();
   };
 
@@ -177,9 +165,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             {/* Hiển thị link Admin nếu role là admin */}
             {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && (
               <a
-                href={`${ADMIN_URL}/?token=${localStorage.getItem('token')}&user=${encodeURIComponent(JSON.stringify(user))}`}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`${ADMIN_URL}/?token=${typeof window !== 'undefined' ? localStorage.getItem('token') : ''}&user=${encodeURIComponent(JSON.stringify(user))}`}
                 className="w-full p-3 md:p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group no-underline"
               >
                 <div className="flex items-center gap-2.5">

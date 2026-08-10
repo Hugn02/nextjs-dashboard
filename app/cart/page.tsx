@@ -98,7 +98,7 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     // Kiểm tra đăng nhập
-    const isLoggedIn = !!(localStorage.getItem("user") || localStorage.getItem("token"));
+    const isLoggedIn = !!localStorage.getItem("token");
     if (!isLoggedIn) {
       setLoginWarning(true);
       return;

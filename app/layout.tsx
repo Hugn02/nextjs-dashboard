@@ -6,6 +6,7 @@ import ChatWidget from "@/src/layout/ChatWidget";
 import { CartProvider } from "@/src/features/cart/context/CartContext";
 import SessionExpiredHandler from "@/src/components/SessionExpiredHandler";
 import CartAddedNotification from "@/src/features/cart/components/CartAddedNotification";
+import AuthProvider from "@/src/features/auth/components/AuthProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
@@ -91,10 +92,12 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-white text-[#2c1a00]">
         <CartProvider>
+          <AuthProvider>
           <SessionExpiredHandler />
           {children}
           <ChatWidget />
           <CartAddedNotification />
+          </AuthProvider>
         </CartProvider>
       </body>
     </html>

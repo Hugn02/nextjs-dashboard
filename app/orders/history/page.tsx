@@ -6,6 +6,7 @@ import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import Navbar from "@/src/layout/Navbar";
 import Footer from "@/src/layout/Footer";
 import { User } from "@/src/features/auth/types/auth.types";
+import { useAuthStore } from "@/src/features/auth/hooks/useAuth";
 import { fetchWithAuth } from "@/src/lib/api-client";
 import {
     ShoppingBag,
@@ -49,6 +50,7 @@ const TABS = [
 ];
 
 export default function OrderHistoryPage() {
+    const { user: authUser, token } = useAuthStore();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -58,17 +60,12 @@ export default function OrderHistoryPage() {
     const [activeTab, setActiveTab] = useState("all");
 
     useEffect(() => {
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) {
-            try {
-                setUser(JSON.parse(savedUser));
-            } catch (e) {
-                setUser(null);
-            }
-        } else {
+        if (authUser) {
+            setUser(authUser);
+        } else if (!token) {
             setLoading(false);
         }
-    }, []);
+    }, [authUser, token]);
 
     const fetchOrders = useCallback(async () => {
         if (!user) return;
