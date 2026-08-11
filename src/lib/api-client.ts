@@ -29,12 +29,7 @@ export async function fetchWithAuth(
         ? endpoint
         : `${BASE_URL}${endpoint}`;
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     const headers = new Headers(options.headers);
-
-    if (token && !headers.has('Authorization')) {
-        headers.set('Authorization', `Bearer ${token}`);
-    }
 
     let response = await fetch(url, {
         ...options,
@@ -61,16 +56,9 @@ export async function fetchWithAuth(
                 localStorage.setItem('token', newToken);
             }
 
-            const retryHeaders = new Headers(options.headers);
-            if (newToken) {
-                retryHeaders.set('Authorization', `Bearer ${newToken}`);
-            } else if (token) {
-                retryHeaders.set('Authorization', `Bearer ${token}`);
-            }
-
             response = await fetch(url, {
                 ...options,
-                headers: retryHeaders,
+                headers: options.headers,
                 credentials: 'include',
             });
 
@@ -89,12 +77,6 @@ export async function fetchWithAuth(
 export async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const headers = new Headers(options.headers);
     headers.set('Content-Type', 'application/json');
-    if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token');
-        if (token && !headers.has('Authorization')) {
-            headers.set('Authorization', `Bearer ${token}`);
-        }
-    }
 
     const response = await fetchWithAuth(endpoint, {
         ...options,

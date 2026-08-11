@@ -12,11 +12,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const { fetchMe, token } = useAuthStore();
 
     useEffect(() => {
-        // Chỉ gọi khi có token (người dùng đã từng đăng nhập)
-        const savedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        if (savedToken) {
-            fetchMe();
-        }
+        fetchMe();
     }, []); // Chỉ chạy 1 lần khi mount
 
     return <>{children}</>;

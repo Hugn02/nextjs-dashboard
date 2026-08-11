@@ -30,18 +30,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     },
 
     fetchMe: async () => {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        if (!token) {
-            set({ user: null, isAuthenticated: false, isLoadingUser: false });
-            return;
-        }
-
         set({ isLoadingUser: true });
         try {
             const res = await fetch(`${BASE_URL}/auth/me`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
@@ -51,7 +44,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 const data = await res.json();
                 // Backend trả về data trực tiếp hoặc bọc trong { data: ... }
                 const user: User = data?.data ?? data;
-                set({ user, isAuthenticated: true, token });
+                set({ user, isAuthenticated: true, token: typeof window !== 'undefined' ? localStorage.getItem('token') : null });
             } else if (res.status === 401) {
                 // Token hết hạn — thử refresh
                 const refreshRes = await fetch(`${BASE_URL}/auth/refresh-token`, {
