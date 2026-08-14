@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { Cart, CartItem, CartSummary } from "../types/cart.type";
 import * as cartService from "../services/cart.service";
+import { useAuthStore } from "@/src/features/auth/hooks/useAuth";
 
 interface CartContextType {
   cart: Cart | null;
@@ -38,6 +39,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   // Lưu selectedIds ở Context để persist qua navigate (mà không cần backend)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // Subscribe auth state — khi logout (isAuthenticated = false), reset cart ngay lập tức
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+
 
   const calculateSummary = useCallback((cartData: Cart | null): CartSummary => {
     if (!cartData || !cartData.items) {
@@ -61,21 +66,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshCart = useCallback(async () => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setCart(null);
-        setSummary(initialSummary);
-        setLoading(false);
-        return;
-      }
-    }
     setLoading(true);
     setError(null);
     try {
       const data = await cartService.getCart();
-      setCart(data);
-      setSummary(calculateSummary(data));
+      if (data === null) {
+        setCart(null);
+        setSummary(initialSummary);
+      } else {
+        setCart(data);
+        setSummary(calculateSummary(data));
+      }
     } catch (err: any) {
       setError(err.message || "Failed to load cart");
     } finally {
@@ -84,12 +85,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [calculateSummary]);
 
   const addToCart = async (productId: string, quantity = 1): Promise<boolean> => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        window.dispatchEvent(new CustomEvent("open-login-modal"));
-        return false;
-      }
+    const isAuth = useAuthStore.getState().isAuthenticated;
+    if (!isAuth) {
+      window.dispatchEvent(new CustomEvent("open-login-modal"));
+      return false;
     }
     setLoading(true);
     setError(null);
@@ -197,8 +196,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    refreshCart();
-  }, [refreshCart]);
+    if (!isAuthenticated) {
+      setCart(null);
+      setSummary(initialSummary);
+      setLoading(false);
+    } else {
+      refreshCart();
+    }
+  }, [isAuthenticated, refreshCart]);
 
   return (
     <CartContext.Provider

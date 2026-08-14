@@ -14,16 +14,9 @@ export function getSessionId(): string {
 }
 
 const getHeaders = () => {
-  const headers: Record<string, string> = {
+  return {
     "Content-Type": "application/json",
   };
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-  }
-  return headers;
 };
 
 /** GET /api/carts : Lấy danh sách cart items của user (mỗi item = 1 bản ghi riêng) */
@@ -33,6 +26,14 @@ export async function getCart(): Promise<Cart | null> {
       headers: getHeaders(),
       credentials: "include",
     });
+    if (res.status === 401) {
+      // Token không còn hợp lệ — xóa localStorage để đồng bộ với cookie
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        window.dispatchEvent(new Event("auth-state-changed"));
+      }
+      return null;
+    }
     if (!res.ok) return null;
     const data = await res.json();
     return normalizeCart(data?.data || data);
