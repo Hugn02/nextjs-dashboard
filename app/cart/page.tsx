@@ -42,8 +42,12 @@ export default function CartPage() {
 
   const fmt = (n: number) => n.toLocaleString("vi-VN") + "₫";
 
-  const changeQty = (id: string, qty: number, delta: number) => {
+  const changeQty = (id: string, qty: number, delta: number, stock?: number) => {
     const next = qty + delta;
+    if (delta > 0 && stock !== undefined && stock !== null && next > stock) {
+      alert(`Số lượng tồn kho chỉ còn ${stock} sản phẩm.`);
+      return;
+    }
     if (next >= 1) updateItem(id, next);
   };
 
@@ -257,8 +261,8 @@ export default function CartPage() {
                                     <div className="flex items-center border border-[#ddd] rounded overflow-hidden">
                                       <button
                                         onClick={() => changeQty(cid, item.quantity, -1)}
-                                        disabled={loading || updatingIds.has(cid)}
-                                        className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                                        disabled={item.quantity <= 1}
+                                        className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                       >
                                         −
                                       </button>
@@ -266,9 +270,9 @@ export default function CartPage() {
                                         {item.quantity}
                                       </span>
                                       <button
-                                        onClick={() => changeQty(cid, item.quantity, 1)}
-                                        disabled={loading || updatingIds.has(cid)}
-                                        className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                                        onClick={() => changeQty(cid, item.quantity, 1, p?.stock)}
+                                        disabled={p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock}
+                                        className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                       >
                                         +
                                       </button>
@@ -329,8 +333,8 @@ export default function CartPage() {
                                 <div className="flex items-center justify-center border border-[#ddd] rounded overflow-hidden w-[110px] shrink-0">
                                   <button
                                     onClick={() => changeQty(cid, item.quantity, -1)}
-                                    disabled={loading || updatingIds.has(cid)}
-                                    className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                                    disabled={item.quantity <= 1}
+                                    className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                   >
                                     −
                                   </button>
@@ -338,9 +342,9 @@ export default function CartPage() {
                                     {item.quantity}
                                   </span>
                                   <button
-                                    onClick={() => changeQty(cid, item.quantity, 1)}
-                                    disabled={loading || updatingIds.has(cid)}
-                                    className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-40"
+                                    onClick={() => changeQty(cid, item.quantity, 1, p?.stock)}
+                                    disabled={p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock}
+                                    className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                   >
                                     +
                                   </button>

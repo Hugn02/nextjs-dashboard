@@ -220,7 +220,8 @@ export default function ProductCard({ product }: { product: Product }) {
                         <div className="flex flex-1 items-center justify-between rounded-[30px] border border-[#d29f13] overflow-hidden h-[38px] px-1">
                             <button
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQty(q => Math.max(1, q - 1)); }}
-                                className="w-7 h-7 flex items-center justify-center bg-transparent border-none cursor-pointer text-[#d29f13] text-base font-bold hover:bg-[#fef9ec] rounded-full transition-colors"
+                                disabled={qty <= 1}
+                                className="w-7 h-7 flex items-center justify-center bg-transparent border-none cursor-pointer text-[#d29f13] text-base font-bold hover:bg-[#fef9ec] rounded-full transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                             >
                                 -
                             </button>

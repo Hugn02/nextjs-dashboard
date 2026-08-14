@@ -623,7 +623,8 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                         <div className={`flex items-center justify-between border rounded-[2px] bg-white h-[46px] w-full sm:w-[130px] px-3 ${quantityError ? 'border-red-500' : 'border-[#ede0c4]'}`}>
                                             <button
                                                 onClick={decrementQty}
-                                                className="bg-transparent border-none text-[#3d2b00] text-lg font-light cursor-pointer select-none px-2 h-full flex items-center justify-center hover:text-[#c4a84f]"
+                                                disabled={quantity <= 1}
+                                                className="bg-transparent border-none text-[#3d2b00] text-lg font-light cursor-pointer select-none px-2 h-full flex items-center justify-center hover:text-[#c4a84f] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-[#3d2b00]"
                                             >
                                                 -
                                             </button>
