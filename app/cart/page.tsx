@@ -261,8 +261,12 @@ export default function CartPage() {
                                     <div className="flex items-center border border-[#ddd] rounded overflow-hidden">
                                       <button
                                         onClick={() => changeQty(cid, item.quantity, -1)}
-                                        disabled={item.quantity <= 1}
-                                        className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                        disabled={loading || updatingIds.has(cid) || item.quantity <= 1}
+                                        className={`w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none transition-colors ${
+                                          item.quantity <= 1
+                                            ? 'opacity-30 cursor-not-allowed'
+                                            : 'cursor-pointer hover:bg-[#faf7f2]'
+                                        }`}
                                       >
                                         −
                                       </button>
@@ -271,8 +275,12 @@ export default function CartPage() {
                                       </span>
                                       <button
                                         onClick={() => changeQty(cid, item.quantity, 1, p?.stock)}
-                                        disabled={p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock}
-                                        className="w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                        disabled={loading || updatingIds.has(cid) || (p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock)}
+                                        className={`w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none transition-colors ${
+                                          p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock
+                                            ? 'opacity-30 cursor-not-allowed'
+                                            : 'cursor-pointer hover:bg-[#faf7f2]'
+                                        }`}
                                       >
                                         +
                                       </button>
@@ -333,8 +341,12 @@ export default function CartPage() {
                                 <div className="flex items-center justify-center border border-[#ddd] rounded overflow-hidden w-[110px] shrink-0">
                                   <button
                                     onClick={() => changeQty(cid, item.quantity, -1)}
-                                    disabled={item.quantity <= 1}
-                                    className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                    disabled={loading || updatingIds.has(cid) || item.quantity <= 1}
+                                    className={`w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none transition-colors ${
+                                      item.quantity <= 1
+                                        ? 'opacity-30 cursor-not-allowed'
+                                        : 'cursor-pointer hover:bg-[#faf7f2]'
+                                    }`}
                                   >
                                     −
                                   </button>
@@ -343,8 +355,12 @@ export default function CartPage() {
                                   </span>
                                   <button
                                     onClick={() => changeQty(cid, item.quantity, 1, p?.stock)}
-                                    disabled={p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock}
-                                    className="w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none cursor-pointer hover:bg-[#faf7f2] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                    disabled={loading || updatingIds.has(cid) || (p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock)}
+                                    className={`w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none transition-colors ${
+                                      p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock
+                                        ? 'opacity-30 cursor-not-allowed'
+                                        : 'cursor-pointer hover:bg-[#faf7f2]'
+                                    }`}
                                   >
                                     +
                                   </button>
