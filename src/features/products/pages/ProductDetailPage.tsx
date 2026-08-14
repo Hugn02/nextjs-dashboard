@@ -537,13 +537,25 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                     {product.name}
                                 </h1>
 
-                                {/* Rating summary */}
-                                {totalReviews > 0 && (
-                                    <div className="flex items-center gap-2 mt-2">
-                                        {renderStars(averageRating)}
-                                        <span className="text-xs text-[#888] font-['Cormorant_Garamond',_serif]">
-                                            {averageRating}/5 ({totalReviews} đánh giá)
-                                        </span>
+                                {/* Rating & Sold summary — chỉ hiện khi có dữ liệu thực */}
+                                {(totalReviews > 0 || (product.soldCount ?? 0) > 0) && (
+                                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                        {totalReviews > 0 && (
+                                            <>
+                                                {renderStars(averageRating)}
+                                                <span className="text-xs text-[#888] font-['Cormorant_Garamond',_serif]">
+                                                    {averageRating}/5 ({totalReviews} đánh giá)
+                                                </span>
+                                            </>
+                                        )}
+                                        {totalReviews > 0 && (product.soldCount ?? 0) > 0 && (
+                                            <span className="text-[#ccc]">|</span>
+                                        )}
+                                        {(product.soldCount ?? 0) > 0 && (
+                                            <span className="text-xs text-[#666] font-['Cormorant_Garamond',_serif]">
+                                                Đã bán {product.soldCount}
+                                            </span>
+                                        )}
                                     </div>
                                 )}
 

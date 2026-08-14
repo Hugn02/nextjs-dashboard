@@ -161,6 +161,25 @@ export default function ProductCard({ product }: { product: Product }) {
                         </>
                     )}
                 </div>
+
+                {/* Rating & Sold count — Cố định chiều cao (h-5) để tất cả các card luôn thẳng hàng bằng nhau */}
+                <div className="flex items-center gap-1.5 text-xs text-[#666] mt-1 font-sans h-5">
+                    {((product.reviewCount ?? 0) > 0 || (product.soldCount ?? 0) > 0) && (
+                        <>
+                            {(product.reviewCount ?? 0) > 0 && (
+                                <>
+                                    <span className="text-amber-500 font-bold flex items-center gap-0.5">
+                                        ★ {Number(product.rating).toFixed(1)}
+                                    </span>
+                                    {(product.soldCount ?? 0) > 0 && <span className="text-gray-300">|</span>}
+                                </>
+                            )}
+                            {(product.soldCount ?? 0) > 0 && (
+                                <span className="text-gray-500">{product.soldCount} đã bán</span>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* Nút hành động */}
