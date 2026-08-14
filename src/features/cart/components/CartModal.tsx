@@ -186,7 +186,9 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                               className={`w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none transition-colors ${
                                 item.quantity <= 1
                                   ? 'opacity-30 cursor-not-allowed'
-                                  : 'cursor-pointer hover:bg-[#faf7f2]'
+                                  : (loading || updatingIds.has(cid))
+                                    ? 'cursor-default'
+                                    : 'cursor-pointer hover:bg-[#faf7f2]'
                               }`}
                             >
                               -
@@ -200,7 +202,9 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                               className={`w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none transition-colors ${
                                 p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock
                                   ? 'opacity-30 cursor-not-allowed'
-                                  : 'cursor-pointer hover:bg-[#faf7f2]'
+                                  : (loading || updatingIds.has(cid))
+                                    ? 'cursor-default'
+                                    : 'cursor-pointer hover:bg-[#faf7f2]'
                               }`}
                             >
                               +
