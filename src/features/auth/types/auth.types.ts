@@ -1,9 +1,15 @@
 export type UserRole = 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+export type UserGender = 'male' | 'female' | 'other';
 
 export interface User {
     id: string | number;
-    fullName: string;
+    fullName?: string;
     email: string;
-    role: UserRole; // Backend trả về: 'USER', 'ADMIN', 'SUPER_ADMIN'
-    // Thêm các trường khác của đối tượng User nếu có từ API của bạn
+    role: UserRole;
+    phone?: string | null;
+    avatar?: string | null;
+    gender?: UserGender | null;
+    dateOfBirth?: string | null;
+    profileCompleted?: boolean;
+    isVerified?: boolean;
 }

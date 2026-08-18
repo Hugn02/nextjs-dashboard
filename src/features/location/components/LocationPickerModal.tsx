@@ -10,6 +10,7 @@ import {
   setDefaultLocation,
 } from "../services/location.service";
 import AddressFormModal from "./AddressFormModal";
+import ConfirmModal from "@/src/components/ui/ConfirmModal";
 
 interface LocationPickerModalProps {
   locations: UserLocation[];
@@ -55,13 +56,20 @@ export default function LocationPickerModal({
     if (chosen) onSelect(chosen);
   };
 
-  const handleDelete = async (loc: UserLocation, e: React.MouseEvent) => {
+  const [confirmTarget, setConfirmTarget] = useState<UserLocation | null>(null);
+
+  const handleDelete = (loc: UserLocation, e: React.MouseEvent) => {
     e.stopPropagation();
     if (loc.isDefault) {
       setActionError("Không thể xóa địa chỉ mặc định. Hãy đặt địa chỉ khác làm mặc định trước.");
       return;
     }
-    if (!window.confirm(`Xóa địa chỉ "${loc.label}"?`)) return;
+    setConfirmTarget(loc);
+  };
+
+  const executeDelete = async () => {
+    if (!confirmTarget) return;
+    const loc = confirmTarget;
     setDeleting(loc.id);
     setActionError(null);
     try {
@@ -73,6 +81,7 @@ export default function LocationPickerModal({
       setActionError(err.message || "Xóa thất bại.");
     } finally {
       setDeleting(null);
+      setConfirmTarget(null);
     }
   };
 
@@ -156,21 +165,19 @@ export default function LocationPickerModal({
               locations.map((loc) => (
                 <div
                   key={loc.id}
-                  className={`flex gap-3 p-4 rounded-lg border cursor-pointer transition-all duration-150 ${
-                    localSelected === loc.id
+                  className={`flex gap-3 p-4 rounded-lg border cursor-pointer transition-all duration-150 ${localSelected === loc.id
                       ? "border-[#e4393c] bg-[#fffcfc] shadow-sm ring-1 ring-[#e4393c]/30"
                       : "border-[#ede0c4] hover:border-[#c4a84f] bg-white hover:shadow-sm"
-                  }`}
+                    }`}
                   onClick={() => setLocalSelected(loc.id)}
                 >
                   {/* Radio */}
                   <div className="pt-0.5 flex-shrink-0">
                     <div
-                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
-                        localSelected === loc.id
+                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${localSelected === loc.id
                           ? "border-[#e4393c]"
                           : "border-gray-300"
-                      }`}
+                        }`}
                       style={{ width: 18, height: 18 }}
                     >
                       {localSelected === loc.id && (
@@ -292,6 +299,17 @@ export default function LocationPickerModal({
           onSubmit={handleFormSubmit}
         />
       )}
+
+      {/* ConfirmModal khi xóa địa chỉ */}
+      <ConfirmModal
+        isOpen={!!confirmTarget}
+        title="Xóa địa chỉ giao hàng"
+        message={`Bạn có chắc chắn muốn xóa địa chỉ "${confirmTarget?.label || confirmTarget?.address}"? Thao tác này không thể hoàn tác.`}
+        confirmText="Xóa địa chỉ"
+        isLoading={deleting === confirmTarget?.id}
+        onConfirm={executeDelete}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </>
   );
 

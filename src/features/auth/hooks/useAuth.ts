@@ -15,7 +15,7 @@ interface AuthState {
     // Gọi GET /auth/me để lấy user từ server
     fetchMe: () => Promise<void>;
     // Sau khi login thành công: chỉ lưu token, KHÔNG lưu user
-    login: (token: string) => Promise<void>;
+    login: (token: string) => Promise<User | null>;
     logout: () => void;
 }
 
@@ -77,11 +77,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
     },
 
-    login: async (token: string) => {
+    login: async (token: string): Promise<User | null> => {
         localStorage.setItem('token', token);
         set({ token, isAuthenticated: true });
         // Lấy thông tin user từ server
         await get().fetchMe();
+        // Trả về user sau khi fetchMe để caller có thể check profileCompleted
+        return get().user;
     },
 
     logout: () => {
