@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, ChangeEvent } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import ModalWrapper from "@/src/components/ui/ModalWrapper";
 import { useAuthStore } from "@/src/features/auth/hooks/useAuth";
 import { formatImageUrl } from "@/src/lib/cloudinary";
@@ -13,7 +13,7 @@ const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
 export default function UserModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const { user, login, logout } = useAuthStore();
-  const [mode, setMode] = useState<'login' | 'register' | 'forgot-password'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot-password' | 'awaiting-verification'>('login');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -24,6 +24,49 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleVerified = (verifiedEmail?: string) => {
+      setMode('login');
+      if (verifiedEmail) {
+        setFormData(prev => ({ ...prev, email: verifiedEmail }));
+      }
+      setMessage({ text: "Xác thực email thành công! Bạn có thể đăng nhập ngay.", type: 'success' });
+      setResendMessage(null);
+    };
+
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('email_verification_channel');
+      bc.onmessage = (event) => {
+        if (event.data?.status === 'verified') {
+          handleVerified(event.data.email);
+        }
+      };
+    } catch (e) {}
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'email_verified_event' && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          if (data.status === 'verified') {
+            handleVerified(data.email);
+          }
+        } catch (err) {}
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -55,8 +98,9 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
         });
         const result = await res.json();
         if (res.ok || result.success || result.statusCode === 201 || result.statusCode === 200) {
-          setMessage({ text: "Đăng ký tài khoản thành công!", type: 'success' });
-          setMode('login');
+          setMode('awaiting-verification');
+          setMessage(null);
+          setResendMessage(null);
         } else {
           setMessage({ text: result.message || "Đăng ký thất bại", type: 'error' });
         }
@@ -128,12 +172,36 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
     window.location.reload();
   };
 
+  const handleResendVerification = async () => {
+    if (!formData.email) return;
+    setResendLoading(true);
+    setResendMessage(null);
+    try {
+      const res = await fetch(`${AUTH_API}/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email })
+      });
+      const result = await res.json();
+      if (res.ok || result.statusCode === 200) {
+        setResendMessage({ text: result.message || "Đã gửi lại email xác thực!", type: 'success' });
+      } else {
+        setResendMessage({ text: result.message || "Gửi lại thất bại", type: 'error' });
+      }
+    } catch (e) {
+      setResendMessage({ text: "Không thể gửi yêu cầu. Vui lòng thử lại.", type: 'error' });
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <ModalWrapper
       title={user ? "Tài khoản của bạn"
         : mode === 'login' ? "Đăng nhập tài khoản"
           : mode === 'forgot-password' ? "Khôi phục mật khẩu"
-            : "Tạo tài khoản mới"}
+            : mode === 'awaiting-verification' ? "Xác thực tài khoản"
+              : "Tạo tài khoản mới"}
       onClose={onClose}
       width={480}
     >
@@ -325,6 +393,48 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             Quay lại đăng nhập
           </button>
         </form>
+      ) : mode === 'awaiting-verification' ? (
+        /* Giao diện Chờ xác thực Email */
+        <div className="w-full font-sans text-center py-2">
+          <div className="w-16 h-16 bg-[#f7f3eb] rounded-full flex items-center justify-center mx-auto mb-4 border border-[#c4a84f]/30 text-[#c4a84f] shadow-inner">
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+
+          <h3 className="text-xl font-['Cormorant_Garamond',_serif] font-bold text-[#2c1a00] uppercase tracking-wider mb-2">
+            Xác thực Email tài khoản
+          </h3>
+
+          <p className="text-sm text-[#555] leading-relaxed mb-3">
+            Chúng tôi đã gửi một đường dẫn xác thực tới địa chỉ email:
+          </p>
+
+          <div className="bg-[#fdfbf7] p-3 rounded-lg border border-[#c4a84f]/30 mb-4 text-[#c4a84f] font-bold text-sm break-all">
+            {formData.email}
+          </div>
+
+          <p className="text-xs text-[#777] leading-relaxed mb-6">
+            Vui lòng kiểm tra hộp thư của bạn (bao gồm cả thư mục Spam/Rác) và nhấn vào nút <strong>"Xác Thực Email Ngay"</strong> để kích hoạt tài khoản trước khi đăng nhập.
+          </p>
+
+          {resendMessage && (
+            <p className={`text-xs mb-4 p-2.5 rounded-lg ${resendMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+              {resendMessage.text}
+            </p>
+          )}
+
+          <div className="flex flex-col gap-2.5">
+            <button
+              type="button"
+              disabled={resendLoading}
+              onClick={handleResendVerification}
+              className="w-full p-3.5 border border-[#c4a84f] text-[#c4a84f] bg-transparent rounded-lg cursor-pointer text-[12px] font-bold tracking-[1px] uppercase transition-all hover:bg-[#f7f3eb] disabled:opacity-50"
+            >
+              {resendLoading ? "Đang gửi..." : "Chưa nhận được email? Gửi lại mail xác thực"}
+            </button>
+          </div>
+        </div>
       ) : (
         <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="w-full font-sans">
           <p className="text-center text-sm text-[#666] mb-7 font-['Cormorant_Garamond',_serif]">
