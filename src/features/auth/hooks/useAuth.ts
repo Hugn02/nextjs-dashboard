@@ -44,7 +44,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 const data = await res.json();
                 // Backend trả về data trực tiếp hoặc bọc trong { data: ... }
                 const user: User = data?.data ?? data;
+                if (typeof window !== 'undefined' && !localStorage.getItem('token')) {
+                    localStorage.setItem('token', 'session_active');
+                }
                 set({ user, isAuthenticated: true, token: typeof window !== 'undefined' ? localStorage.getItem('token') : null });
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new Event('auth-state-changed'));
+                }
             } else if (res.status === 401) {
                 // Token hết hạn — thử refresh
                 const refreshRes = await fetch(`${BASE_URL}/auth/refresh-token`, {

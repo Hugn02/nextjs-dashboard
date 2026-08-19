@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import useCart from "../features/cart/hooks/useCart";
+import { useAuthStore } from "../features/auth/hooks/useAuth";
 
 // Lazy load modals — chỉ tải JS khi người dùng thực sự mở modal
 const UserModal = dynamic(() => import("../features/auth/components/UserModal"), { ssr: false });
@@ -125,6 +126,20 @@ export default function Navbar() {
     };
 
     checkAuth();
+    useAuthStore.getState().fetchMe();
+
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('oauth') === 'success') {
+        window.history.replaceState({}, '', window.location.pathname);
+        useAuthStore.getState().fetchMe().then(() => {
+          const u = useAuthStore.getState().user;
+          if (u && !u.profileCompleted) {
+            window.location.href = '/profile?tab=info&welcome=1';
+          }
+        });
+      }
+    }
 
     window.addEventListener('storage', checkAuth);
     window.addEventListener('auth-state-changed', checkAuth);

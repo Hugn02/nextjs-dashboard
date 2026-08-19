@@ -12,4 +12,5 @@ export interface User {
     dateOfBirth?: string | null;
     profileCompleted?: boolean;
     isVerified?: boolean;
+    provider?: string;
 }

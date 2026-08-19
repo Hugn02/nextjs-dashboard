@@ -109,19 +109,24 @@ function ProfilePageContent() {
 
     // Sync authUser → local state
     useEffect(() => {
-        const savedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        if (!savedToken) { router.push('/'); return; }
-        if (authUser) {
-            setUser(authUser);
-            setProfileForm({
-                fullName: authUser.fullName || '',
-                phone: authUser.phone || '',
-                gender: (authUser.gender as '' | 'male' | 'female' | 'other') || '',
-                dateOfBirth: authUser.dateOfBirth
-                    ? new Date(authUser.dateOfBirth).toISOString().split('T')[0]
-                    : '',
+        if (!authUser) {
+            useAuthStore.getState().fetchMe().then(() => {
+                const u = useAuthStore.getState().user;
+                if (!u) {
+                    router.push('/');
+                }
             });
+            return;
         }
+        setUser(authUser);
+        setProfileForm({
+            fullName: authUser.fullName || '',
+            phone: authUser.phone || '',
+            gender: (authUser.gender as '' | 'male' | 'female' | 'other') || '',
+            dateOfBirth: authUser.dateOfBirth
+                ? new Date(authUser.dateOfBirth).toISOString().split('T')[0]
+                : '',
+        });
     }, [authUser, router]);
 
     // Sync tab from URL
@@ -407,7 +412,9 @@ function ProfilePageContent() {
                             <div>
                                 <div className="text-xs font-bold text-[#2c1a00] uppercase tracking-wider mb-2.5 px-2">Tài khoản của tôi</div>
                                 <div className="flex flex-col gap-1 pl-3 border-l-2 border-[#f3ebdb]">
-                                    {(['info', 'address', 'change-password'] as const).map((tab) => (
+                                    {(['info', 'address', 'change-password'] as const)
+                                        .filter((tab) => !(tab === 'change-password' && user?.provider === 'google'))
+                                        .map((tab) => (
                                         <button key={tab} onClick={() => handleTabChange(tab)}
                                             className={`text-left px-3 py-2 rounded text-xs md:text-sm font-medium transition-colors border-none bg-transparent cursor-pointer ${profileTab === tab ? "bg-[#faf6ed] text-[#c4a84f] font-bold" : "text-gray-600 hover:text-[#c4a84f] hover:bg-[#faf7f2]"}`}>
                                             {tab === 'info' ? 'Hồ sơ' : tab === 'address' ? 'Địa chỉ' : 'Đổi mật khẩu'}
@@ -624,15 +631,43 @@ function ProfilePageContent() {
                         {profileTab === 'change-password' && (
                             <div className="flex flex-col gap-4">
                                 <div className="border-b border-[#ede0c4] pb-3">
-                                    <h3 className="text-base font-bold text-[#2c1a00] uppercase tracking-wider">Đổi mật khẩu</h3>
-                                    <p className="text-xs text-gray-400 mt-0.5">Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác</p>
+                                    <h3 className="text-base font-bold text-[#2c1a00] uppercase tracking-wider">Bảo mật tài khoản</h3>
+                                    <p className="text-xs text-gray-400 mt-0.5">Quản lý bảo mật và đăng nhập của tài khoản</p>
                                 </div>
 
-                                {changePasswordMessage && (
-                                    <div className={`p-3 rounded text-xs ${changePasswordMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-                                        {changePasswordMessage.text}
+                                {user.provider === 'google' ? (
+                                    <div className="p-6 bg-gradient-to-r from-blue-50/50 via-[#fcfbfa] to-amber-50/30 rounded-xl border border-blue-100 flex flex-col sm:flex-row items-start gap-4 shadow-sm">
+                                        <div className="w-12 h-12 rounded-xl bg-white shadow-sm border border-blue-100 flex items-center justify-center flex-shrink-0">
+                                            <svg className="w-6 h-6" viewBox="0 0 24 24">
+                                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-[#2c1a00] text-sm mb-1">Tài khoản liên kết Google</h4>
+                                            <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                                                Tài khoản của bạn đăng nhập trực tiếp thông qua Google. Mật khẩu và bảo mật hai lớp được quản lý an toàn bởi Google. Bạn không cần phải tạo hoặc đổi mật khẩu trên hệ thống Nghệ Nhân Bát Tràng.
+                                            </p>
+                                            <a
+                                                href="https://myaccount.google.com/security"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-[#f0f7ff] border border-blue-200 px-3.5 py-2 rounded-lg hover:bg-blue-100 transition-colors no-underline"
+                                            >
+                                                <span>Quản lý bảo mật tài khoản Google</span>
+                                                <span>↗</span>
+                                            </a>
+                                        </div>
                                     </div>
-                                )}
+                                ) : (
+                                    <>
+                                        {changePasswordMessage && (
+                                            <div className={`p-3 rounded text-xs ${changePasswordMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                                                {changePasswordMessage.text}
+                                            </div>
+                                        )}
 
                                 <form onSubmit={(e) => { e.preventDefault(); handleChangePasswordSubmit(); }} className="flex flex-col gap-4 text-xs md:text-sm max-w-md">
                                     {[
@@ -675,8 +710,10 @@ function ProfilePageContent() {
                                         </button>
                                     </div>
                                 </form>
-                            </div>
-                        )}
+                                </>
+                            )}
+                        </div>
+                    )}
 
                         {/* TAB: Đơn mua */}
                         {profileTab === 'orders' && (
