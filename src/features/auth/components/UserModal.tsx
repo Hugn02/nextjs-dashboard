@@ -6,6 +6,7 @@ import { useState, useEffect, ChangeEvent } from "react";
 import ModalWrapper from "@/src/components/ui/ModalWrapper";
 import { useAuthStore } from "@/src/features/auth/hooks/useAuth";
 import { formatImageUrl } from "@/src/lib/cloudinary";
+import useWishlist from "@/src/features/wishlist/hooks/useWishlist";
 
 const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:3002/api/auth";
 const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
@@ -13,6 +14,7 @@ const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
 export default function UserModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const { user, login, logout } = useAuthStore();
+  const { wishlistCount } = useWishlist();
   const [mode, setMode] = useState<'login' | 'register' | 'forgot-password' | 'awaiting-verification'>('login');
   const [formData, setFormData] = useState({
     fullName: '',
@@ -252,6 +254,23 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
             >
               <div className="flex items-center gap-2.5">
                 <span className="text-xs md:text-sm font-semibold text-[#3d2b00] font-sans uppercase tracking-wider">Hồ sơ của bạn</span>
+              </div>
+              <span className="text-[#c4a84f] group-hover:translate-x-1 transition-transform">→</span>
+            </Link>
+
+            {/* Sản phẩm yêu thích */}
+            <Link
+              href="/wishlist"
+              onClick={onClose}
+              className="w-full p-3 md:p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group no-underline"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs md:text-sm font-semibold text-[#3d2b00] font-sans uppercase tracking-wider">Sản phẩm yêu thích</span>
+                {wishlistCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                    {wishlistCount > 99 ? "99+" : wishlistCount}
+                  </span>
+                )}
               </div>
               <span className="text-[#c4a84f] group-hover:translate-x-1 transition-transform">→</span>
             </Link>

@@ -7,6 +7,7 @@ import { fetchProductBySlug, fetchProducts } from "../services/product.service";
 import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
 import useCart from "../../cart/hooks/useCart";
+import useWishlist from "@/src/features/wishlist/hooks/useWishlist";
 
 
 interface ProductDetailPageProps {
@@ -21,6 +22,8 @@ function formatPrice(n: number) {
 // ─── Main Detail Page Component ──────────────────────────────────────────────
 export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     const { addItem } = useCart();
+    const { toggleWishlist, isWishlisted } = useWishlist();
+    const [wishlistLoading, setWishlistLoading] = useState(false);
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -646,6 +649,41 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                         >
                                             <span className="absolute top-0 left-1/2 h-full w-0 -translate-x-1/2 bg-white transition-all duration-300 ease-out group-hover:w-[105%]"></span>
                                             <span className="relative text-white transition-colors duration-300 ease-out group-hover:text-[#d29f13]">Thêm vào giỏ hàng</span>
+                                        </button>
+
+                                        {/* Wishlist ❤️ button */}
+                                        <button
+                                            onClick={async () => {
+                                                if (wishlistLoading || !product) return;
+                                                setWishlistLoading(true);
+                                                try {
+                                                    await toggleWishlist(product.id || product._id);
+                                                } finally {
+                                                    setWishlistLoading(false);
+                                                }
+                                            }}
+                                            className={`flex items-center justify-center w-[46px] h-[46px] flex-shrink-0 rounded-[30px] border transition-all duration-300 ${
+                                                isWishlisted(product.id || product._id)
+                                                    ? "bg-red-500 border-red-500 text-white shadow-md shadow-red-200"
+                                                    : "bg-white border-[#d29f13] text-[#d29f13] hover:bg-red-50 hover:border-red-400 hover:text-red-500"
+                                            } hover:scale-105 active:scale-95 cursor-pointer`}
+                                            title={isWishlisted(product.id || product._id) ? "Xóa khỏi danh sách yêu thích" : "Thêm vào danh sách yêu thích"}
+                                            aria-label="Yêu thích"
+                                        >
+                                            {wishlistLoading ? (
+                                                <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 24 24"
+                                                    fill={isWishlisted(product.id || product._id) ? "currentColor" : "none"}
+                                                    stroke="currentColor"
+                                                    strokeWidth={isWishlisted(product.id || product._id) ? 0 : 1.8}
+                                                    className="w-5 h-5 transition-transform duration-200"
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                                                </svg>
+                                            )}
                                         </button>
                                     </div>
                                     {quantityError && (

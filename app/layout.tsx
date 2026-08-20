@@ -3,10 +3,12 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import ChatWidget from "@/src/layout/ChatWidget";
+import WishlistFab from "@/src/layout/WishlistFab";
 import { CartProvider } from "@/src/features/cart/context/CartContext";
 import SessionExpiredHandler from "@/src/components/SessionExpiredHandler";
 import CartAddedNotification from "@/src/features/cart/components/CartAddedNotification";
 import AuthProvider from "@/src/features/auth/components/AuthProvider";
+import { WishlistProvider } from "@/src/features/wishlist/context/WishlistContext";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
@@ -92,12 +94,15 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-white text-[#2c1a00]">
         <CartProvider>
+          <WishlistProvider>
           <AuthProvider>
           <SessionExpiredHandler />
           {children}
           <ChatWidget />
+          <WishlistFab />
           <CartAddedNotification />
           </AuthProvider>
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>

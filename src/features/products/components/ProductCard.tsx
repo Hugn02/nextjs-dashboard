@@ -5,6 +5,7 @@ import Link from 'next/link';
 import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import { Product } from "../types/product.type";
 import useCart from "../../cart/hooks/useCart";
+import useWishlist from "../../wishlist/hooks/useWishlist";
 import { cloudinaryLoader } from "@/src/lib/cloudinary";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -54,7 +55,9 @@ async function fetchAndCacheCollections(): Promise<Map<string, string>> {
 // ─── ProductCard ──────────────────────────────────────────────────────────────
 export default function ProductCard({ product }: { product: Product }) {
     const { addItem } = useCart();
+    const { toggleWishlist, isWishlisted } = useWishlist();
     const [adding, setAdding] = useState(false);
+    const [wishlistLoading, setWishlistLoading] = useState(false);
     const [showQty, setShowQty] = useState(false);   // sau click: hiện qty controls
     const [qty, setQty] = useState(1);
     const [hovered, setHovered] = useState(false);
@@ -114,6 +117,45 @@ export default function ProductCard({ product }: { product: Product }) {
                         fallbackSrc={`https://placehold.co/400x400/faf7f2/c4a84f.png?text=${encodeURIComponent(product.name.slice(0, 12))}`}
                     />
                 )}
+
+                {/* Nút Wishlist ❤️ — góc trên phải */}
+                <button
+                    onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (wishlistLoading) return;
+                        setWishlistLoading(true);
+                        try {
+                            await toggleWishlist(product.id || product._id);
+                        } finally {
+                            setWishlistLoading(false);
+                        }
+                    }}
+                    className={`absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200 ${
+                        isWishlisted(product.id || product._id)
+                            ? "bg-red-500 border-red-500 shadow-md shadow-red-200"
+                            : "bg-white/80 backdrop-blur-sm border-white/60 opacity-0 group-hover:opacity-100"
+                    } hover:scale-110 active:scale-95`}
+                    title={isWishlisted(product.id || product._id) ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+                    aria-label="Yêu thích"
+                >
+                    {wishlistLoading ? (
+                        <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill={isWishlisted(product.id || product._id) ? "currentColor" : "none"}
+                            stroke="currentColor"
+                            strokeWidth={isWishlisted(product.id || product._id) ? 0 : 1.8}
+                            className={`w-4 h-4 transition-colors duration-200 ${
+                                isWishlisted(product.id || product._id) ? "text-white" : "text-[#c4a84f]"
+                            }`}
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                        </svg>
+                    )}
+                </button>
 
                 {/* Badge góc trên trái */}
                 {product.badge && (
