@@ -59,8 +59,31 @@ export default function OrderHistoryPage() {
     const [user, setUser] = useState<User | null>(null);
     const [cancellingId, setCancellingId] = useState<string | null>(null);
     const [repayingId, setRepayingId] = useState<string | null>(null);
+    const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null);
     const [showConfirmModal, setShowConfirmModal] = useState<Order | null>(null);
     const [activeTab, setActiveTab] = useState("all");
+
+    const handleDownloadInvoice = async (order: Order) => {
+        const orderId = order.publicId || order._id || order.id;
+        if (!orderId) return;
+
+        setDownloadingInvoiceId(orderId);
+        try {
+            const res = await fetchWithAuth(`${API_URL}/orders/${orderId}/invoice`);
+            if (!res.ok) {
+                throw new Error('Không thể lấy dữ liệu hóa đơn.');
+            }
+            const data = await res.json();
+            const invoiceData = data.data || data;
+
+            const { downloadOrderInvoicePdf } = await import('@/src/lib/downloadOrderInvoicePdf');
+            await downloadOrderInvoicePdf(invoiceData);
+        } catch (err: any) {
+            alert(err.message || 'Lỗi khi tải hóa đơn PDF.');
+        } finally {
+            setDownloadingInvoiceId(null);
+        }
+    };
 
     const handleRepay = async (order: Order) => {
         const orderId = order.publicId || order._id || order.id;
@@ -353,52 +376,84 @@ export default function OrderHistoryPage() {
                                                 </div>
 
                                                 {/* Footer of Order Card */}
-                                                <div className="bg-[#fbfaf8] border-t border-[#ede0c4] px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-                                                    <div className="flex flex-wrap items-center gap-3">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-xs text-gray-450 uppercase tracking-wider font-sans">Tổng thanh toán:</span>
-                                                            <span className="text-lg font-extrabold text-[#8b2500] font-sans">{formatPrice(order.total)}</span>
+                                                <div className="bg-[#fbfaf8] border-t border-[#ede0c4] px-4 sm:px-5 py-3.5">
+                                                    {/* Total + payment badge row */}
+                                                    <div className="flex items-start justify-between gap-2 mb-3">
+                                                        <div className="flex flex-col gap-1">
+                                                            <div className="flex items-baseline gap-1.5 flex-wrap">
+                                                                <span className="text-[11px] text-gray-500 uppercase tracking-wider font-sans font-semibold whitespace-nowrap">Tổng thanh toán:</span>
+                                                                <span className="text-base font-extrabold text-[#8b2500] font-sans">{formatPrice(order.total)}</span>
+                                                            </div>
+                                                            {order.paymentMethod && order.paymentMethod !== 'cod' && (
+                                                                <span className={`w-fit text-[10px] font-bold px-2 py-0.5 rounded uppercase font-sans border ${
+                                                                    order.paymentStatus === 'paid'
+                                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                                                                }`}>
+                                                                    {order.paymentMethod.toUpperCase()}: {order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                        {order.paymentMethod && order.paymentMethod !== 'cod' && (
-                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-sans border ${
-                                                                order.paymentStatus === 'paid'
-                                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                                    : 'bg-amber-50 text-amber-700 border-amber-200'
-                                                            }`}>
-                                                                {order.paymentMethod.toUpperCase()}: {order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
-                                                            </span>
-                                                        )}
                                                     </div>
 
-                                                    <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                                                        {order.paymentStatus === 'unpaid' && order.paymentMethod !== 'cod' && order.status === 'pending' && (
-                                                            <button
-                                                                onClick={() => handleRepay(order)}
-                                                                disabled={repayingId === orderId}
-                                                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold tracking-[1px] uppercase rounded transition-colors disabled:opacity-50 font-sans cursor-pointer flex items-center gap-1"
-                                                            >
-                                                                <span>💳</span>
-                                                                <span>{repayingId === orderId ? 'Đang chuyển...' : 'Thanh toán ngay'}</span>
-                                                            </button>
-                                                        )}
+                                                    {/* Buttons area — responsive grid on mobile, flex row on md+ */}
+                                                    {(() => {
+                                                        const hasRepay = order.paymentStatus === 'unpaid' && order.paymentMethod !== 'cod' && order.status === 'pending';
+                                                        const hasCancel = order.status === 'pending';
+                                                        // Total: PDF (1) + Repay (0|1) + Cancel (0|1) + Detail (1)
+                                                        const totalButtons = 2 + (hasRepay ? 1 : 0) + (hasCancel ? 1 : 0);
+                                                        // On mobile grid-cols-2: if odd total (3), "Xem chi tiết" occupies col-span-2 (centered below)
+                                                        const detailColSpan = totalButtons === 3 ? 'col-span-2 md:col-span-1' : '';
 
-                                                        {order.status === 'pending' && (
-                                                            <button
-                                                                onClick={() => setShowConfirmModal(order)}
-                                                                disabled={cancellingId === orderId}
-                                                                className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold tracking-[1px] uppercase rounded transition-colors disabled:opacity-50 font-sans cursor-pointer"
-                                                            >
-                                                                {cancellingId === orderId ? 'Đang hủy...' : 'Hủy đơn'}
-                                                            </button>
-                                                        )}
-                                                        <Link
-                                                            href={`/orders/${order.publicId}`}
-                                                            className="flex items-center gap-1 bg-[#2c1a00] text-white hover:bg-[#c4a84f] px-5 py-2 rounded text-xs font-bold tracking-[1px] uppercase transition-colors no-underline font-sans"
-                                                        >
-                                                            <span>Xem chi tiết</span>
-                                                            <ChevronRight className="w-3.5 h-3.5" />
-                                                        </Link>
-                                                    </div>
+                                                        return (
+                                                            <div className="grid grid-cols-2 gap-2 md:flex md:flex-row md:flex-nowrap md:justify-end md:gap-2">
+                                                                {/* Tải hóa đơn PDF — always visible */}
+                                                                <button
+                                                                    onClick={() => handleDownloadInvoice(order)}
+                                                                    disabled={downloadingInvoiceId === orderId}
+                                                                    className="h-9 px-2 bg-white border border-[#c4a84f] text-[#8b6914] hover:bg-[#fdf8ef] rounded text-[11px] font-bold tracking-[0.3px] uppercase transition-all disabled:opacity-50 font-sans cursor-pointer flex items-center justify-center gap-1.5 w-full md:w-auto"
+                                                                >
+                                                                    <FileText className="w-3.5 h-3.5 text-[#c4a84f] shrink-0" />
+                                                                    <span className="truncate">{downloadingInvoiceId === orderId ? 'Đang xuất...' : 'Tải hóa đơn PDF'}</span>
+                                                                </button>
+
+                                                                {/* Thanh toán ngay — only if unpaid+pending+non-COD */}
+                                                                {hasRepay && (
+                                                                    <button
+                                                                        onClick={() => handleRepay(order)}
+                                                                        disabled={repayingId === orderId}
+                                                                        className="h-9 px-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold tracking-[0.3px] uppercase rounded transition-all disabled:opacity-50 font-sans cursor-pointer flex items-center justify-center gap-1 w-full md:w-auto"
+                                                                    >
+                                                                        <span>💳</span>
+                                                                        <span className="truncate">{repayingId === orderId ? 'Đang chuyển...' : 'Thanh toán ngay'}</span>
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Hủy đơn — only if pending */}
+                                                                {hasCancel && (
+                                                                    <button
+                                                                        onClick={() => setShowConfirmModal(order)}
+                                                                        disabled={cancellingId === orderId}
+                                                                        className="h-9 px-2 border border-red-200 text-red-600 hover:bg-red-50 text-[11px] font-bold tracking-[0.3px] uppercase rounded transition-all disabled:opacity-50 font-sans cursor-pointer flex items-center justify-center w-full md:w-auto"
+                                                                    >
+                                                                        <span className="truncate">{cancellingId === orderId ? 'Đang hủy...' : 'Hủy đơn'}</span>
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Xem chi tiết:
+                                                                    - 2 nút: grid-cols-2 → nằm ngang cùng hàng với PDF ✓
+                                                                    - 3 nút: col-span-2 → chiếm full hàng dưới, tự canh giữa bởi justify-center ✓
+                                                                    - 4 nút: grid-cols-2 → 2+2, nằm đúng ô cuối ✓ */}
+                                                                <Link
+                                                                    href={`/orders/${order.publicId}`}
+                                                                    className={`h-9 px-3 bg-[#2c1a00] text-white hover:bg-[#c4a84f] rounded text-[11px] font-bold tracking-[0.3px] uppercase transition-all no-underline font-sans flex items-center justify-center gap-1 w-full md:w-auto ${detailColSpan}`}
+                                                                >
+                                                                    <span>Xem chi tiết</span>
+                                                                    <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                                                                </Link>
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </div>
                                             </div>
                                         );

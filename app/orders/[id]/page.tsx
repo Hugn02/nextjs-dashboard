@@ -68,6 +68,20 @@ export default function OrderDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [cancelling, setCancelling] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
+    const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+    const handleDownloadInvoicePdf = async () => {
+        if (!order) return;
+        setDownloadingPdf(true);
+        try {
+            const { downloadOrderInvoicePdf } = await import('@/src/lib/downloadOrderInvoicePdf');
+            await downloadOrderInvoicePdf(order);
+        } catch (err: any) {
+            alert(err.message || 'Lỗi khi xuất file PDF.');
+        } finally {
+            setDownloadingPdf(false);
+        }
+    };
 
     // Batch Review state (Hybrid Modal - đánh giá cả đơn hàng 1 lần)
     const [myReviews, setMyReviews] = useState<any[]>([]);
@@ -426,15 +440,28 @@ export default function OrderDetailPage() {
             <Navbar />
             <main className="min-h-screen bg-[#faf8f5] pt-[88px] md:pt-[120px] pb-20 px-4 md:px-8">
                 <div className="max-w-5xl mx-auto mt-8 md:mt-12">
-                    {/* Back Button */}
-                    <div className="mb-6">
+                    {/* Back Button + Download Invoice — same row */}
+                    <div className="mb-6 flex items-center justify-between gap-3">
                         <Link
                             href="/orders/history"
-                            className="inline-flex items-center gap-2 text-gray-500 hover:text-[#c4a84f] text-xs font-bold tracking-[1px] uppercase transition-colors no-underline font-sans"
+                            className="inline-flex items-center gap-2 text-gray-500 hover:text-[#c4a84f] text-xs font-bold tracking-[1px] uppercase transition-colors no-underline font-sans flex-shrink-0"
                         >
                             <ArrowLeft className="w-4 h-4" />
-                            Quay lại lịch sử đơn hàng
+                            <span className="hidden xs:inline sm:inline">Quay lại lịch sử đơn hàng</span>
+                            <span className="xs:hidden sm:hidden">Quay lại</span>
                         </Link>
+
+                        {/* Download Invoice PDF button — only shown when order is loaded */}
+                        {order && (
+                            <button
+                                onClick={handleDownloadInvoicePdf}
+                                disabled={downloadingPdf}
+                                className="inline-flex items-center gap-1.5 bg-white border border-[#c4a84f] text-[#8b6914] hover:bg-[#fdf8ef] h-8 px-3 rounded text-[11px] font-bold tracking-[0.5px] uppercase transition-all disabled:opacity-50 font-sans cursor-pointer shadow-sm flex-shrink-0"
+                            >
+                                <FileText className="w-3.5 h-3.5 text-[#c4a84f] shrink-0" />
+                                <span>{downloadingPdf ? 'Đang xuất...' : 'Tải hóa đơn PDF'}</span>
+                            </button>
+                        )}
                     </div>
 
                     {loading ? (
