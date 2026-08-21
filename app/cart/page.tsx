@@ -56,11 +56,20 @@ export default function CartPage() {
   };
 
   // All product IDs in cart (skip items where product was deleted)
+  // All product IDs in cart (skip items where product was deleted or unavailable)
   const allIds = useMemo(() => {
     if (!cart) return [] as string[];
     return cart.items
+      .filter((item) => item.isAvailable !== false && item.product)
       .map((item) => item.product?.id || item.product?._id)
       .filter(Boolean) as string[];
+  }, [cart]);
+
+  const hasPriceChangesOrUnavailable = useMemo(() => {
+    if (!cart) return false;
+    return cart.items.some(
+      (item) => item.priceChanged || item.isAvailable === false || !!item.availabilityMessage
+    );
   }, [cart]);
 
   const isAllSelected = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
@@ -83,12 +92,13 @@ export default function CartPage() {
     });
   };
 
-  // Selected items for summary
+  // Selected items for summary (skip items that are not available)
   const selectedItems = useMemo(() => {
     if (!cart) return [];
     return cart.items.filter(
       (item) =>
         item.product &&
+        item.isAvailable !== false &&
         selectedIds.has(item.product.id || item.product._id)
     );
   }, [cart, selectedIds]);
@@ -143,6 +153,21 @@ export default function CartPage() {
             Giỏ hàng của bạn
           </h1>
 
+          {/* Banner thông báo revalidation nếu có thay đổi giá hoặc tồn kho */}
+          {hasPriceChangesOrUnavailable && cart && cart.items.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-950 px-4 py-3.5 rounded mb-6 flex items-start gap-3 shadow-sm">
+              <span className="text-amber-600 text-lg leading-none mt-0.5">⚠️</span>
+              <div className="flex-1 text-xs sm:text-sm">
+                <p className="font-bold text-amber-900">
+                  Thông tin giỏ hàng đã được cập nhật lại theo thực tế hệ thống:
+                </p>
+                <p className="text-amber-700 text-xs mt-1">
+                  Giá của một số sản phẩm hoặc trạng thái khả dụng đã thay đổi. Vui lòng kiểm tra lại trước khi tiến hành thanh toán.
+                </p>
+              </div>
+            </div>
+          )}
+
           {(!cart || cart.items.length === 0) ? (
             <div className="text-center py-20 bg-white border border-[#ede0c4] rounded">
               <span className="text-6xl opacity-30 block mb-4">🛒</span>
@@ -196,12 +221,12 @@ export default function CartPage() {
                       const cid = item.id; // cartId — dùng để gọi PATCH/DELETE /carts/:cartId
                       const pid = isDeleted ? `deleted-${cid}` : ((p.id || p._id) as string); // productId — dùng cho checkbox selection
                       const imgSrc = isDeleted ? "" : formatImageUrl(p?.imageUrl?.[0] || p?.images?.[0]);
-                      const isChecked = !isDeleted && selectedIds.has(pid);
+                      const isChecked = !isDeleted && item.isAvailable !== false && selectedIds.has(pid);
 
                       return (
                         <div
                           key={cid || pid}
-                          className={`transition-colors duration-150 ${isDeleted ? "bg-red-50 border-l-2 border-red-300" : isChecked ? "bg-[#fffdf7]" : "bg-white"}`}
+                          className={`transition-colors duration-150 ${isDeleted || item.isAvailable === false ? "bg-red-50/60 border-l-2 border-red-300" : isChecked ? "bg-[#fffdf7]" : "bg-white"}`}
                         >
                           {/* ── IF DELETED PRODUCT ── */}
                           {isDeleted ? (
@@ -231,7 +256,13 @@ export default function CartPage() {
                               <div className="flex sm:hidden gap-3 px-4 py-4 items-start">
                                 {/* Checkbox */}
                                 <div className="flex-shrink-0 pt-[3px]">
-                                  <Checkbox checked={isChecked} onChange={() => toggleItem(pid)} />
+                                  <Checkbox
+                                    checked={isChecked}
+                                    onChange={() => {
+                                      if (item.isAvailable === false) return;
+                                      toggleItem(pid);
+                                    }}
+                                  />
                                 </div>
 
                                 {/* Product image */}
@@ -253,7 +284,22 @@ export default function CartPage() {
                                       SKU: {p.sku}
                                     </span>
                                   )}
-                                  <span className="block text-[11px] text-gray-500 font-medium mt-0.5">Đơn giá: {fmt(p.price)}</span>
+                                  <span className="block text-[11px] text-gray-500 font-medium mt-0.5">Đơn giá: {fmt(item.price)}</span>
+                                  {item.priceChanged && item.originalPrice && (
+                                    <span className="block text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded mt-1 w-fit font-medium">
+                                      Giá mới (cũ: {fmt(item.originalPrice)})
+                                    </span>
+                                  )}
+                                  {item.isAvailable === false && (
+                                    <span className="block text-[10px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded mt-1 w-fit font-medium">
+                                      ⚠️ {item.availabilityMessage || "Không khả dụng"}
+                                    </span>
+                                  )}
+                                  {item.availabilityMessage && item.isAvailable !== false && (
+                                    <span className="block text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded mt-1 w-fit">
+                                      ⚠️ {item.availabilityMessage}
+                                    </span>
+                                  )}
 
                                   {/* Qty + total + delete row */}
                                   <div className="flex items-center justify-between mt-2.5 gap-2">
@@ -311,14 +357,20 @@ export default function CartPage() {
                               {/* ── DESKTOP LAYOUT (≥ sm) ── */}
                               <div className="hidden sm:flex items-center gap-4 px-6 py-5">
                                 {/* Checkbox */}
-                                <Checkbox checked={isChecked} onChange={() => toggleItem(pid)} />
+                                <Checkbox
+                                  checked={isChecked}
+                                  onChange={() => {
+                                    if (item.isAvailable === false) return;
+                                    toggleItem(pid);
+                                  }}
+                                />
 
                                 {/* Image */}
                                 <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
                                   <ImageWithFallback src={imgSrc} alt={p.name} fill loader={typeof imgSrc === "string" && imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined} className="object-cover" sizes="80px" />
                                 </div>
 
-                                {/* Name + SKU */}
+                                {/* Name + SKU + Badges */}
                                 <div className="flex-1 min-w-0">
                                   <Link
                                     href={`/products/${p.slug}`}
@@ -332,13 +384,33 @@ export default function CartPage() {
                                       SKU: {p.sku}
                                     </span>
                                   )}
+                                  {item.priceChanged && item.originalPrice && (
+                                    <span className="inline-block text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded mt-1 font-medium">
+                                      Giá đã cập nhật: {fmt(item.originalPrice)} ➔ {fmt(item.price)}
+                                    </span>
+                                  )}
+                                  {item.isAvailable === false && (
+                                    <span className="inline-block text-[11px] text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded mt-1 font-medium">
+                                      ⚠️ {item.availabilityMessage || "Không thể thanh toán"}
+                                    </span>
+                                  )}
+                                  {item.availabilityMessage && item.isAvailable !== false && (
+                                    <span className="inline-block text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded mt-1">
+                                      ⚠️ {item.availabilityMessage}
+                                    </span>
+                                  )}
                                 </div>
 
                                 {/* Đơn giá */}
                                 <div className="w-[110px] text-center">
-                                  <span className="text-sm font-medium text-gray-600 font-sans">
-                                    {fmt(p.price)}
+                                  <span className="text-sm font-medium text-gray-600 font-sans block">
+                                    {fmt(item.price)}
                                   </span>
+                                  {item.priceChanged && item.originalPrice && (
+                                    <span className="text-[10px] text-gray-400 line-through block">
+                                      {fmt(item.originalPrice)}
+                                    </span>
+                                  )}
                                 </div>
 
                                 {/* Qty */}

@@ -213,6 +213,21 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                           <span className="text-[11px] text-gray-500 font-medium">
                             {fmt(item.price)}
                           </span>
+                          {item.priceChanged && item.originalPrice && (
+                            <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded block w-fit mt-0.5 font-medium">
+                              Giá mới (cũ: {fmt(item.originalPrice)})
+                            </span>
+                          )}
+                          {item.isAvailable === false && (
+                            <span className="text-[10px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded block w-fit mt-0.5 font-medium">
+                              ⚠️ {item.availabilityMessage || "Không khả dụng"}
+                            </span>
+                          )}
+                          {item.availabilityMessage && item.isAvailable !== false && (
+                            <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded block w-fit mt-0.5">
+                              {item.availabilityMessage}
+                            </span>
+                          )}
                         </div>
 
                         <div className="text-right">

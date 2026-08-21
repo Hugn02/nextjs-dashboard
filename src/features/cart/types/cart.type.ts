@@ -5,6 +5,10 @@ export interface CartItem {
   product: Product;
   quantity: number;
   price: number;
+  originalPrice?: number;
+  priceChanged?: boolean;
+  isAvailable?: boolean;
+  availabilityMessage?: string | null;
 }
 
 export interface Cart {

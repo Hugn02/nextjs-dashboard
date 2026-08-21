@@ -27,6 +27,8 @@ interface Order {
     publicId: string;
     total: number;
     status: string;
+    paymentStatus?: string;
+    paymentMethod?: string;
     createdAt: string;
     items: Array<{
         product: {
@@ -56,8 +58,44 @@ export default function OrderHistoryPage() {
     const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [cancellingId, setCancellingId] = useState<string | null>(null);
+    const [repayingId, setRepayingId] = useState<string | null>(null);
     const [showConfirmModal, setShowConfirmModal] = useState<Order | null>(null);
     const [activeTab, setActiveTab] = useState("all");
+
+    const handleRepay = async (order: Order) => {
+        const orderId = order.publicId || order._id || order.id;
+        if (!orderId) return;
+
+        setRepayingId(orderId);
+        try {
+            const response = await fetchWithAuth(`${API_URL}/payments/${orderId}/repay`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    paymentMethod: order.paymentMethod || 'vnpay',
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Không thể tạo link thanh toán.');
+            }
+
+            const data = await response.json();
+            const payResult = data.data || data;
+            if (payResult?.paymentUrl) {
+                window.location.href = payResult.paymentUrl;
+            } else {
+                alert('Không thể tạo URL thanh toán. Vui lòng thử lại.');
+            }
+        } catch (err: any) {
+            alert(err.message || 'Có lỗi xảy ra khi tạo thanh toán.');
+        } finally {
+            setRepayingId(null);
+        }
+    };
 
     useEffect(() => {
         if (authUser) {
@@ -316,12 +354,34 @@ export default function OrderHistoryPage() {
 
                                                 {/* Footer of Order Card */}
                                                 <div className="bg-[#fbfaf8] border-t border-[#ede0c4] px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-450 uppercase tracking-wider font-sans">Tổng thanh toán:</span>
-                                                        <span className="text-lg font-extrabold text-[#8b2500] font-sans">{formatPrice(order.total)}</span>
+                                                    <div className="flex flex-wrap items-center gap-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs text-gray-450 uppercase tracking-wider font-sans">Tổng thanh toán:</span>
+                                                            <span className="text-lg font-extrabold text-[#8b2500] font-sans">{formatPrice(order.total)}</span>
+                                                        </div>
+                                                        {order.paymentMethod && order.paymentMethod !== 'cod' && (
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-sans border ${
+                                                                order.paymentStatus === 'paid'
+                                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                                                            }`}>
+                                                                {order.paymentMethod.toUpperCase()}: {order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                                                            </span>
+                                                        )}
                                                     </div>
 
                                                     <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                                                        {order.paymentStatus === 'unpaid' && order.paymentMethod !== 'cod' && order.status === 'pending' && (
+                                                            <button
+                                                                onClick={() => handleRepay(order)}
+                                                                disabled={repayingId === orderId}
+                                                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold tracking-[1px] uppercase rounded transition-colors disabled:opacity-50 font-sans cursor-pointer flex items-center gap-1"
+                                                            >
+                                                                <span>💳</span>
+                                                                <span>{repayingId === orderId ? 'Đang chuyển...' : 'Thanh toán ngay'}</span>
+                                                            </button>
+                                                        )}
+
                                                         {order.status === 'pending' && (
                                                             <button
                                                                 onClick={() => setShowConfirmModal(order)}

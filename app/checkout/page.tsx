@@ -55,6 +55,7 @@ export default function CheckoutPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "vnpay" | "momo">("cod");
 
   // ── Init: load user, selected IDs, và địa chỉ đã chọn ────────────────────
   useEffect(() => {
@@ -315,6 +316,7 @@ export default function CheckoutPage() {
       })),
       total: checkoutTotal,
       shippingFee: checkoutShippingFee,
+      paymentMethod: paymentMethod,
     };
 
     try {
@@ -346,6 +348,38 @@ export default function CheckoutPage() {
       localStorage.removeItem("checkout_selected_location");
 
       await refreshCart();
+
+      if (paymentMethod !== "cod") {
+        try {
+          const payRes = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api"}/payments/create-url`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                orderId: orderData.id || orderData._id || orderData.publicId,
+                paymentMethod: paymentMethod,
+              }),
+            }
+          );
+
+          if (payRes.ok) {
+            const payData = await payRes.json();
+            const payResult = payData.data || payData;
+            if (payResult?.paymentUrl) {
+              window.location.href = payResult.paymentUrl;
+              return;
+            }
+          }
+        } catch (payErr) {
+          console.error("Error creating payment URL:", payErr);
+        }
+      }
+
       router.push(`/orders/${orderData.id || orderData._id}/success`);
     } catch (err: any) {
       setErrorMessage(err.message || "Có lỗi xảy ra trong quá trình đặt hàng.");
@@ -560,26 +594,84 @@ export default function CheckoutPage() {
 
               {/* Phương thức thanh toán */}
               <div className="mt-4 p-4 bg-[#fbfaf8] border border-[#ede0c4] rounded">
-                <span className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2.5 font-sans">
+                <span className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-3 font-sans">
                   Phương thức thanh toán
                 </span>
-                <div className="flex items-center justify-between p-3.5 bg-[#fffdf7] border border-[#c4a84f] rounded shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      id="cod"
-                      name="paymentMethod"
-                      value="cod"
-                      defaultChecked
-                      className="accent-[#c4a84f] w-4 h-4 cursor-pointer"
-                    />
-                    <label
-                      htmlFor="cod"
-                      className="text-sm font-semibold text-[#2c1a00] cursor-pointer flex items-center gap-2 font-sans"
-                    >
-                      <span>Thanh toán khi nhận hàng (COD)</span>
-                    </label>
-                  </div>
+                <div className="flex flex-col gap-3">
+                  {/* COD */}
+                  <label
+                    htmlFor="cod"
+                    className={`flex items-center justify-between p-3.5 border rounded shadow-sm cursor-pointer transition-all ${paymentMethod === "cod"
+                      ? "bg-[#fffdf7] border-[#c4a84f]"
+                      : "bg-white border-[#ede0c4] hover:border-[#c4a84f]/60"
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        id="cod"
+                        name="paymentMethod"
+                        value="cod"
+                        checked={paymentMethod === "cod"}
+                        onChange={() => setPaymentMethod("cod")}
+                        className="accent-[#c4a84f] w-4 h-4 cursor-pointer"
+                      />
+                      <span className="text-sm font-semibold text-[#2c1a00] font-sans flex items-center gap-2">
+                        <span>💵</span>
+                        <span>Thanh toán khi nhận hàng (COD)</span>
+                      </span>
+                    </div>
+                  </label>
+
+                  {/* VNPay */}
+                  <label
+                    htmlFor="vnpay"
+                    className={`flex items-center justify-between p-3.5 border rounded shadow-sm cursor-pointer transition-all ${paymentMethod === "vnpay"
+                      ? "bg-[#fffdf7] border-[#c4a84f]"
+                      : "bg-white border-[#ede0c4] hover:border-[#c4a84f]/60"
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        id="vnpay"
+                        name="paymentMethod"
+                        value="vnpay"
+                        checked={paymentMethod === "vnpay"}
+                        onChange={() => setPaymentMethod("vnpay")}
+                        className="accent-[#c4a84f] w-4 h-4 cursor-pointer"
+                      />
+                      <span className="text-sm font-semibold text-[#2c1a00] font-sans flex items-center gap-2">
+                        <span>💳</span>
+                        <span>Thanh toán qua VNPay (Thẻ ATM / QR Code / Visa)</span>
+                      </span>
+                    </div>
+                  </label>
+
+                  {/* MoMo */}
+                  <label
+                    htmlFor="momo"
+                    className={`flex items-center justify-between p-3.5 border rounded shadow-sm cursor-pointer transition-all ${paymentMethod === "momo"
+                      ? "bg-[#fffdf7] border-[#c4a84f]"
+                      : "bg-white border-[#ede0c4] hover:border-[#c4a84f]/60"
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        id="momo"
+                        name="paymentMethod"
+                        value="momo"
+                        checked={paymentMethod === "momo"}
+                        onChange={() => setPaymentMethod("momo")}
+                        className="accent-[#c4a84f] w-4 h-4 cursor-pointer"
+                      />
+                      <span className="text-sm font-semibold text-[#2c1a00] font-sans flex items-center gap-2">
+                        <span>📱</span>
+                        <span>Thanh toán qua Ví MoMo (App MoMo / MoMo QR Code)</span>
+                      </span>
+                    </div>
+                  </label>
                 </div>
               </div>
 
