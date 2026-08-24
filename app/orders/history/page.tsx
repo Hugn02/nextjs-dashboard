@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import Navbar from "@/src/layout/Navbar";
@@ -18,8 +18,11 @@ import {
     XCircle,
     AlertCircle,
     ChevronRight,
-    ArrowLeft
+    ChevronLeft,
+    ArrowLeft,
+    RotateCcw,
 } from "lucide-react";
+import ReturnRequestModal from "@/src/components/ReturnRequestModal";
 
 interface Order {
     _id?: string;
@@ -48,12 +51,15 @@ const TABS = [
     { id: "confirmed", label: "Đã xác nhận" },
     { id: "shipping", label: "Đang giao" },
     { id: "completed", label: "Hoàn thành" },
+    { id: "return_requested", label: "Yêu cầu hoàn trả" },
+    { id: "returned", label: "Đã hoàn trả" },
     { id: "cancelled", label: "Đã hủy" },
 ];
 
 export default function OrderHistoryPage() {
     const { user: authUser, token } = useAuthStore();
     const [orders, setOrders] = useState<Order[]>([]);
+    const tabsScrollRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
@@ -61,6 +67,7 @@ export default function OrderHistoryPage() {
     const [repayingId, setRepayingId] = useState<string | null>(null);
     const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null);
     const [showConfirmModal, setShowConfirmModal] = useState<Order | null>(null);
+    const [showReturnModal, setShowReturnModal] = useState<Order | null>(null);
     const [activeTab, setActiveTab] = useState("all");
 
     const handleDownloadInvoice = async (order: Order) => {
@@ -82,6 +89,42 @@ export default function OrderHistoryPage() {
             alert(err.message || 'Lỗi khi tải hóa đơn PDF.');
         } finally {
             setDownloadingInvoiceId(null);
+        }
+    };
+
+    const [showCancelReturnModal, setShowCancelReturnModal] = useState<Order | null>(null);
+    const [cancelReturnSuccess, setCancelReturnSuccess] = useState<boolean>(false);
+    const [cancelReturnError, setCancelReturnError] = useState<string | null>(null);
+    const [cancellingReturnId, setCancellingReturnId] = useState<string | null>(null);
+
+    const openCancelReturnModal = (order: Order) => {
+        setShowCancelReturnModal(order);
+        setCancelReturnSuccess(false);
+        setCancelReturnError(null);
+    };
+
+    const executeCancelReturnRequest = async (order: Order) => {
+        const orderId = order.publicId || order._id || order.id;
+        if (!orderId) return;
+
+        setCancellingReturnId(orderId);
+        setCancelReturnError(null);
+
+        try {
+            const res = await fetchWithAuth(`${API_URL}/returns/order/${orderId}/cancel`, {
+                method: 'POST',
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || 'Không thể hủy yêu cầu hoàn trả.');
+            }
+
+            setCancelReturnSuccess(true);
+        } catch (err: any) {
+            setCancelReturnError(err.message || 'Có lỗi xảy ra khi hủy yêu cầu hoàn trả.');
+        } finally {
+            setCancellingReturnId(null);
         }
     };
 
@@ -212,6 +255,18 @@ export default function OrderHistoryPage() {
                 textClass: "text-[#059669]",
                 icon: CheckCircle2
             },
+            return_requested: {
+                text: "Yêu cầu hoàn trả",
+                bg: "bg-[#fff7ed] border-[#ffedd5]",
+                textClass: "text-[#c2410c]",
+                icon: RotateCcw
+            },
+            returned: {
+                text: "Đã hoàn trả/hoàn tiền",
+                bg: "bg-[#f1f5f9] border-[#e2e8f0]",
+                textClass: "text-[#475569]",
+                icon: CheckCircle2
+            },
             cancelled: {
                 text: "Đã hủy",
                 bg: "bg-[#fef2f2] border-[#fee2e2]",
@@ -271,25 +326,57 @@ export default function OrderHistoryPage() {
                         </div>
                     ) : (
                         <>
-                            {/* Tabs filter */}
-                            <div className="flex overflow-x-auto pb-2 mb-8 border-b border-[#ede0c4] gap-2 md:gap-4 no-scrollbar">
-                                {TABS.map((tab) => {
-                                    const count = tab.id === "all"
-                                        ? orders.length
-                                        : orders.filter(o => o.status === tab.id).length;
-                                    return (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setActiveTab(tab.id)}
-                                            className={`px-4 py-2.5 text-xs font-bold tracking-[1px] uppercase whitespace-nowrap border-b-2 transition-all font-sans cursor-pointer ${activeTab === tab.id
-                                                ? "border-[#c4a84f] text-[#c4a84f]"
-                                                : "border-transparent text-gray-400 hover:text-[#2c1a00]"
+                            {/* Tabs filter — scrollable with arrow buttons */}
+                            <div className="relative mb-8">
+                                {/* Left arrow */}
+                                <button
+                                    type="button"
+                                    onClick={() => tabsScrollRef.current?.scrollBy({ left: -180, behavior: 'smooth' })}
+                                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 flex items-center justify-center bg-white border border-[#ede0c4] rounded-full shadow-sm text-[#8b6914] hover:bg-[#fdf8ef] transition-all cursor-pointer"
+                                    aria-label="Cuộn trái"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+
+                                {/* Scrollable tab strip */}
+                                <div
+                                    ref={tabsScrollRef}
+                                    className="flex overflow-x-auto pb-2 border-b border-[#ede0c4] gap-1 no-scrollbar scroll-smooth mx-8"
+                                >
+                                    {TABS.map((tab) => {
+                                        const count = tab.id === "all"
+                                            ? orders.length
+                                            : orders.filter(o => o.status === tab.id).length;
+                                        return (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTab(tab.id)}
+                                                className={`px-4 py-2.5 text-xs font-bold tracking-[1px] uppercase whitespace-nowrap border-b-2 transition-all font-sans cursor-pointer flex-shrink-0 ${
+                                                    activeTab === tab.id
+                                                        ? "border-[#c4a84f] text-[#c4a84f]"
+                                                        : "border-transparent text-gray-400 hover:text-[#2c1a00]"
                                                 }`}
-                                        >
-                                            {tab.label} ({count})
-                                        </button>
-                                    );
-                                })}
+                                            >
+                                                {tab.label}
+                                                <span className={`ml-1.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                                                    activeTab === tab.id
+                                                        ? 'bg-[#c4a84f] text-white'
+                                                        : 'bg-gray-100 text-gray-500'
+                                                }`}>{count}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Right arrow */}
+                                <button
+                                    type="button"
+                                    onClick={() => tabsScrollRef.current?.scrollBy({ left: 180, behavior: 'smooth' })}
+                                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 flex items-center justify-center bg-white border border-[#ede0c4] rounded-full shadow-sm text-[#8b6914] hover:bg-[#fdf8ef] transition-all cursor-pointer"
+                                    aria-label="Cuộn phải"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
                             </div>
 
                             {/* Orders list */}
@@ -399,10 +486,17 @@ export default function OrderHistoryPage() {
                                                     {/* Buttons area — responsive grid on mobile, flex row on md+ */}
                                                     {(() => {
                                                         const hasRepay = order.paymentStatus === 'unpaid' && order.paymentMethod !== 'cod' && order.status === 'pending';
-                                                        const hasCancel = order.status === 'pending';
-                                                        // Total: PDF (1) + Repay (0|1) + Cancel (0|1) + Detail (1)
-                                                        const totalButtons = 2 + (hasRepay ? 1 : 0) + (hasCancel ? 1 : 0);
-                                                        // On mobile grid-cols-2: if odd total (3), "Xem chi tiết" occupies col-span-2 (centered below)
+                                                        // Chỉ cho hủy khi pending VÀ (COD hoặc chưa thanh toán)
+                                                        // Nếu đã thanh toán VNPay/MoMo → ẩn nút hủy, hướng dẫn dùng hoàn trả
+                                                        const hasCancel = order.status === 'pending' &&
+                                                            (order.paymentMethod === 'cod' || order.paymentStatus !== 'paid');
+                                                        const hasCancelReturn = order.status === 'return_requested';
+                                                        const canReturn = (order.status === 'completed' || order.status === 'shipping') && (() => {
+                                                            const orderDate = new Date(order.createdAt).getTime();
+                                                            const diffDays = (Date.now() - orderDate) / (1000 * 3600 * 24);
+                                                            return diffDays <= 14;
+                                                        })();
+                                                        const totalButtons = 2 + (hasRepay ? 1 : 0) + (hasCancel ? 1 : 0) + (canReturn ? 1 : 0) + (hasCancelReturn ? 1 : 0);
                                                         const detailColSpan = totalButtons === 3 ? 'col-span-2 md:col-span-1' : '';
 
                                                         return (
@@ -416,6 +510,29 @@ export default function OrderHistoryPage() {
                                                                     <FileText className="w-3.5 h-3.5 text-[#c4a84f] shrink-0" />
                                                                     <span className="truncate">{downloadingInvoiceId === orderId ? 'Đang xuất...' : 'Tải hóa đơn PDF'}</span>
                                                                 </button>
+
+                                                                {/* Hủy yêu cầu hoàn trả — only if return_requested */}
+                                                                {hasCancelReturn && (
+                                                                    <button
+                                                                        onClick={() => openCancelReturnModal(order)}
+                                                                        disabled={cancellingReturnId === orderId}
+                                                                        className="h-9 px-2 bg-rose-50 text-rose-700 border border-rose-300 hover:bg-rose-100 text-[11px] font-bold tracking-[0.3px] uppercase rounded transition-all font-sans cursor-pointer flex items-center justify-center gap-1 w-full md:w-auto"
+                                                                    >
+                                                                        <XCircle className="w-3.5 h-3.5 shrink-0 text-rose-600" />
+                                                                        <span className="truncate">{cancellingReturnId === orderId ? 'Đang hủy...' : 'Hủy yêu cầu hoàn trả'}</span>
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Yêu cầu hoàn trả — only if completed/shipping within 14 days */}
+                                                                {canReturn && (
+                                                                    <button
+                                                                        onClick={() => setShowReturnModal(order)}
+                                                                        className="h-9 px-2 bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 text-[11px] font-bold tracking-[0.3px] uppercase rounded transition-all font-sans cursor-pointer flex items-center justify-center gap-1 w-full md:w-auto"
+                                                                    >
+                                                                        <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+                                                                        <span className="truncate">Yêu cầu hoàn trả</span>
+                                                                    </button>
+                                                                )}
 
                                                                 {/* Thanh toán ngay — only if unpaid+pending+non-COD */}
                                                                 {hasRepay && (
@@ -440,10 +557,6 @@ export default function OrderHistoryPage() {
                                                                     </button>
                                                                 )}
 
-                                                                {/* Xem chi tiết:
-                                                                    - 2 nút: grid-cols-2 → nằm ngang cùng hàng với PDF ✓
-                                                                    - 3 nút: col-span-2 → chiếm full hàng dưới, tự canh giữa bởi justify-center ✓
-                                                                    - 4 nút: grid-cols-2 → 2+2, nằm đúng ô cuối ✓ */}
                                                                 <Link
                                                                     href={`/orders/${order.publicId}`}
                                                                     className={`h-9 px-3 bg-[#2c1a00] text-white hover:bg-[#c4a84f] rounded text-[11px] font-bold tracking-[0.3px] uppercase transition-all no-underline font-sans flex items-center justify-center gap-1 w-full md:w-auto ${detailColSpan}`}
@@ -500,6 +613,111 @@ export default function OrderHistoryPage() {
                                 {cancellingId === (showConfirmModal._id || showConfirmModal.id) ? 'Đang xử lý...' : 'Đồng ý hủy'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Return Request Modal */}
+            {showReturnModal && (
+                <ReturnRequestModal
+                    order={showReturnModal}
+                    onClose={() => setShowReturnModal(null)}
+                    onSuccess={() => fetchOrders()}
+                />
+            )}
+
+            {/* Cancel Return Request Modal */}
+            {showCancelReturnModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border border-[#ede0c4] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4 flex justify-between items-center">
+                            <div>
+                                <h3 className="text-lg font-bold text-[#2c1a00] font-['Cormorant_Garamond',_serif] uppercase tracking-[1px]">
+                                    Hủy Yêu Cầu Hoàn Trả
+                                </h3>
+                                <p className="text-xs text-gray-500 font-sans mt-0.5">
+                                    Đơn hàng: <span className="font-mono font-bold text-[#8b2500]">{showCancelReturnModal.publicId}</span>
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (cancelReturnSuccess) fetchOrders();
+                                    setShowCancelReturnModal(null);
+                                }}
+                                className="text-gray-400 hover:text-gray-600 transition cursor-pointer"
+                            >
+                                <XCircle className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Content Body */}
+                        {cancelReturnSuccess ? (
+                            <div className="p-6 text-center space-y-4 font-sans animate-in fade-in zoom-in-95 duration-300">
+                                <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200 shadow-sm">
+                                    <CheckCircle2 className="w-8 h-8 stroke-[2.5]" />
+                                </div>
+                                <div>
+                                    <h4 className="text-lg font-bold text-[#2c1a00] font-['Cormorant_Garamond',_serif] uppercase tracking-[1px]">
+                                        Đã Hủy Yêu Cầu Hoàn Trả!
+                                    </h4>
+                                    <p className="text-xs text-gray-600 mt-1 font-sans leading-relaxed">
+                                        Yêu cầu hoàn trả cho đơn hàng <span className="font-mono font-bold text-[#8b2500]">{showCancelReturnModal.publicId}</span> đã được hủy thành công. Đơn hàng của bạn đã quay trở lại trạng thái <strong>Hoàn thành</strong>.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        fetchOrders();
+                                        setShowCancelReturnModal(null);
+                                    }}
+                                    className="w-full py-3 bg-[#2c1a00] hover:bg-[#c4a84f] text-white text-xs font-bold tracking-[2px] uppercase rounded-lg transition-all font-['Cormorant_Garamond',_serif] shadow-md cursor-pointer mt-2"
+                                >
+                                    Đồng ý & Đóng
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="p-6 space-y-4 font-sans">
+                                {cancelReturnError && (
+                                    <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4 shrink-0" />
+                                        <span>{cancelReturnError}</span>
+                                    </div>
+                                )}
+                                <div className="text-center">
+                                    <div className="w-12 h-12 bg-amber-50 text-[#8b2500] rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-200">
+                                        <RotateCcw className="w-6 h-6" />
+                                    </div>
+                                    <p className="text-xs text-gray-600 leading-relaxed font-sans">
+                                        Bạn có chắc chắn muốn <strong>HỦY Yêu cầu hoàn trả</strong> cho đơn hàng này?
+                                    </p>
+                                    <div className="my-3 p-2.5 bg-[#fbfaf8] border border-[#ede0c4] rounded font-mono text-xs font-bold text-[#8b2500]">
+                                        {showCancelReturnModal.publicId}
+                                    </div>
+                                    <p className="text-[11px] text-gray-500 font-sans italic">
+                                        Sau khi hủy, đơn hàng sẽ quay lại trạng thái Hoàn thành. Bạn vẫn có thể gửi lại yêu cầu nếu chưa hết thời hạn 14 ngày.
+                                    </p>
+                                </div>
+
+                                <div className="pt-3 border-t border-[#ede0c4] flex justify-end gap-2.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCancelReturnModal(null)}
+                                        disabled={!!cancellingReturnId}
+                                        className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold tracking-[1px] uppercase rounded hover:bg-gray-200 transition cursor-pointer font-sans"
+                                    >
+                                        Giữ Yêu cầu
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => executeCancelReturnRequest(showCancelReturnModal)}
+                                        disabled={!!cancellingReturnId}
+                                        className="px-5 py-2 bg-[#8b2500] text-white text-xs font-bold tracking-[1px] uppercase rounded hover:bg-[#6c1d00] transition shadow-sm disabled:opacity-50 cursor-pointer font-sans"
+                                    >
+                                        {cancellingReturnId ? "Đang xử lý..." : "Xác nhận Hủy"}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
