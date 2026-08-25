@@ -118,7 +118,7 @@ export default function ChatWidget() {
 
   const quickPrompts = [
     { label: "Ấm trà bán chạy ☕", value: "Cho tôi xem các bộ ấm trà bán chạy nhất" },
-    { label: "Sứ xương là gì? 🦴", value: "Sứ xương là gì và tại sao nó lại đắt?" },
+    { label: "Các loại men Bát Tràng 🏺", value: "Bát Tràng có những loại men nào? Hãy liệt kê từng loại men và giải thích đặc điểm, màu sắc, hiệu ứng bề mặt và sản phẩm phù hợp của từng loại." },
     { label: "Quà tặng dưới 2 triệu 🎁", value: "Tìm sản phẩm làm quà tặng dưới 2 triệu đồng" },
     { label: "Chính sách đổi trả 🔄", value: "Chính sách đổi trả hàng của Bát Tràng như thế nào?" },
   ];
