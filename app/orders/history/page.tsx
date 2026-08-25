@@ -166,12 +166,12 @@ export default function OrderHistoryPage() {
         }
     };
 
-    const userId = user?._id || user?.id || user?.email;
+    const userId = user?.id || user?.email;
 
     useEffect(() => {
         if (authUser) {
             setUser((prev) => {
-                if (prev?._id === authUser._id && prev?.id === authUser.id && prev?.email === authUser.email) {
+                if (prev?.id === authUser.id && prev?.email === authUser.email) {
                     return prev;
                 }
                 return authUser;
