@@ -77,6 +77,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Sitemap: failed to fetch collections:", error);
   }
 
+  // Dynamic Category routes
+  let categoryRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const res = await fetch(`${apiUrl}/categories?isActive=true`, {
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const rawCategories = Array.isArray(data) ? data : (data.data || []);
+      categoryRoutes = rawCategories
+        .filter((category: any) => category.slug)
+        .map((category: any) => ({
+          url: `${siteUrl}/categories/${category.slug}`,
+          lastModified: category.updatedAt ? new Date(category.updatedAt) : new Date(),
+          changeFrequency: "weekly" as const,
+          priority: 0.7,
+        }));
+    }
+  } catch (error) {
+    console.error("Sitemap: failed to fetch categories:", error);
+  }
+
   // Dynamic News routes
   let newsRoutes: MetadataRoute.Sitemap = [];
   try {
@@ -102,6 +124,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticRoutes,
     ...productRoutes,
+    ...categoryRoutes,
     ...collectionRoutes,
     ...newsRoutes,
   ];
