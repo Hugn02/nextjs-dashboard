@@ -147,7 +147,7 @@ export default function Navbar() {
       window.removeEventListener('storage', checkAuth);
       window.removeEventListener('auth-state-changed', checkAuth);
     };
-  }, [activeModal]);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {

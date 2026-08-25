@@ -21,8 +21,10 @@ import {
     ChevronLeft,
     ArrowLeft,
     RotateCcw,
+    Eye,
 } from "lucide-react";
 import ReturnRequestModal from "@/src/components/ReturnRequestModal";
+import ViewReturnDetailModal from "@/src/components/ViewReturnDetailModal";
 
 interface Order {
     _id?: string;
@@ -93,6 +95,7 @@ export default function OrderHistoryPage() {
     };
 
     const [showCancelReturnModal, setShowCancelReturnModal] = useState<Order | null>(null);
+    const [showViewReturnModal, setShowViewReturnModal] = useState<Order | null>(null);
     const [cancelReturnSuccess, setCancelReturnSuccess] = useState<boolean>(false);
     const [cancelReturnError, setCancelReturnError] = useState<string | null>(null);
     const [cancellingReturnId, setCancellingReturnId] = useState<string | null>(null);
@@ -163,16 +166,23 @@ export default function OrderHistoryPage() {
         }
     };
 
+    const userId = user?._id || user?.id || user?.email;
+
     useEffect(() => {
         if (authUser) {
-            setUser(authUser);
+            setUser((prev) => {
+                if (prev?._id === authUser._id && prev?.id === authUser.id && prev?.email === authUser.email) {
+                    return prev;
+                }
+                return authUser;
+            });
         } else if (!token) {
             setLoading(false);
         }
     }, [authUser, token]);
 
     const fetchOrders = useCallback(async () => {
-        if (!user) return;
+        if (!userId) return;
 
         setLoading(true);
         setError(null);
@@ -191,13 +201,13 @@ export default function OrderHistoryPage() {
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [userId]);
 
     useEffect(() => {
-        if (user) {
+        if (userId) {
             fetchOrders();
         }
-    }, [user, fetchOrders]);
+    }, [userId, fetchOrders]);
 
     const handleCancelOrder = async (orderId: string) => {
         setCancellingId(orderId);
@@ -511,6 +521,17 @@ export default function OrderHistoryPage() {
                                                                     <span className="truncate">{downloadingInvoiceId === orderId ? 'Đang xuất...' : 'Tải hóa đơn PDF'}</span>
                                                                 </button>
 
+                                                                {/* Xem yêu cầu hoàn trả — if return_requested or returned */}
+                                                                {(order.status === 'return_requested' || order.status === 'returned') && (
+                                                                    <button
+                                                                        onClick={() => setShowViewReturnModal(order)}
+                                                                        className="h-9 px-2 bg-[#fdf8ef] text-[#8b6914] border border-[#c4a84f] hover:bg-[#f5ebd6] text-[11px] font-bold tracking-[0.3px] uppercase rounded transition-all font-sans cursor-pointer flex items-center justify-center gap-1 w-full md:w-auto"
+                                                                    >
+                                                                        <Eye className="w-3.5 h-3.5 shrink-0 text-[#c4a84f]" />
+                                                                        <span className="truncate">Xem Yêu cầu Hoàn trả</span>
+                                                                    </button>
+                                                                )}
+
                                                                 {/* Hủy yêu cầu hoàn trả — only if return_requested */}
                                                                 {hasCancelReturn && (
                                                                     <button
@@ -720,6 +741,15 @@ export default function OrderHistoryPage() {
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* View Return Detail Modal */}
+            {showViewReturnModal && (
+                <ViewReturnDetailModal
+                    order={showViewReturnModal}
+                    onClose={() => setShowViewReturnModal(null)}
+                    onCancelSuccess={() => fetchOrders()}
+                />
             )}
         </>
     );

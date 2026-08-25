@@ -21,8 +21,10 @@ import {
     Truck,
     XCircle,
     ShoppingBag,
-    HelpCircle
+    HelpCircle,
+    Eye,
 } from "lucide-react";
+import ViewReturnDetailModal from "@/src/components/ViewReturnDetailModal";
 
 interface OrderDetail {
     _id: string;
@@ -68,6 +70,7 @@ export default function OrderDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [cancelling, setCancelling] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
+    const [showViewReturnModal, setShowViewReturnModal] = useState<OrderDetail | null>(null);
     const [downloadingPdf, setDownloadingPdf] = useState(false);
 
     const handleDownloadInvoicePdf = async () => {
@@ -271,6 +274,8 @@ export default function OrderDetailPage() {
             shipping: "Đang vận chuyển",
             completed: "Hoàn thành",
             cancelled: "Đã hủy",
+            return_requested: "Yêu cầu hoàn trả",
+            returned: "Đã hoàn trả",
         };
         return statusMap[status] || status;
     };
@@ -668,6 +673,16 @@ export default function OrderDetailPage() {
                                                 </button>
                                             )}
 
+                                            {(order.status === 'return_requested' || order.status === 'returned') && (
+                                                <button
+                                                    onClick={() => setShowViewReturnModal(order)}
+                                                    className="w-full flex items-center justify-center gap-2 bg-[#fdf8ef] border border-[#c4a84f] text-[#8b6914] hover:bg-[#f5ebd6] text-xs font-bold tracking-[1.5px] uppercase py-3.5 rounded transition-all font-sans cursor-pointer"
+                                                >
+                                                    <Eye className="w-4 h-4 text-[#c4a84f]" />
+                                                    Xem Yêu cầu Hoàn trả
+                                                </button>
+                                            )}
+
                                             {order.status === 'completed' && (
                                                 <div className="space-y-3 border-b border-gray-100 pb-3">
                                                     {allReviewed ? (
@@ -927,6 +942,13 @@ export default function OrderDetailPage() {
                         </div>
                     </div>
                 </div>
+            )}
+            {showViewReturnModal && (
+                <ViewReturnDetailModal
+                    order={showViewReturnModal}
+                    onClose={() => setShowViewReturnModal(null)}
+                    onCancelSuccess={() => fetchOrder()}
+                />
             )}
         </>
     );
