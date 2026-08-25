@@ -6,6 +6,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { searchProducts } from "../services/search.service";
 import { Product } from "../../products/types/product.type";
 import ProductCard from "../../products/components/ProductCard";
+import ProductFilter from "../../products/components/ProductFilter";
+import { useProductFilterOptions } from "../../products/hooks/useProductFilterOptions";
 
 const PAGE_SIZE = 10;
 
@@ -33,15 +35,23 @@ export default function SearchPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState(nameParam);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get("category"));
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(searchParams.get("collection"));
+  const [priceRange, setPriceRange] = useState<{ min?: number; max?: number } | null>(() => {
+    const min = searchParams.get("minPrice");
+    const max = searchParams.get("maxPrice");
+    return min || max ? { min: min ? Number(min) : undefined, max: max ? Number(max) : undefined } : null;
+  });
+  const { categories, collections } = useProductFilterOptions();
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const doSearch = useCallback(
-    async (name: string, page: number) => {
+    async (name: string, page: number, filters: { category?: string; collection?: string; minPrice?: number; maxPrice?: number }) => {
       if (!name.trim()) return;
       setLoading(true);
       try {
-        const result = await searchProducts({ name: name.trim(), page, limit: PAGE_SIZE });
+        const result = await searchProducts({ name: name.trim(), page, limit: PAGE_SIZE, ...filters });
         setProducts(result.products);
         setTotalCount(result.totalCount);
       } catch {
@@ -56,17 +66,36 @@ export default function SearchPage() {
 
   useEffect(() => {
     setInputValue(nameParam);
-    doSearch(nameParam, pageParam);
-  }, [nameParam, pageParam, doSearch]);
+    setSelectedCategory(searchParams.get("category"));
+    setSelectedCollection(searchParams.get("collection"));
+    const min = searchParams.get("minPrice");
+    const max = searchParams.get("maxPrice");
+    setPriceRange(min || max ? { min: min ? Number(min) : undefined, max: max ? Number(max) : undefined } : null);
+    doSearch(nameParam, pageParam, {
+      category: searchParams.get("category") || undefined,
+      collection: searchParams.get("collection") || undefined,
+      minPrice: min ? Number(min) : undefined,
+      maxPrice: max ? Number(max) : undefined,
+    });
+  }, [nameParam, pageParam, searchParams, doSearch]);
+
+  const buildSearchUrl = (name: string, page = 1, filters = { category: selectedCategory, collection: selectedCollection, price: priceRange }) => {
+    const params = new URLSearchParams({ name: name.trim(), page: String(page) });
+    if (filters.category) params.set("category", filters.category);
+    if (filters.collection) params.set("collection", filters.collection);
+    if (filters.price?.min !== undefined) params.set("minPrice", String(filters.price.min));
+    if (filters.price?.max !== undefined) params.set("maxPrice", String(filters.price.max));
+    return `/search?${params.toString()}`;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    router.push(`/search?name=${encodeURIComponent(inputValue.trim())}&page=1`);
+    router.push(buildSearchUrl(inputValue, 1));
   };
 
   const handlePageChange = (page: number) => {
-    router.push(`/search?name=${encodeURIComponent(nameParam)}&page=${page}`);
+    router.push(buildSearchUrl(nameParam, page));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -116,6 +145,30 @@ export default function SearchPage() {
             Tìm
           </button>
         </form>
+
+        {nameParam && (
+          <div className="flex justify-center mb-8">
+            <ProductFilter
+              categories={categories}
+              collections={collections}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={(value) => {
+                setSelectedCategory(value);
+                router.push(buildSearchUrl(nameParam, 1, { category: value, collection: selectedCollection, price: priceRange }));
+              }}
+              selectedCollection={selectedCollection}
+              setSelectedCollection={(value) => {
+                setSelectedCollection(value);
+                router.push(buildSearchUrl(nameParam, 1, { category: selectedCategory, collection: value, price: priceRange }));
+              }}
+              priceRange={priceRange}
+              setPriceRange={(value) => {
+                setPriceRange(value);
+                router.push(buildSearchUrl(nameParam, 1, { category: selectedCategory, collection: selectedCollection, price: value }));
+              }}
+            />
+          </div>
+        )}
 
         {/* Nhãn kết quả */}
         {nameParam && !loading && products.length > 0 && (

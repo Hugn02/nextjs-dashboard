@@ -40,7 +40,13 @@ const mapProductData = (p: any): Product => ({
 export const searchProducts = async (query: SearchQuery): Promise<SearchResponse> => {
   const params = new URLSearchParams();
 
-  if (query.name) params.append("name", query.name);
+  if (query.name) params.append("search", query.name);
+  if (query.category) params.append("category", query.category);
+  if (query.collection) params.append("collection", query.collection);
+  if (query.minPrice !== undefined) params.append("minPrice", String(query.minPrice));
+  if (query.maxPrice !== undefined) params.append("maxPrice", String(query.maxPrice));
+  if (query.sortBy) params.append("sortBy", query.sortBy);
+  if (query.sortOrder) params.append("sortOrder", query.sortOrder);
   if (query.page) params.append("page", String(query.page));
   if (query.limit) params.append("limit", String(query.limit));
   params.append("status", "active");
