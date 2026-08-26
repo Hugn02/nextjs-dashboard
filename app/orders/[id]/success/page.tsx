@@ -79,7 +79,11 @@ export default function OrderSuccessPage() {
             </div>
           ) : error || !order ? (
             <div className="py-8">
-              <span className="text-5xl block mb-4">⚠️</span>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
               <h2 className="text-xl font-['Cormorant_Garamond',_serif] text-red-600 font-bold mb-4">
                 Có lỗi xảy ra
               </h2>
@@ -95,7 +99,9 @@ export default function OrderSuccessPage() {
             <div>
               {/* Success Checkmark */}
               <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-200">
-                <span className="text-green-600 text-3xl font-bold">✓</span>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
               </div>
 
               <h1 className="text-2xl md:text-3xl font-bold font-['Cormorant_Garamond',_serif] tracking-[1.5px] text-green-700 uppercase mb-2">

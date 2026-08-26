@@ -156,7 +156,11 @@ export default function CartPage() {
           {/* Banner thông báo revalidation nếu có thay đổi giá hoặc tồn kho */}
           {hasPriceChangesOrUnavailable && cart && cart.items.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 text-amber-950 px-4 py-3.5 rounded mb-6 flex items-start gap-3 shadow-sm">
-              <span className="text-amber-600 text-lg leading-none mt-0.5">⚠️</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
               <div className="flex-1 text-xs sm:text-sm">
                 <p className="font-bold text-amber-900">
                   Thông tin giỏ hàng đã được cập nhật lại theo thực tế hệ thống:
@@ -170,7 +174,10 @@ export default function CartPage() {
 
           {(!cart || cart.items.length === 0) ? (
             <div className="text-center py-20 bg-white border border-[#ede0c4] rounded">
-              <span className="text-6xl opacity-30 block mb-4">🛒</span>
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#c4a84f" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 opacity-30">
+                <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+              </svg>
               <p className="text-gray-400 text-base mb-6" style={serif}>Chưa có sản phẩm nào trong giỏ hàng.</p>
               <Link
                 href="/products/all"
@@ -291,13 +298,15 @@ export default function CartPage() {
                                     </span>
                                   )}
                                   {item.isAvailable === false && (
-                                    <span className="block text-[10px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded mt-1 w-fit font-medium">
-                                      ⚠️ {item.availabilityMessage || "Không khả dụng"}
+                                    <span className="block text-[10px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded mt-1 w-fit font-medium flex items-center gap-1">
+                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                      {item.availabilityMessage || "Không khả dụng"}
                                     </span>
                                   )}
                                   {item.availabilityMessage && item.isAvailable !== false && (
-                                    <span className="block text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded mt-1 w-fit">
-                                      ⚠️ {item.availabilityMessage}
+                                    <span className="block text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded mt-1 w-fit flex items-center gap-1">
+                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                      {item.availabilityMessage}
                                     </span>
                                   )}
 
@@ -390,13 +399,15 @@ export default function CartPage() {
                                     </span>
                                   )}
                                   {item.isAvailable === false && (
-                                    <span className="inline-block text-[11px] text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded mt-1 font-medium">
-                                      ⚠️ {item.availabilityMessage || "Không thể thanh toán"}
+                                    <span className="inline-flex items-center gap-1 text-[11px] text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded mt-1 font-medium">
+                                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                      {item.availabilityMessage || "Không thể thanh toán"}
                                     </span>
                                   )}
                                   {item.availabilityMessage && item.isAvailable !== false && (
-                                    <span className="inline-block text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded mt-1">
-                                      ⚠️ {item.availabilityMessage}
+                                    <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded mt-1">
+                                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                      {item.availabilityMessage}
                                     </span>
                                   )}
                                 </div>
@@ -541,7 +552,10 @@ export default function CartPage() {
                   {loginWarning && (
                     <div className="flex flex-col gap-2.5 bg-amber-50 border border-amber-300 rounded-lg p-3.5 animate-in fade-in slide-in-from-top-1 duration-200">
                       <div className="flex items-start gap-2">
-                        <span className="text-amber-500 text-base flex-shrink-0 mt-0.5">🔒</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
                         <p className="text-xs text-amber-800 font-semibold leading-relaxed" style={serif}>
                           Bạn cần <strong>đăng nhập</strong> để tiến hành thanh toán!
                         </p>

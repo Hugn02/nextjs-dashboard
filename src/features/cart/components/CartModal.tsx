@@ -84,7 +84,11 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
         {/* Empty */}
         {(!loading) && (!cart || cart.items.length === 0) && (
           <div className="flex flex-col items-center py-10 px-6 gap-3">
-            <span className="text-4xl opacity-30">🛒</span>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#c4a84f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40">
+              <circle cx="9" cy="21" r="1" />
+              <circle cx="20" cy="21" r="1" />
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+            </svg>
             <p className="text-sm text-gray-400" style={serif}>
               Giỏ hàng của bạn đang trống
             </p>
@@ -219,8 +223,13 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                             </span>
                           )}
                           {item.isAvailable === false && (
-                            <span className="text-[10px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded block w-fit mt-0.5 font-medium">
-                              ⚠️ {item.availabilityMessage || "Không khả dụng"}
+                            <span className="text-[10px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded inline-flex items-center gap-1 w-fit mt-0.5 font-medium">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                <line x1="12" y1="9" x2="12" y2="13" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                              </svg>
+                              <span>{item.availabilityMessage || "Không khả dụng"}</span>
                             </span>
                           )}
                           {item.availabilityMessage && item.isAvailable !== false && (
@@ -266,7 +275,10 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
               {loginWarning && (
                 <div className="flex flex-col gap-2 bg-amber-50 border border-amber-300 rounded-lg p-3 animate-in fade-in slide-in-from-top-1 duration-200">
                   <div className="flex items-start gap-2">
-                    <span className="text-amber-500 text-sm flex-shrink-0 mt-0.5">🔒</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
                     <p className="text-xs text-amber-800 font-semibold leading-relaxed" style={serif}>
                       Bạn cần <strong>đăng nhập</strong> để tiến hành thanh toán!
                     </p>

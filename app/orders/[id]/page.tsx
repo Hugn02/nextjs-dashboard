@@ -581,6 +581,19 @@ export default function OrderDetailPage() {
                                                 <span>Tạm tính:</span>
                                                 <span className="text-gray-800 font-medium">{formatPrice(getSubtotal())}</span>
                                             </div>
+                                            {(order.discountAmount > 0 || order.couponCode) && (
+                                                <div className="flex justify-between text-emerald-700 font-medium">
+                                                    <span className="flex items-center gap-1.5">
+                                                        <span>Giảm giá (Voucher):</span>
+                                                        {order.couponCode && (
+                                                            <span className="font-mono text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 px-1.5 py-0.5 rounded font-bold">
+                                                                {order.couponCode}
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                    <span className="font-bold">-{formatPrice(order.discountAmount || 0)}</span>
+                                                </div>
+                                            )}
                                             <div className="flex justify-between">
                                                 <span>Phí giao hàng:</span>
                                                 <span className="text-gray-800 font-medium">

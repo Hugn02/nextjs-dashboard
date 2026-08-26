@@ -4,6 +4,51 @@ import Navbar from "@/src/layout/Navbar";
 import Footer from "@/src/layout/Footer";
 import { useState, useEffect } from "react";
 
+const TABS = [
+  {
+    id: "doi-tra",
+    label: "Chính sách đổi trả",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <path d="M9 12l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
+    id: "giao-hang",
+    label: "Chính sách giao hàng",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+        <rect x="1" y="3" width="15" height="13" />
+        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+        <circle cx="5.5" cy="18.5" r="2.5" />
+        <circle cx="18.5" cy="18.5" r="2.5" />
+      </svg>
+    ),
+  },
+  {
+    id: "huong-dan",
+    label: "Hướng dẫn mua hàng",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+      </svg>
+    ),
+  },
+  {
+    id: "cua-hang",
+    label: "Hệ thống cửa hàng",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+        <circle cx="12" cy="10" r="3" />
+      </svg>
+    ),
+  },
+];
+
 export default function SupportPage() {
   const [activeTab, setActiveTab] = useState<"doi-tra" | "giao-hang" | "huong-dan" | "cua-hang">("doi-tra");
 
@@ -32,25 +77,21 @@ export default function SupportPage() {
 
           {/* Navigation Tabs */}
           <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-10 border-b border-[#ede0c4] pb-4">
-            {[
-              { id: "doi-tra", label: "🛡️ Chính sách đổi trả" },
-              { id: "giao-hang", label: "🚚 Chính sách giao hàng" },
-              { id: "huong-dan", label: "📖 Hướng dẫn mua hàng" },
-              { id: "cua-hang", label: "📍 Hệ thống cửa hàng" },
-            ].map((tab) => (
+            {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => {
                   setActiveTab(tab.id as any);
                   window.location.hash = tab.id;
                 }}
-                className={`px-5 py-3 rounded-t-md text-[14px] md:text-[15px] font-['Cormorant_Garamond',_serif] font-semibold transition-all duration-300 border-b-2 cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-5 py-3 rounded-t-md text-[14px] md:text-[15px] font-['Cormorant_Garamond',_serif] font-semibold transition-all duration-300 border-b-2 cursor-pointer ${
                   activeTab === tab.id
                     ? "border-[#8b6914] text-[#8b6914] bg-white shadow-sm"
                     : "border-transparent text-[#7a5c30] hover:text-[#8b6914] hover:bg-white/50"
                 }`}
               >
-                {tab.label}
+                {tab.icon}
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>
@@ -137,13 +178,25 @@ export default function SupportPage() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[15px]">
                   <div className="p-4 rounded border border-[#ede0c4] bg-[#fdfaf4]">
-                    <h3 className="font-bold text-[#8b6914] text-lg mb-2">📍 Showroom Hà Nội</h3>
+                    <h3 className="font-bold text-[#8b6914] text-lg mb-2 flex items-center gap-2">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b6914" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      <span>Showroom Hà Nội</span>
+                    </h3>
                     <p>Địa chỉ: Xóm 1, Làng gốm Bát Tràng, Gia Lâm, Hà Nội</p>
                     <p>Hotline: 0901 234 567</p>
                     <p>Giờ mở cửa: 08:00 - 20:00 (Tất cả các ngày)</p>
                   </div>
                   <div className="p-4 rounded border border-[#ede0c4] bg-[#fdfaf4]">
-                    <h3 className="font-bold text-[#8b6914] text-lg mb-2">📍 Showroom TP. Hồ Chí Minh</h3>
+                    <h3 className="font-bold text-[#8b6914] text-lg mb-2 flex items-center gap-2">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b6914" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      <span>Showroom TP. Hồ Chí Minh</span>
+                    </h3>
                     <p>Địa chỉ: 456 Nguyễn Văn Linh, Phường Tân Thuận Tây, Quận 7, TP.HCM</p>
                     <p>Hotline: 0909 876 543</p>
                     <p>Giờ mở cửa: 08:30 - 21:30 (Tất cả các ngày)</p>

@@ -293,7 +293,11 @@ export default function ProductCard({ product }: { product: Product }) {
                                 e.stopPropagation();
                                 if (adding) return;
                                 if (product.stock !== undefined && product.stock !== null && qty > product.stock) {
-                                    alert(`Số lượng tồn kho chỉ còn ${product.stock} sản phẩm.`);
+                                    window.dispatchEvent(
+                                        new CustomEvent("cart-warning", {
+                                            detail: { message: `Số lượng tồn kho chỉ còn ${product.stock} sản phẩm.` },
+                                        })
+                                    );
                                     return;
                                 }
                                 setAdding(true);
@@ -310,7 +314,11 @@ export default function ProductCard({ product }: { product: Product }) {
                                         );
                                     }
                                 } catch (err: any) {
-                                    alert(err.message || "Có lỗi xảy ra");
+                                    window.dispatchEvent(
+                                        new CustomEvent("cart-warning", {
+                                            detail: { message: err.message || "Không thể thêm vào giỏ hàng" },
+                                        })
+                                    );
                                 } finally {
                                     setAdding(false);
                                 }

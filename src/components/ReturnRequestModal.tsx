@@ -342,8 +342,12 @@ export default function ReturnRequestModal({ order, onClose, onSuccess }: Return
 
             {/* Bank Account Details */}
             <div className="pt-2 border-t border-gray-200">
-              <h4 className="text-xs font-bold text-[#8b2500] uppercase tracking-wider mb-2 flex items-center gap-1 font-sans">
-                <span>💳</span> Thông tin Ngân hàng nhận lại tiền hoàn
+              <h4 className="text-xs font-bold text-[#8b2500] uppercase tracking-wider mb-2 flex items-center gap-1.5 font-sans">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b2500" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                  <line x1="1" y1="10" x2="23" y2="10" />
+                </svg>
+                <span>Thông tin Ngân hàng nhận lại tiền hoàn</span>
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>

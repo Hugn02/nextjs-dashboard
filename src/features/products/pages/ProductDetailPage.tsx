@@ -204,7 +204,13 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     const incrementQty = () => {
         if (product && product.stock) {
             if (quantity >= product.stock) {
-                setQuantityError(`Số lượng tồn kho chỉ còn ${product.stock} sản phẩm.`);
+                const msg = `Số lượng tồn kho chỉ còn ${product.stock} sản phẩm.`;
+                setQuantityError(msg);
+                window.dispatchEvent(
+                    new CustomEvent("cart-warning", {
+                        detail: { message: msg },
+                    })
+                );
                 return;
             }
         }
@@ -234,9 +240,12 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                 })
             );
         } catch (err: any) {
-            console.error("Failed to add to cart:", err);
-            setToastMessage(err.message || "Thêm vào giỏ hàng thất bại!");
-            setTimeout(() => setToastMessage(null), 3000);
+            // Không dùng console.error để tránh trigger màn hình đỏ Next.js Dev Overlay
+            window.dispatchEvent(
+                new CustomEvent("cart-warning", {
+                    detail: { message: err.message || "Thêm vào giỏ hàng thất bại!" },
+                })
+            );
         }
     };
 
