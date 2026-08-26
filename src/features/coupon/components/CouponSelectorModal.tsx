@@ -140,7 +140,7 @@ export default function CouponSelectorModal({
                 coupon.userUsageLimit > 0 &&
                 (coupon.currentUserUsageCount ?? 0) >= coupon.userUsageLimit;
               const isGlobalLimitReached =
-                coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit;
+                coupon.usageLimit != null && coupon.usedCount >= coupon.usageLimit;
 
               const isEligible = isMinOrderEligible && !isUserLimitReached && !isGlobalLimitReached;
               const isSelected = selectedCode?.toUpperCase() === coupon.code.toUpperCase();

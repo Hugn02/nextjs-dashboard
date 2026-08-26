@@ -912,7 +912,7 @@ export default function CheckoutPage() {
                     className="text-xs font-bold text-red-500 hover:text-red-700 font-sans p-1"
                     title="Bỏ sử dụng mã"
                   >
-                    Gỡ mã ✕
+                    ✕
                   </button>
                 </div>
               )}

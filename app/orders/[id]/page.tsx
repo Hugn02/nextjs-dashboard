@@ -43,7 +43,11 @@ interface OrderDetail {
     paymentStatus: string;
     status: string;
     createdAt: string;
-    updatedAt: string;
+    updatedAt?: string;
+    subtotal?: number;
+    discountAmount?: number;
+    couponCode?: string | null;
+    couponId?: string | null;
     items: Array<{
         product: {
             _id: string;
@@ -321,7 +325,7 @@ export default function OrderDetailPage() {
                         <div>
                             <h3 className="font-bold text-red-600 font-sans text-sm">Đơn hàng đã bị hủy</h3>
                             <p className="text-xs text-gray-400 font-sans mt-0.5">
-                                Vào lúc: {new Date(order.updatedAt).toLocaleString("vi-VN")}
+                                Vào lúc: {new Date(order.updatedAt || order.createdAt).toLocaleString("vi-VN")}
                             </p>
                         </div>
                     </div>
@@ -581,7 +585,7 @@ export default function OrderDetailPage() {
                                                 <span>Tạm tính:</span>
                                                 <span className="text-gray-800 font-medium">{formatPrice(getSubtotal())}</span>
                                             </div>
-                                            {(order.discountAmount > 0 || order.couponCode) && (
+                                            {((order.discountAmount ?? 0) > 0 || order.couponCode) && (
                                                 <div className="flex justify-between text-emerald-700 font-medium">
                                                     <span className="flex items-center gap-1.5">
                                                         <span>Giảm giá (Voucher):</span>
