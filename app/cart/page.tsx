@@ -34,6 +34,65 @@ function Checkbox({ checked, onChange, id }: { checked: boolean; onChange: () =>
   );
 }
 
+function CartItemQuantityInput({
+  cartId,
+  quantity,
+  stock,
+  disabled,
+  onUpdateQuantity,
+  className = "w-8 text-center text-sm font-semibold text-[#2c1a00]",
+}: {
+  cartId: string;
+  quantity: number;
+  stock?: number | null;
+  disabled?: boolean;
+  onUpdateQuantity: (cartId: string, newQty: number) => Promise<void>;
+  className?: string;
+}) {
+  const [val, setVal] = React.useState(String(quantity));
+
+  React.useEffect(() => {
+    setVal(String(quantity));
+  }, [quantity]);
+
+  const handleBlur = async () => {
+    let parsed = parseInt(val, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      parsed = 1;
+    }
+    if (stock !== undefined && stock !== null && parsed > stock) {
+      parsed = stock;
+      window.dispatchEvent(
+        new CustomEvent("cart-warning", {
+          detail: { message: `Số lượng tồn kho chỉ còn ${stock} sản phẩm.` },
+        })
+      );
+    }
+    setVal(String(parsed));
+    if (parsed !== quantity) {
+      await onUpdateQuantity(cartId, parsed);
+    }
+  };
+
+  return (
+    <input
+      type="number"
+      min={1}
+      max={stock || 9999}
+      disabled={disabled}
+      value={val}
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          handleBlur();
+        }
+      }}
+      className={`${className} bg-transparent border-none outline-none focus:bg-[#faf7f2] rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+    />
+  );
+}
+
 export default function CartPage() {
   const router = useRouter();
   const { cart, summary, updateItem, removeItem, loading, updatingIds, selectedIds, setSelectedIds } = useCart();
@@ -45,7 +104,11 @@ export default function CartPage() {
   const changeQty = (id: string, qty: number, delta: number, stock?: number) => {
     const next = qty + delta;
     if (delta > 0 && stock !== undefined && stock !== null && next > stock) {
-      alert(`Số lượng tồn kho chỉ còn ${stock} sản phẩm.`);
+      window.dispatchEvent(
+        new CustomEvent("cart-warning", {
+          detail: { message: `Số lượng tồn kho chỉ còn ${stock} sản phẩm.` },
+        })
+      );
       return;
     }
     if (next >= 1) updateItem(id, next);
@@ -327,9 +390,14 @@ export default function CartPage() {
                                       >
                                         −
                                       </button>
-                                      <span className="w-8 text-center text-sm font-semibold text-[#2c1a00]">
-                                        {item.quantity}
-                                      </span>
+                                      <CartItemQuantityInput
+                                        cartId={cid}
+                                        quantity={item.quantity}
+                                        stock={p?.stock}
+                                        disabled={loading || updatingIds.has(cid)}
+                                        onUpdateQuantity={updateItem}
+                                        className="w-8 text-center text-sm font-semibold text-[#2c1a00]"
+                                      />
                                       <button
                                         onClick={() => changeQty(cid, item.quantity, 1, p?.stock)}
                                         disabled={loading || updatingIds.has(cid) || (p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock)}
@@ -439,9 +507,14 @@ export default function CartPage() {
                                   >
                                     −
                                   </button>
-                                  <span className="w-9 text-center text-sm font-semibold text-[#2c1a00]">
-                                    {item.quantity}
-                                  </span>
+                                  <CartItemQuantityInput
+                                    cartId={cid}
+                                    quantity={item.quantity}
+                                    stock={p?.stock}
+                                    disabled={loading || updatingIds.has(cid)}
+                                    onUpdateQuantity={updateItem}
+                                    className="w-9 text-center text-sm font-semibold text-[#2c1a00]"
+                                  />
                                   <button
                                     onClick={() => changeQty(cid, item.quantity, 1, p?.stock)}
                                     disabled={loading || updatingIds.has(cid) || (p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock)}

@@ -9,6 +9,63 @@ import { cloudinaryLoader, formatCloudinaryUrl } from "@/src/lib/cloudinary";
 
 const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
 
+function ModalItemQuantityInput({
+  cartId,
+  quantity,
+  stock,
+  disabled,
+  onUpdateQuantity,
+}: {
+  cartId: string;
+  quantity: number;
+  stock?: number | null;
+  disabled?: boolean;
+  onUpdateQuantity: (cartId: string, newQty: number) => Promise<void>;
+}) {
+  const [val, setVal] = useState(String(quantity));
+
+  React.useEffect(() => {
+    setVal(String(quantity));
+  }, [quantity]);
+
+  const handleBlur = async () => {
+    let parsed = parseInt(val, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      parsed = 1;
+    }
+    if (stock !== undefined && stock !== null && parsed > stock) {
+      parsed = stock;
+      window.dispatchEvent(
+        new CustomEvent("cart-warning", {
+          detail: { message: `Số lượng tồn kho chỉ còn ${stock} sản phẩm.` },
+        })
+      );
+    }
+    setVal(String(parsed));
+    if (parsed !== quantity) {
+      await onUpdateQuantity(cartId, parsed);
+    }
+  };
+
+  return (
+    <input
+      type="number"
+      min={1}
+      max={stock || 9999}
+      disabled={disabled}
+      value={val}
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          handleBlur();
+        }
+      }}
+      className="w-8 text-center text-xs font-semibold text-[#2c1a00] bg-transparent border-none outline-none focus:bg-[#faf7f2] rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+    />
+  );
+}
+
 export default function CartModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const { cart, summary, updateItem, removeItem, loading, updatingIds } = useCart();
@@ -16,8 +73,16 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
 
   const fmt = (n: number) => n.toLocaleString("vi-VN") + "₫";
 
-  const changeQty = (id: string, qty: number, delta: number) => {
+  const changeQty = (id: string, qty: number, delta: number, stock?: number | null) => {
     const next = qty + delta;
+    if (delta > 0 && stock !== undefined && stock !== null && next > stock) {
+      window.dispatchEvent(
+        new CustomEvent("cart-warning", {
+          detail: { message: `Số lượng tồn kho chỉ còn ${stock} sản phẩm.` },
+        })
+      );
+      return;
+    }
     if (next >= 1) updateItem(id, next);
   };
 
@@ -197,11 +262,15 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                             >
                               -
                             </button>
-                            <span className="w-8 text-center text-xs font-semibold text-[#2c1a00]">
-                              {item.quantity}
-                            </span>
+                            <ModalItemQuantityInput
+                              cartId={cid}
+                              quantity={item.quantity}
+                              stock={p?.stock}
+                              disabled={loading || updatingIds.has(cid)}
+                              onUpdateQuantity={updateItem}
+                            />
                             <button
-                              onClick={() => changeQty(cid, item.quantity, 1)}
+                              onClick={() => changeQty(cid, item.quantity, 1, p?.stock)}
                               disabled={loading || updatingIds.has(cid) || (p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock)}
                               className={`w-7 h-7 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none transition-colors ${
                                 p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock

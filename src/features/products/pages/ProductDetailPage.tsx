@@ -29,6 +29,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     const [error, setError] = useState<string | null>(null);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const [quantity, setQuantity] = useState(1);
+    const [quantityInput, setQuantityInput] = useState('1');
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
     const [quantityError, setQuantityError] = useState<string | null>(null);
@@ -201,9 +202,32 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     };
 
     // Quantity handlers
+    const handleQuantityBlur = () => {
+        let parsed = parseInt(quantityInput, 10);
+        if (isNaN(parsed) || parsed < 1) {
+            parsed = 1;
+        }
+        if (product && product.stock !== undefined && product.stock !== null) {
+            if (parsed > product.stock) {
+                parsed = product.stock;
+                const msg = `Số lượng tồn kho chỉ còn ${product.stock} sản phẩm.`;
+                setQuantityError(msg);
+                window.dispatchEvent(
+                    new CustomEvent("cart-warning", {
+                        detail: { message: msg },
+                    })
+                );
+            }
+        }
+        setQuantity(parsed);
+        setQuantityInput(parsed.toString());
+    };
+
     const incrementQty = () => {
+        let current = parseInt(quantityInput, 10);
+        if (isNaN(current)) current = quantity;
         if (product && product.stock) {
-            if (quantity >= product.stock) {
+            if (current >= product.stock) {
                 const msg = `Số lượng tồn kho chỉ còn ${product.stock} sản phẩm.`;
                 setQuantityError(msg);
                 window.dispatchEvent(
@@ -215,13 +239,19 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
             }
         }
         setQuantityError(null);
-        setQuantity(prev => prev + 1);
+        const next = current + 1;
+        setQuantity(next);
+        setQuantityInput(next.toString());
     };
 
     const decrementQty = () => {
+        let current = parseInt(quantityInput, 10);
+        if (isNaN(current)) current = quantity;
         setQuantityError(null);
-        if (quantity > 1) {
-            setQuantity(prev => prev - 1);
+        if (current > 1) {
+            const next = current - 1;
+            setQuantity(next);
+            setQuantityInput(next.toString());
         }
     };
 
@@ -623,7 +653,9 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                             <div className="flex items-center gap-2">
                                 <span className="text-xs uppercase text-[#888] tracking-widest font-['Cormorant_Garamond',_serif]">Tình trạng:</span>
                                 <span className={`text-[13px] font-semibold ${product.inStock ? "text-[#c4a84f]" : "text-red-500"}`}>
-                                    {product.inStock ? "Còn hàng" : "Hết hàng"}
+                                    {product.inStock
+                                        ? `Còn hàng${product.stock !== undefined && product.stock !== null ? ` (${product.stock} sản phẩm có sẵn)` : ''}`
+                                        : "Hết hàng"}
                                 </span>
                             </div>
 
@@ -632,17 +664,31 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                 <div className={`relative mt-2 ${quantityError ? 'pb-5' : ''}`}>
                                     <div className="flex flex-col sm:flex-row gap-4 items-stretch">
                                         {/* Quantity selector */}
-                                        <div className={`flex items-center justify-between border rounded-[2px] bg-white h-[46px] w-full sm:w-[130px] px-3 ${quantityError ? 'border-red-500' : 'border-[#ede0c4]'}`}>
+                                        <div className={`flex items-center justify-between border rounded-[2px] bg-white h-[46px] w-full sm:w-[130px] px-2 ${quantityError ? 'border-red-500' : 'border-[#ede0c4]'}`}>
                                             <button
                                                 onClick={decrementQty}
-                                                disabled={quantity <= 1}
+                                                disabled={(parseInt(quantityInput, 10) || quantity) <= 1}
                                                 className="bg-transparent border-none text-[#3d2b00] text-lg font-light cursor-pointer select-none px-2 h-full flex items-center justify-center hover:text-[#c4a84f] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-[#3d2b00]"
                                             >
                                                 -
                                             </button>
-                                            <span className="font-['Cormorant_Garamond',_serif] text-base font-semibold text-[#3d2b00] select-none">
-                                                {quantity}
-                                            </span>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                max={product.stock || 9999}
+                                                value={quantityInput}
+                                                onChange={(e) => {
+                                                    setQuantityInput(e.target.value);
+                                                    setQuantityError(null);
+                                                }}
+                                                onBlur={handleQuantityBlur}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleQuantityBlur();
+                                                    }
+                                                }}
+                                                className="w-12 text-center font-['Cormorant_Garamond',_serif] text-base font-semibold text-[#3d2b00] border-none outline-none focus:bg-[#faf7f2] rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            />
                                             <button
                                                 onClick={incrementQty}
                                                 className="bg-transparent border-none text-[#3d2b00] text-lg font-light cursor-pointer select-none px-2 h-full flex items-center justify-center hover:text-[#c4a84f]"
