@@ -331,13 +331,8 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                 </span>
               </div>
 
-              <p
-                className={`text-[11px] italic -mt-1 ${summary.shippingFee > 0 ? "text-gray-400" : "text-green-600 font-semibold"
-                  }`}
-              >
-                {summary.shippingFee > 0
-                  ? `* Phí vận chuyển: ${fmt(summary.shippingFee)}`
-                  : "* Miễn phí vận chuyển cho đơn hàng của bạn!"}
+              <p className="text-[11px] text-gray-400 italic -mt-1">
+                * Phí vận chuyển sẽ được tính khi thanh toán.
               </p>
 
               {/* Banner cảnh báo chưa đăng nhập */}

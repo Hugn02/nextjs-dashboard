@@ -27,6 +27,7 @@ export interface Product {
     sku?: string;
     description?: string;
     stock?: number;
+    weightGrams?: number;
     soldCount?: number;
     rating?: number;
     reviewCount?: number;

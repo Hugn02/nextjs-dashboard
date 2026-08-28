@@ -39,6 +39,11 @@ interface OrderDetail {
     note?: string;
     total: number;
     shippingFee: number;
+    shippingProvider?: string;
+    shippingProviderName?: string;
+    trackingCode?: string | null;
+    shippingStatus?: string;
+    expectedDeliveryDate?: string | null;
     paymentMethod: string;
     paymentStatus: string;
     status: string;
@@ -656,6 +661,30 @@ export default function OrderDetailPage() {
                                                     <span className="font-semibold text-gray-750 leading-relaxed">
                                                         {order.address}, {order.ward}, {order.district}, {order.province}
                                                     </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Shipping Provider & Tracking */}
+                                            <div className="flex gap-3 border-t border-gray-100 pt-3">
+                                                <Truck className="w-5 h-5 text-[#c4a84f] flex-shrink-0 mt-0.5" />
+                                                <div className="w-full space-y-1">
+                                                    <span className="text-xs text-gray-400 block">Đơn vị vận chuyển</span>
+                                                    <div className="font-semibold text-gray-800 text-sm">
+                                                        {order.shippingProviderName || order.shippingProvider || "Giao hàng Tiêu chuẩn"}
+                                                    </div>
+                                                    {order.trackingCode && (
+                                                        <div className="mt-1.5 p-2.5 bg-amber-50/80 border border-amber-200/80 rounded-md">
+                                                            <span className="text-[10px] text-amber-700 block font-sans font-medium uppercase tracking-wider mb-0.5">Mã vận đơn (Tracking Code)</span>
+                                                            <span className="text-xs font-mono font-bold text-amber-900 break-all select-all block leading-normal">
+                                                                {order.trackingCode}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    {order.expectedDeliveryDate && (
+                                                        <span className="text-xs text-gray-500 block pt-0.5">
+                                                            Dự kiến giao: {order.expectedDeliveryDate}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
 

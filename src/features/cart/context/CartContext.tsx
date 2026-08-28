@@ -53,14 +53,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       0
     );
     const itemCount = cartData.items.length;
-    // Shipping: free for order >= 2,000,000đ, otherwise 30,000đ
-    const shippingFee = subtotal >= 2000000 || subtotal === 0 ? 0 : 30000;
-    const total = subtotal + shippingFee;
-
+    // Phí ship không tính ở giỏ hàng — chỉ tính chính xác tại bước checkout qua API /calculate-fee
     return {
       subtotal,
-      shippingFee,
-      total,
+      shippingFee: 0,
+      total: subtotal,
       itemCount,
     };
   }, []);

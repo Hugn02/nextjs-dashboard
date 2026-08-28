@@ -169,8 +169,7 @@ export default function CartPage() {
   const selectedSummary = useMemo(() => {
     const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const itemCount = selectedItems.length;
-    const shippingFee = subtotal > 0 && subtotal < 500000 ? 30000 : 0;
-    return { subtotal, itemCount, total: subtotal + shippingFee, shippingFee };
+    return { subtotal, itemCount };
   }, [selectedItems]);
 
   const handleCheckout = () => {
@@ -588,19 +587,18 @@ export default function CartPage() {
                       <span>Đã chọn ({selectedSummary.itemCount} sản phẩm):</span>
                       <span className="font-semibold text-gray-700">{fmt(selectedSummary.subtotal)}</span>
                     </div>
-                    <div className="flex justify-between text-gray-500">
-                      <span>Phí vận chuyển:</span>
-                      <span>{selectedSummary.shippingFee > 0 ? fmt(selectedSummary.shippingFee) : "Miễn phí"}</span>
-                    </div>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center text-base font-bold mb-6" style={serif}>
+                <div className="flex justify-between items-center text-base font-bold mb-2" style={serif}>
                   <span className="uppercase tracking-wide text-[#2c1a00]">Tổng tiền:</span>
                   <span className="text-xl font-bold text-red-600">
-                    {selectedIds.size > 0 ? fmt(selectedSummary.total) : "0₫"}
+                    {selectedIds.size > 0 ? fmt(selectedSummary.subtotal) : "0₫"}
                   </span>
                 </div>
+                <p className="text-[11px] text-gray-400 italic mb-4" style={serif}>
+                  * Phí vận chuyển sẽ được tính khi thanh toán.
+                </p>
 
                 <div className="flex flex-col gap-3">
                   {selectedIds.size > 0 ? (

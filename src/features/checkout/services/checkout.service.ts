@@ -11,6 +11,15 @@ interface ApiResponse<T> {
   statusCode: number;
 }
 
+export interface ShippingFeeOption {
+  providerId: string;
+  providerName: string;
+  serviceName: string;
+  fee: number;
+  expectedDeliveryDate: string;
+  description?: string;
+}
+
 export async function estimateCheckout(
   dto: CheckoutEstimateDto = {}
 ): Promise<CheckoutEstimateResponse> {
@@ -22,4 +31,26 @@ export async function estimateCheckout(
     }
   );
   return res.data;
+}
+
+export async function fetchShippingOptions(params: {
+  locationId?: string;
+  provinceName?: string;
+  districtName?: string;
+  wardName?: string;
+  subtotal?: number;
+}): Promise<ShippingFeeOption[]> {
+  try {
+    const res = await apiClient<{ success: boolean; message: string; data: { success: boolean; options: ShippingFeeOption[] } }>(
+      '/shipping/calculate-fee',
+      {
+        method: 'POST',
+        body: JSON.stringify(params),
+      }
+    );
+    return res.data?.options || [];
+  } catch (err) {
+    console.error('Failed to fetch shipping options:', err);
+    return [];
+  }
 }

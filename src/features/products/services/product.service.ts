@@ -42,6 +42,7 @@ const mapProductData = (p: any): Product => ({
     sku: p.sku || '',
     description: p.description || '',
     stock: p.stock ?? 0,
+    weightGrams: p.weightGrams ?? 500,
     soldCount: p.soldCount ?? 0,
     rating: p.rating ?? 5.0,
     reviewCount: p.reviewCount ?? 0,

@@ -14,7 +14,12 @@ import {
 } from "@/src/features/location/services/location.service";
 import SelectedAddressBanner from "@/src/features/location/components/SelectedAddressBanner";
 import LocationPickerModal from "@/src/features/location/components/LocationPickerModal";
-import { estimateCheckout } from "@/src/features/checkout/services/checkout.service";
+import {
+  estimateCheckout,
+  fetchShippingOptions,
+  ShippingFeeOption,
+} from "@/src/features/checkout/services/checkout.service";
+import { Truck } from "lucide-react";
 import {
   CheckoutEstimateResponse,
   CheckoutItemStatus,
@@ -45,6 +50,11 @@ export default function CheckoutPage() {
   // ─── Estimate State ────────────────────────────────────────────────────────
   const [estimateData, setEstimateData] = useState<CheckoutEstimateResponse | null>(null);
   const [estimateLoading, setEstimateLoading] = useState(false);
+
+  // ─── Shipping Provider State ─────────────────────────────────────────────
+  const [shippingOptions, setShippingOptions] = useState<ShippingFeeOption[]>([]);
+  const [selectedShippingProvider, setSelectedShippingProvider] = useState<string>("GHN");
+  const [shippingLoading, setShippingLoading] = useState(false);
 
   // ─── Address state ──────────────────────────────────────────────────────────
   const [allLocations, setAllLocations] = useState<UserLocation[]>([]);
@@ -175,6 +185,19 @@ export default function CheckoutPage() {
     return () => clearTimeout(timer);
   }, [cart, selectedLocation]);
 
+  // ─── Sync authUser → form khi store được hydrate bất đồng bộ ──────────────
+  // authUser ban đầu = null (fetchMe chưa xong), useEffect [] đã chạy rồi.
+  // Effect này watch authUser để fill email/name ngay khi user được load xong.
+  useEffect(() => {
+    if (!authUser) return;
+    setUser(authUser);
+    setForm((prev) => ({
+      ...prev,
+      customerName: prev.customerName || authUser.fullName || "",
+      email: prev.email || authUser.email || "",
+    }));
+  }, [authUser]);
+
   // Tự động kiểm tra & đồng bộ selectedIds với sản phẩm hiện có trong cart
   useEffect(() => {
     if (!cart || cart.items.length === 0) return;
@@ -282,12 +305,45 @@ export default function CheckoutPage() {
     (sum, item) => sum + item.quantity,
     0
   );
-  // Ưu tiên giá từ estimate API (đã lọc theo selectedIds) nếu có, fallback về tính tay
-  const checkoutShippingFee =
-    filteredEstimate?.pricing?.shippingFee ??
-    (checkoutSubtotal > 0 && checkoutSubtotal < 500000 ? 30000 : 0);
-  const rawTotal =
-    filteredEstimate?.pricing?.total ?? checkoutSubtotal + checkoutShippingFee;
+
+  useEffect(() => {
+    let active = true;
+    setShippingLoading(true);
+    fetchShippingOptions({
+      locationId: selectedLocation?.id || selectedLocation?._id,
+      provinceName: form.province || selectedLocation?.provinceName,
+      districtName: form.district || selectedLocation?.districtName,
+      wardName: form.ward || selectedLocation?.wardName,
+      subtotal: checkoutSubtotal,
+    })
+      .then((opts) => {
+        if (!active) return;
+        setShippingOptions(opts);
+        if (opts.length > 0 && !opts.some((o) => o.providerId === selectedShippingProvider)) {
+          setSelectedShippingProvider(opts[0].providerId);
+        }
+      })
+      .catch((err) => console.error("Failed to load shipping options", err))
+      .finally(() => {
+        if (active) setShippingLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedLocation, form.province, checkoutSubtotal]);
+
+  const activeShippingOption =
+    shippingOptions.find((opt) => opt.providerId === selectedShippingProvider) ||
+    shippingOptions[0] || {
+      providerId: "STANDARD",
+      providerName: "Giao hàng Tiêu chuẩn",
+      fee: checkoutSubtotal > 0 && checkoutSubtotal < 500000 ? 30000 : 0,
+      expectedDeliveryDate: "2-4 ngày làm việc",
+    };
+
+  const checkoutShippingFee = activeShippingOption.fee;
+  const rawTotal = checkoutSubtotal + checkoutShippingFee;
   const checkoutTotal = Math.max(0, rawTotal - discountAmount);
 
   const handleApplyCoupon = async (codeToApply?: string) => {
@@ -368,6 +424,7 @@ export default function CheckoutPage() {
       })),
       total: checkoutTotal,
       shippingFee: checkoutShippingFee,
+      shippingProvider: selectedShippingProvider,
       paymentMethod: paymentMethod,
       couponCode: appliedCoupon?.code || (couponCodeInput.trim() ? couponCodeInput.trim().toUpperCase() : undefined),
     };
@@ -643,6 +700,73 @@ export default function CheckoutPage() {
                   rows={3}
                   className="w-full border border-[#ede0c4] rounded p-3 text-sm text-[#111827] focus:outline-none focus:border-[#c4a84f] bg-[#faf8f5] resize-none font-sans"
                 />
+              </div>
+
+              {/* Đơn vị vận chuyển */}
+              <div className="mt-4 p-4 bg-[#fbfaf8] border border-[#ede0c4] rounded">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-600 font-sans flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-[#c4a84f]" />
+                    <span>Đơn vị vận chuyển (Giao hàng)</span>
+                  </span>
+                  {shippingLoading && (
+                    <span className="text-xs text-amber-600 animate-pulse">Đang tính phí ship...</span>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2.5">
+                  {shippingOptions.length === 0 && !shippingLoading ? (
+                    <div className="text-xs text-gray-500 italic py-2">
+                      Vui lòng chọn địa chỉ giao hàng để tải cước phí vận chuyển.
+                    </div>
+                  ) : (
+                    shippingOptions.map((opt) => {
+                      const isSelected = selectedShippingProvider === opt.providerId;
+                      return (
+                        <label
+                          key={opt.providerId}
+                          htmlFor={`provider-${opt.providerId}`}
+                          className={`flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition-all ${
+                            isSelected
+                              ? "bg-[#fffdf7] border-[#c4a84f] ring-1 ring-[#c4a84f]/40 shadow-sm"
+                              : "bg-white border-[#ede0c4] hover:border-[#c4a84f]/60"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              id={`provider-${opt.providerId}`}
+                              name="shippingProvider"
+                              value={opt.providerId}
+                              checked={isSelected}
+                              onChange={() => setSelectedShippingProvider(opt.providerId)}
+                              className="accent-[#c4a84f] w-4 h-4 cursor-pointer"
+                            />
+                            <div>
+                              <div className="text-sm font-bold text-[#2c1a00] font-sans flex items-center gap-2">
+                                <span>{opt.providerName}</span>
+                                <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-mono">
+                                  {opt.serviceName}
+                                </span>
+                              </div>
+                              <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
+                                <span>Dự kiến: {opt.expectedDeliveryDate}</span>
+                                {opt.description && (
+                                  <span className="text-gray-400 hidden sm:inline">• {opt.description}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <span className={`text-sm font-bold ${opt.fee === 0 ? "text-green-600 font-semibold" : "text-[#c4a84f]"}`}>
+                              {opt.fee === 0 ? "Miễn phí" : `${opt.fee.toLocaleString("vi-VN")}₫`}
+                            </span>
+                          </div>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
               </div>
 
               {/* Phương thức thanh toán */}

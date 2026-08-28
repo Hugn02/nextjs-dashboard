@@ -20,6 +20,9 @@ interface OrderDetail {
   note?: string;
   total: number;
   shippingFee: number;
+  shippingProviderName?: string;
+  trackingCode?: string;
+  expectedDeliveryDate?: string;
   paymentMethod: string;
   status: string;
   createdAt: string;
@@ -179,6 +182,17 @@ export default function OrderSuccessPage() {
                 </div>
 
                 <div className="flex flex-col gap-2 text-sm font-sans border-b border-[#ede0c4] pb-4 mb-4 text-gray-600">
+                  <div className="flex justify-between items-start">
+                    <span>Đơn vị vận chuyển:</span>
+                    <div className="text-right">
+                      <span className="font-semibold text-gray-800 block">{order.shippingProviderName || "Giao hàng Tiêu chuẩn"}</span>
+                      {order.trackingCode && (
+                        <span className="inline-block text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-mono font-bold mt-1 break-all max-w-[200px]">
+                          {order.trackingCode}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   <div className="flex justify-between">
                     <span>Phí vận chuyển:</span>
                     <span>{order.shippingFee > 0 ? formatPrice(order.shippingFee) : "Miễn phí"}</span>

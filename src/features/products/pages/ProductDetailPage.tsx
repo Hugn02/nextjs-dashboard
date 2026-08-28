@@ -659,6 +659,18 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                 </span>
                             </div>
 
+                            {/* Weight info */}
+                            {product.weightGrams !== undefined && (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs uppercase text-[#888] tracking-widest font-['Cormorant_Garamond',_serif]">Khối lượng:</span>
+                                    <span className="text-[13px] font-semibold text-[#3d2b00]">
+                                        {product.weightGrams >= 1000
+                                            ? `${(product.weightGrams / 1000).toFixed(product.weightGrams % 1000 === 0 ? 0 : 1)} kg`
+                                            : `${product.weightGrams} g`}
+                                    </span>
+                                </div>
+                            )}
+
                             {/* Quantity and Cart Button */}
                             {!product.isContact && product.inStock && (
                                 <div className={`relative mt-2 ${quantityError ? 'pb-5' : ''}`}>
