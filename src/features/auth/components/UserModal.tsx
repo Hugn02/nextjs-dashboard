@@ -282,7 +282,7 @@ export default function UserModal({ onClose }: { onClose: () => void }) {
                 className="w-full p-3 md:p-4 text-left hover:bg-[#faf7f2] transition-colors rounded-lg flex justify-between items-center group no-underline"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="text-xs md:text-sm font-semibold text-[#8b2500] font-sans uppercase tracking-wider">Trang quản trị sản phẩm</span>
+                  <span className="text-xs md:text-sm font-semibold text-[#8b2500] font-sans uppercase tracking-wider">Trang quản trị hệ thống</span>
                 </div>
                 <span className="text-[#c4a84f] group-hover:translate-x-1 transition-transform">→</span>
               </a>
