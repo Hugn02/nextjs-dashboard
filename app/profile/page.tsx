@@ -35,9 +35,12 @@ const getOrderStatusConfig = (status: string) => {
         confirmed: { text: "Đã xác nhận", bg: "bg-[#eff6ff]", border: "border-[#dbeafe]", textClass: "text-[#2563eb]" },
         shipping: { text: "Đang vận chuyển", bg: "bg-[#e0e7ff]", border: "border-[#c7d2fe]", textClass: "text-[#4f46e5]" },
         completed: { text: "Hoàn thành", bg: "bg-[#ecfdf5]", border: "border-[#d1fae5]", textClass: "text-[#059669]" },
+        return_requested: { text: "Yêu cầu hoàn trả", bg: "bg-[#fff7ed]", border: "border-[#ffedd5]", textClass: "text-[#c2410c]" },
+        returned: { text: "Đã hoàn trả", bg: "bg-[#f0fdfa]", border: "border-[#ccfbf1]", textClass: "text-[#0f766e]" },
         cancelled: { text: "Đã hủy", bg: "bg-[#fef2f2]", border: "border-[#fee2e2]", textClass: "text-[#dc2626]" },
     };
-    return configs[status] || { text: status || "Chờ xử lý", bg: "bg-[#f8fafc]", border: "border-[#f1f5f9]", textClass: "text-[#64748b]" };
+    const key = (status || "").toLowerCase();
+    return configs[key] || { text: status || "Chờ xử lý", bg: "bg-[#f8fafc]", border: "border-[#f1f5f9]", textClass: "text-[#64748b]" };
 };
 
 function ProfilePageContent() {
@@ -736,16 +739,20 @@ function ProfilePageContent() {
                                         {orders.slice(0, 5).map((order) => {
                                             const statusCfg = getOrderStatusConfig(order.status);
                                             return (
-                                                <div key={order.id || order.publicId} className="p-3.5 border border-[#ede0c4] rounded-lg bg-white flex flex-col gap-2">
+                                                <Link
+                                                    key={order.id || order.publicId}
+                                                    href={`/orders/${order.publicId || order.id || order._id}`}
+                                                    className="p-3.5 border border-[#ede0c4] rounded-lg bg-white flex flex-col gap-2 hover:border-[#c4a84f] hover:shadow-sm transition-all no-underline block group"
+                                                >
                                                     <div className="flex justify-between items-center border-b border-[#f3ebdb] pb-2 text-xs">
-                                                        <span className="font-bold text-[#2c1a00]">Đơn hàng: #{order.publicId}</span>
+                                                        <span className="font-bold text-[#2c1a00] group-hover:text-[#c4a84f] transition-colors">Đơn hàng: #{order.publicId}</span>
                                                         <span className={`px-2.5 py-0.5 rounded text-[10px] font-semibold border ${statusCfg.bg} ${statusCfg.border} ${statusCfg.textClass}`}>{statusCfg.text}</span>
                                                     </div>
                                                     <div className="flex justify-between items-center text-xs">
                                                         <span className="text-gray-500">Số lượng: {order.items?.length || 0} sản phẩm</span>
                                                         <span className="font-bold text-red-600 text-sm">{(order.total || 0).toLocaleString("vi-VN")}₫</span>
                                                     </div>
-                                                </div>
+                                                </Link>
                                             );
                                         })}
                                         <Link href="/orders/history" className="w-full py-2.5 text-center bg-[#faf7f2] border border-[#ede0c4] text-[#8b6914] rounded text-xs font-bold uppercase tracking-wider hover:bg-[#f3ebdb] no-underline transition-colors mt-1">

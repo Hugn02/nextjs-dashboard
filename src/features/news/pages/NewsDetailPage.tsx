@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Newspaper } from "lucide-react";
 import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import { formatImageUrl } from "@/src/lib/cloudinary";
 import { fetchNewsBySlug, fetchNewsList } from "../services/news.service";
@@ -59,7 +60,9 @@ export default function NewsDetailPage({ slug }: Props) {
     if (error || !article) {
         return (
             <main className="min-h-[85vh] bg-[#faf7f2] flex flex-col items-center justify-center px-6 pt-24 text-center">
-                <div className="text-6xl mb-6 text-slate-400">🏺</div>
+                <div className="w-16 h-16 rounded-full bg-[#f4ece1]/80 border border-[#e6dcbf] flex items-center justify-center mb-6 text-[#c4a84f] shadow-sm">
+                    <Newspaper className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] text-2xl font-light text-[#2c1a00] uppercase tracking-[2px] mb-3">
                     Bài viết không tồn tại
                 </h1>

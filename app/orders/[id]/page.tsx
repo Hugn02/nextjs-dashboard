@@ -23,6 +23,7 @@ import {
     ShoppingBag,
     HelpCircle,
     Eye,
+    RotateCcw,
 } from "lucide-react";
 import ViewReturnDetailModal from "@/src/components/ViewReturnDetailModal";
 
@@ -336,6 +337,48 @@ export default function OrderDetailPage() {
                     </div>
                     <p className="text-xs text-gray-500 font-sans mt-4 leading-relaxed border-t border-red-100 pt-3">
                         Đơn hàng của bạn đã được hủy bỏ. Nếu bạn đã chuyển khoản trước đó, chúng tôi sẽ liên hệ trong vòng 24h để hoàn tất thủ tục hoàn tiền.
+                    </p>
+                </div>
+            );
+        }
+
+        if (order.status === "return_requested") {
+            return (
+                <div className="bg-white border border-orange-200 rounded-lg p-5 mb-6 shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 bg-orange-50 rounded-full flex items-center justify-center border border-orange-200 text-orange-600 flex-shrink-0">
+                            <RotateCcw className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-orange-700 font-sans text-sm">Đang yêu cầu hoàn trả đơn hàng</h3>
+                            <p className="text-xs text-gray-400 font-sans mt-0.5">
+                                Cập nhật: {new Date(order.updatedAt || order.createdAt).toLocaleString("vi-VN")}
+                            </p>
+                        </div>
+                    </div>
+                    <p className="text-xs text-gray-500 font-sans mt-4 leading-relaxed border-t border-orange-100 pt-3">
+                        Yêu cầu hoàn trả và thông tin nhận hoàn tiền của bạn đang được tiếp nhận xử lý. Bạn có thể nhấn nút "Xem Yêu cầu Hoàn trả" ở bên dưới để theo dõi chi tiết.
+                    </p>
+                </div>
+            );
+        }
+
+        if (order.status === "returned") {
+            return (
+                <div className="bg-white border border-teal-200 rounded-lg p-5 mb-6 shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 bg-teal-50 rounded-full flex items-center justify-center border border-teal-200 text-teal-700 flex-shrink-0">
+                            <CheckCircle2 className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-teal-800 font-sans text-sm">Đơn hàng đã hoàn trả & hoàn tiền thành công</h3>
+                            <p className="text-xs text-gray-400 font-sans mt-0.5">
+                                Hoàn tất: {new Date(order.updatedAt || order.createdAt).toLocaleString("vi-VN")}
+                            </p>
+                        </div>
+                    </div>
+                    <p className="text-xs text-gray-500 font-sans mt-4 leading-relaxed border-t border-teal-100 pt-3">
+                        Đơn hàng đã được xác nhận hoàn trả và hoàn tiền thành công theo thông tin bạn đã cung cấp.
                     </p>
                 </div>
             );

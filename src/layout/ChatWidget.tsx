@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Coffee, Gift, RotateCcw } from "lucide-react";
+import VaseIcon from "@/src/components/ui/VaseIcon";
 
 interface Message {
   id: string;
@@ -117,10 +119,10 @@ export default function ChatWidget() {
   };
 
   const quickPrompts = [
-    { label: "Ấm trà bán chạy ☕", value: "Cho tôi xem các bộ ấm trà bán chạy nhất" },
-    { label: "Các loại men Bát Tràng 🏺", value: "Bát Tràng có những loại men nào? Hãy liệt kê từng loại men và giải thích đặc điểm, màu sắc, hiệu ứng bề mặt và sản phẩm phù hợp của từng loại." },
-    { label: "Quà tặng dưới 2 triệu 🎁", value: "Tìm sản phẩm làm quà tặng dưới 2 triệu đồng" },
-    { label: "Chính sách đổi trả 🔄", value: "Chính sách đổi trả hàng của Bát Tràng như thế nào?" },
+    { label: "Ấm trà bán chạy", icon: Coffee, value: "Cho tôi xem các bộ ấm trà bán chạy nhất" },
+    { label: "Các loại men Bát Tràng", icon: VaseIcon, value: "Bát Tràng có những loại men nào? Hãy liệt kê từng loại men và giải thích đặc điểm, màu sắc, hiệu ứng bề mặt và sản phẩm phù hợp của từng loại." },
+    { label: "Quà tặng dưới 2 triệu", icon: Gift, value: "Tìm sản phẩm làm quà tặng dưới 2 triệu đồng" },
+    { label: "Chính sách đổi trả", icon: RotateCcw, value: "Chính sách đổi trả hàng của Bát Tràng như thế nào?" },
   ];
 
   return (
@@ -251,15 +253,19 @@ export default function ChatWidget() {
 
           {/* Vùng gợi ý câu hỏi nhanh (Quick Prompts) */}
           <div className="px-4 py-2 bg-[#faf7f2] border-t border-[#b49664]/10 flex gap-2 overflow-x-auto no-scrollbar mask-gradient-right">
-            {quickPrompts.map((prompt, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSend(prompt.value)}
-                className="shrink-0 px-3 py-1.5 bg-white hover:bg-[#f7f3eb] text-[#8b6914] hover:text-[#2c1a00] border border-[#c4a84f]/30 hover:border-[#8b6914] rounded-full text-xs font-medium cursor-pointer transition-all duration-200 shadow-sm"
-              >
-                {prompt.label}
-              </button>
-            ))}
+            {quickPrompts.map((prompt, idx) => {
+              const Icon = prompt.icon;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleSend(prompt.value)}
+                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#f7f3eb] text-[#8b6914] hover:text-[#2c1a00] border border-[#c4a84f]/30 hover:border-[#8b6914] rounded-full text-xs font-medium cursor-pointer transition-all duration-200 shadow-sm"
+                >
+                  <span>{prompt.label}</span>
+                  {Icon && <Icon size={13} className="text-[#c4a84f] shrink-0 stroke-[1.75]" />}
+                </button>
+              );
+            })}
           </div>
 
           {/* Input Footer */}

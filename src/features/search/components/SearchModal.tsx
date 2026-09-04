@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Search, SearchX } from "lucide-react";
 import ModalWrapper from "@/src/components/ui/ModalWrapper";
 import { useSearch } from "../hooks/useSearch";
 
@@ -71,10 +72,10 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
         />
         <button
           onClick={handleViewAll}
-          className="absolute right-3.5 top-1/2 -translate-y-1/2 bg-none border-none cursor-pointer text-[18px] text-[#c4a84f] p-1 hover:scale-110 transition-transform"
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 bg-none border-none cursor-pointer text-[#c4a84f] p-1.5 hover:scale-110 transition-transform flex items-center justify-center"
           title="Tìm kiếm"
         >
-          🔍
+          <Search className="w-5 h-5" />
         </button>
       </div>
 
@@ -98,8 +99,10 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
 
           {/* Không có kết quả */}
           {!isLoading && !error && products.length === 0 && (
-            <div className="py-8 text-center">
-              <p className="text-[32px] mb-2">🔍</p>
+            <div className="py-8 text-center flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full bg-[#fdfaf5] border border-[#ede0c4] flex items-center justify-center mb-3 text-[#c4a84f] shadow-sm">
+                <SearchX className="w-7 h-7 stroke-[1.5]" />
+              </div>
               <p className="text-[14px] text-[#aaa] font-['Cormorant_Garamond',_serif]">
                 Không tìm thấy sản phẩm nào cho&nbsp;
                 <span className="text-[#2c1a00] font-semibold">"{query}"</span>

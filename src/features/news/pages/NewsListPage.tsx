@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { Newspaper } from "lucide-react";
 import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import { formatImageUrl } from "@/src/lib/cloudinary";
 import { fetchNewsList } from "../services/news.service";
@@ -101,8 +102,10 @@ export default function NewsListPage() {
                             ))}
                         </div>
                     ) : articles.length === 0 ? (
-                        <div className="py-24 text-center bg-white rounded border border-[#ede0c4] shadow-sm">
-                            <div className="text-5xl mb-4 text-[#c4a84f]">📰</div>
+                        <div className="py-24 text-center bg-white rounded border border-[#ede0c4] shadow-sm flex flex-col items-center">
+                            <div className="w-16 h-16 rounded-full bg-[#fdfaf5] border border-[#ede0c4] flex items-center justify-center mb-4 text-[#c4a84f] shadow-sm">
+                                <Newspaper className="w-8 h-8 stroke-[1.5]" />
+                            </div>
                             <h3 className="font-['Cormorant_Garamond',_Georgia,_serif] text-xl font-light text-[#2c1a00] uppercase tracking-wider mb-2">
                                 Chưa có bài viết nào
                             </h3>

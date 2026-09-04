@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Search, SearchX } from "lucide-react";
 import { searchProducts } from "../services/search.service";
 import { Product } from "../../products/types/product.type";
 import ProductCard from "../../products/components/ProductCard";
@@ -189,8 +190,10 @@ export default function SearchPage() {
 
         {/* Không có kết quả */}
         {!loading && nameParam && products.length === 0 && (
-          <div className="py-20 text-center">
-            <p className="text-[40px] mb-3">🔍</p>
+          <div className="py-20 text-center flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-[#fdfaf5] border border-[#ede0c4] flex items-center justify-center mb-4 text-[#c4a84f] shadow-sm">
+              <SearchX className="w-8 h-8 stroke-[1.5]" />
+            </div>
             <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-lg tracking-wider text-[#aaa] mb-2">
               Không tìm thấy sản phẩm nào
             </p>
@@ -208,8 +211,10 @@ export default function SearchPage() {
 
         {/* Chưa có query */}
         {!loading && !nameParam && (
-          <div className="py-20 text-center">
-            <p className="text-[40px] mb-3">🔍</p>
+          <div className="py-20 text-center flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-[#fdfaf5] border border-[#ede0c4] flex items-center justify-center mb-4 text-[#c4a84f] shadow-sm">
+              <Search className="w-8 h-8 stroke-[1.5]" />
+            </div>
             <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-lg tracking-wider text-[#aaa]">
               Nhập từ khoá để bắt đầu tìm kiếm
             </p>

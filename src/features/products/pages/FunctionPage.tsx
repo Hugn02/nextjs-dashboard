@@ -8,6 +8,7 @@ import ProductCard from "../components/ProductCard";
 import Image from "next/image";
 import ProductFilter, { ActiveFilters } from "../components/ProductFilter";
 import { useProductFilterOptions } from "../hooks/useProductFilterOptions";
+import VaseIcon from "@/src/components/ui/VaseIcon";
 
 interface ProductFunction {
     _id: string;
@@ -279,8 +280,10 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
                             ))}
                         </div>
                     ) : products.length === 0 ? (
-                        <div className="py-20 text-center">
-                            <div className="text-4xl mb-4">🏺</div>
+                        <div className="py-20 text-center flex flex-col items-center">
+                            <div className="w-16 h-16 rounded-full bg-[#fdfaf5] border border-[#ede0c4] flex items-center justify-center mb-4 text-[#c4a84f] shadow-sm">
+                                <VaseIcon size={32} className="stroke-[1.5]" />
+                            </div>
                             <h3 className="font-['Cormorant_Garamond',_Georgia,_serif] text-xl font-light text-[#2c1a00] uppercase tracking-wider mb-2">Không tìm thấy sản phẩm</h3>
                             <p className="text-[#888] text-sm font-['Cormorant_Garamond',_Georgia,_serif]">Vui lòng thử điều chỉnh hoặc xóa bớt các bộ lọc đang chọn.</p>
                         </div>
