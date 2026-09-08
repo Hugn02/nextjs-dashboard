@@ -22,6 +22,8 @@ import {
     ArrowLeft,
     RotateCcw,
     Eye,
+    CreditCard,
+    Loader2,
 } from "lucide-react";
 import ReturnRequestModal from "@/src/components/ReturnRequestModal";
 import ViewReturnDetailModal from "@/src/components/ViewReturnDetailModal";
@@ -560,9 +562,13 @@ export default function OrderHistoryPage() {
                                                                     <button
                                                                         onClick={() => handleRepay(order)}
                                                                         disabled={repayingId === orderId}
-                                                                        className="h-9 px-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold tracking-[0.3px] uppercase rounded transition-all disabled:opacity-50 font-sans cursor-pointer flex items-center justify-center gap-1 w-full md:w-auto"
+                                                                        className="h-9 px-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold tracking-[0.3px] uppercase rounded transition-all disabled:opacity-50 font-sans cursor-pointer flex items-center justify-center gap-1.5 w-full md:w-auto"
                                                                     >
-                                                                        <span>💳</span>
+                                                                        {repayingId === orderId ? (
+                                                                            <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
+                                                                        ) : (
+                                                                            <CreditCard className="w-3.5 h-3.5 shrink-0" />
+                                                                        )}
                                                                         <span className="truncate">{repayingId === orderId ? 'Đang chuyển...' : 'Thanh toán ngay'}</span>
                                                                     </button>
                                                                 )}
