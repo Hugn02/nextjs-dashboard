@@ -180,7 +180,10 @@ export default function ProductCard({ product }: { product: Product }) {
                     </p>
                 )}
 
-                <h3 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 overflow-hidden text-[13px] font-semibold leading-[1.5] text-[#2c1a00] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] h-[39px]">
+                <h3
+                    className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 overflow-hidden text-[13px] font-semibold leading-[1.5] text-[#2c1a00] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] h-[39px] break-words [overflow-wrap:anywhere] [word-break:break-word]"
+                    title={product.name}
+                >
                     {product.name}
                 </h3>
 

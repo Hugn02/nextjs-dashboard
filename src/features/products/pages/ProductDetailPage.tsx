@@ -8,6 +8,8 @@ import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
 import useCart from "../../cart/hooks/useCart";
 import useWishlist from "@/src/features/wishlist/hooks/useWishlist";
+import { formatImageUrl, formatVideoUrl } from "@/src/lib/cloudinary";
+import { X } from "lucide-react";
 
 
 interface ProductDetailPageProps {
@@ -44,7 +46,9 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     const [reviews, setReviews] = useState<any[]>([]);
     const [reviewsLoading, setReviewsLoading] = useState(false);
     const [ratingFilter, setRatingFilter] = useState<string | number>("all");
+    const [mediaFilter, setMediaFilter] = useState<'all' | 'image' | 'video'>('all');
     const [currentPage, setCurrentPage] = useState(1);
+    const [lightboxMedia, setLightboxMedia] = useState<{ type: 'image' | 'video'; url: string } | null>(null);
     const REVIEWS_PER_PAGE = 5;
 
     // Fetch product details
@@ -168,8 +172,10 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
         });
 
         const filtered = reviews.filter((r) => {
-            if (ratingFilter === "all") return true;
-            return r.rating === Number(ratingFilter);
+            if (ratingFilter !== "all" && r.rating !== Number(ratingFilter)) return false;
+            if (mediaFilter === 'image' && !(r.images && r.images.length > 0)) return false;
+            if (mediaFilter === 'video' && !r.video) return false;
+            return true;
         });
 
         const totalP = Math.max(1, Math.ceil(filtered.length / REVIEWS_PER_PAGE));
@@ -185,10 +191,15 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
             paginatedReviews: paginated,
             totalPages: totalP,
         };
-    }, [reviews, ratingFilter, currentPage]);
+    }, [reviews, ratingFilter, mediaFilter, currentPage]);
 
     const handleFilterChange = (filter: string | number) => {
         setRatingFilter(filter);
+        setCurrentPage(1);
+    };
+
+    const handleMediaFilterChange = (filter: 'all' | 'image' | 'video') => {
+        setMediaFilter(filter);
         setCurrentPage(1);
     };
 
@@ -464,25 +475,25 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
             <main className="min-h-screen bg-white pb-20 pt-[120px]">
                 <div className="mx-auto max-w-[1280px] px-6">
                     {/* Breadcrumbs */}
-                    <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-8 border-b border-[#f0e8d6] py-4 text-xs tracking-wider text-[#888]">
-                        <Link href="/" className="text-[#888] no-underline hover:text-[#c4a84f]">Trang chủ</Link>
-                        <span className="mx-2">›</span>
+                    <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-8 border-b border-[#f0e8d6] py-4 text-xs tracking-wider text-[#888] flex flex-wrap items-center">
+                        <Link href="/" className="text-[#888] no-underline hover:text-[#c4a84f] shrink-0">Trang chủ</Link>
+                        <span className="mx-2 shrink-0">›</span>
                         {categoryInfo ? (
-                            <Link href={`/categories/${categoryInfo.slug}`} className="text-[#888] no-underline hover:text-[#c4a84f]">
+                            <Link href={`/categories/${categoryInfo.slug}`} className="text-[#888] no-underline hover:text-[#c4a84f] shrink-0">
                                 {categoryInfo.name}
                             </Link>
                         ) : (
-                            <span className="text-[#888]">Sản phẩm</span>
+                            <span className="text-[#888] shrink-0">Sản phẩm</span>
                         )}
-                        <span className="mx-2">›</span>
-                        <span className="text-[#2c1a00] font-medium">{product.name}</span>
+                        <span className="mx-2 shrink-0">›</span>
+                        <span className="text-[#2c1a00] font-medium break-words [overflow-wrap:anywhere] [word-break:break-word]">{product.name}</span>
                     </nav>
 
                     {/* Main Layout Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
 
                         {/* ── Left Side: Images Gallery (Vertical thumbnails + Big view) ── */}
-                        <div className="lg:col-span-7 flex flex-col md:flex-row gap-4">
+                        <div className="lg:col-span-7 flex flex-col md:flex-row gap-4 min-w-0">
 
                             {/* Thumbnails stack on desktop (left of main), row on mobile (bottom or side) */}
                             {imagesList.length > 1 && (
@@ -567,15 +578,15 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                         </div>
 
                         {/* ── Right Side: Meta and Purchasing options ── */}
-                        <div className="lg:col-span-5 flex flex-col gap-6">
-                            <div>
+                        <div className="lg:col-span-5 flex flex-col gap-6 min-w-0">
+                            <div className="min-w-0">
                                 {/* Brand/Collection Name */}
                                 <p className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 mb-1.5 text-xs uppercase tracking-[2px] text-[#c4a84f]">
                                     {product.brandName}
                                 </p>
 
                                 {/* Product Title */}
-                                <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 text-xl lg:text-2xl font-semibold leading-snug text-[#2c1a00]">
+                                <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 text-xl lg:text-2xl font-semibold leading-snug text-[#2c1a00] break-words [overflow-wrap:anywhere] [word-break:break-word]">
                                     {product.name}
                                 </h1>
 
@@ -844,8 +855,8 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                     {/* Right: Filter Tags */}
                                     <div className="flex-1 flex flex-wrap gap-2 justify-center md:justify-start">
                                         <button
-                                            onClick={() => handleFilterChange("all")}
-                                            className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${ratingFilter === "all"
+                                            onClick={() => { handleFilterChange("all"); handleMediaFilterChange('all'); }}
+                                            className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${ratingFilter === "all" && mediaFilter === 'all'
                                                 ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
                                                 : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
                                                 }`}
@@ -855,7 +866,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                         {[5, 4, 3, 2, 1].map((star) => (
                                             <button
                                                 key={star}
-                                                onClick={() => handleFilterChange(star)}
+                                                onClick={() => { handleFilterChange(star); handleMediaFilterChange('all'); }}
                                                 className={`px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${ratingFilter === star
                                                     ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
                                                     : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
@@ -864,6 +875,36 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                                 {star} Sao ({counts[star as 1 | 2 | 3 | 4 | 5]})
                                             </button>
                                         ))}
+                                        {/* Media filters */}
+                                        <button
+                                            onClick={() => { handleMediaFilterChange(mediaFilter === 'image' ? 'all' : 'image'); handleFilterChange('all'); }}
+                                            className={`inline-flex items-center gap-1.5 px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${
+                                                mediaFilter === 'image'
+                                                    ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
+                                                    : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
+                                            }`}
+                                        >
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                                <polyline points="21 15 16 10 5 21" />
+                                            </svg>
+                                            Có ảnh
+                                        </button>
+                                        <button
+                                            onClick={() => { handleMediaFilterChange(mediaFilter === 'video' ? 'all' : 'video'); handleFilterChange('all'); }}
+                                            className={`inline-flex items-center gap-1.5 px-4 py-1.5 text-[13px] rounded-[2px] border transition-all ${
+                                                mediaFilter === 'video'
+                                                    ? "border-[#ee4d2d] text-[#ee4d2d] bg-white"
+                                                    : "border-[#e8e8e8] text-[#555] bg-white hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
+                                            }`}
+                                        >
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <polygon points="23 7 16 12 23 17 23 7" />
+                                                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                                            </svg>
+                                            Có video
+                                        </button>
                                     </div>
                                 </div>
 
@@ -882,8 +923,8 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                                 </div>
 
                                                 {/* Right: Content */}
-                                                <div className="flex-1 flex flex-col gap-1.5">
-                                                    <span className="font-bold text-[#333] text-[15px] block">
+                                                <div className="flex-1 flex flex-col gap-1.5 min-w-0">
+                                                    <span className="font-bold text-[#333] text-[15px] block truncate">
                                                         {r.user?.fullName || "Khách mua hàng"}
                                                     </span>
                                                     <div>{renderStars(r.rating)}</div>
@@ -892,9 +933,46 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                                                     </span>
 
                                                     {/* Comment */}
-                                                    <p className="mt-2 text-[15px] text-[#333] leading-relaxed whitespace-pre-line m-0">
+                                                    <p className="mt-2 text-[15px] text-[#333] leading-relaxed whitespace-pre-line m-0 break-words [overflow-wrap:anywhere] [word-break:break-word]">
                                                         {r.comment}
                                                     </p>
+
+                                                    {/* Review Images */}
+                                                    {r.images && r.images.length > 0 && (
+                                                        <div className="mt-3 flex flex-wrap gap-2">
+                                                            {r.images.map((img: string, i: number) => (
+                                                                <button
+                                                                    key={i}
+                                                                    type="button"
+                                                                    onClick={() => setLightboxMedia({ type: 'image', url: formatImageUrl(img) })}
+                                                                    className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border border-[#ede0c4] bg-[#faf7f2] hover:border-[#c4a84f] hover:scale-105 transition shadow-sm cursor-zoom-in relative group"
+                                                                >
+                                                                    <img
+                                                                        src={formatImageUrl(img)}
+                                                                        alt={`Ảnh đánh giá ${i + 1}`}
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-[10px] font-bold">
+                                                                        Xem
+                                                                    </div>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Review Video */}
+                                                    {r.video && (
+                                                        <div className="mt-3 max-w-xs">
+                                                            <div className="rounded-xl overflow-hidden bg-black border border-[#ede0c4] shadow-sm">
+                                                                <video
+                                                                    src={formatVideoUrl(r.video)}
+                                                                    controls
+                                                                    preload="metadata"
+                                                                    className="w-full max-h-48 object-contain"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -954,6 +1032,41 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                     )}
                 </div>
             </main>
+
+            {/* Lightbox Media Modal */}
+            {lightboxMedia && (
+                <div
+                    className="fixed inset-0 bg-black/85 z-[100000] flex items-center justify-center p-4 cursor-zoom-out"
+                    onClick={() => setLightboxMedia(null)}
+                >
+                    <div
+                        className="relative max-w-3xl max-h-[90vh] overflow-hidden rounded-xl bg-black"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {lightboxMedia.type === 'image' ? (
+                            <img
+                                src={lightboxMedia.url}
+                                alt="Xem ảnh phóng to"
+                                className="w-full h-full object-contain max-h-[85vh]"
+                            />
+                        ) : (
+                            <video
+                                src={lightboxMedia.url}
+                                controls
+                                autoPlay
+                                className="w-full max-h-[85vh] object-contain"
+                            />
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => setLightboxMedia(null)}
+                            className="absolute top-3 right-3 p-2 bg-black/60 text-white rounded-full hover:bg-black transition cursor-pointer"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

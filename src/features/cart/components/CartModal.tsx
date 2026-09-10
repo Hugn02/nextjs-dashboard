@@ -223,7 +223,8 @@ export default function CartModal({ onClose }: { onClose: () => void }) {
                         <Link
                           href={`/products/${p.slug}`}
                           onClick={onClose}
-                          className="text-sm font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline line-clamp-2 leading-snug"
+                          className="flex-1 min-w-0 text-sm font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline line-clamp-2 leading-snug break-words [overflow-wrap:anywhere] [word-break:break-all]"
+                          title={p.name}
                           style={serif}
                         >
                           {p.name}

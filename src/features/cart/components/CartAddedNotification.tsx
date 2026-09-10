@@ -94,8 +94,8 @@ export default function CartAddedNotification() {
             <h3 className="text-xl font-bold text-[#2c1a00] m-0" style={serif}>
               Cảm ơn bạn!
             </h3>
-            <p className="text-sm text-gray-600 m-0 font-medium">
-              Sản phẩm <span className="font-bold text-[#2c1a00]">"{productName}"</span> đã được thêm vào giỏ hàng
+            <p className="text-sm text-gray-600 m-0 font-medium break-words [overflow-wrap:anywhere] [word-break:break-word] max-w-full">
+              Sản phẩm <span className="font-bold text-[#2c1a00] break-words [overflow-wrap:anywhere] [word-break:break-word]">"{productName}"</span> đã được thêm vào giỏ hàng
             </p>
             <p className="text-[11px] text-gray-400 m-0 italic -mt-1">
               Thông báo sẽ tự đóng sau 4 giây...

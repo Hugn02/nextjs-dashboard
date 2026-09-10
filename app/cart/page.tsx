@@ -343,7 +343,8 @@ export default function CartPage() {
                                 <div className="flex-1 min-w-0">
                                   <Link
                                     href={`/products/${p.slug}`}
-                                    className="font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline text-[13px] leading-snug line-clamp-2"
+                                    className="font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline text-[13px] leading-snug line-clamp-2 break-words [overflow-wrap:anywhere] [word-break:break-all]"
+                                    title={p.name}
                                     style={serif}
                                   >
                                     {p.name}
@@ -450,7 +451,8 @@ export default function CartPage() {
                                 <div className="flex-1 min-w-0">
                                   <Link
                                     href={`/products/${p.slug}`}
-                                    className="font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline text-sm md:text-base leading-snug line-clamp-2"
+                                    className="font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline text-sm md:text-base leading-snug line-clamp-2 break-words [overflow-wrap:anywhere] [word-break:break-all]"
+                                    title={p.name}
                                     style={serif}
                                   >
                                     {p.name}
@@ -480,7 +482,7 @@ export default function CartPage() {
                                 </div>
 
                                 {/* Đơn giá */}
-                                <div className="w-[110px] text-center">
+                                <div className="w-[110px] text-center shrink-0">
                                   <span className="text-sm font-medium text-gray-600 font-sans block">
                                     {fmt(item.price)}
                                   </span>

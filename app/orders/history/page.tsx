@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import ReturnRequestModal from "@/src/components/ReturnRequestModal";
 import ViewReturnDetailModal from "@/src/components/ViewReturnDetailModal";
+import CustomSelect from "@/src/components/ui/CustomSelect";
 
 interface Order {
     _id?: string;
@@ -73,6 +74,9 @@ export default function OrderHistoryPage() {
     const [showConfirmModal, setShowConfirmModal] = useState<Order | null>(null);
     const [showReturnModal, setShowReturnModal] = useState<Order | null>(null);
     const [activeTab, setActiveTab] = useState("all");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [ordersPerPage, setOrdersPerPage] = useState(5);
+    const ordersListRef = useRef<HTMLDivElement>(null);
 
     const handleDownloadInvoice = async (order: Order) => {
         const orderId = order.publicId || order._id || order.id;
@@ -299,6 +303,46 @@ export default function OrderHistoryPage() {
         ? orders
         : orders.filter(o => o.status === activeTab);
 
+    // Tính toán phân trang
+    const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ordersPerPage));
+    const startIndex = (currentPage - 1) * ordersPerPage;
+    const paginatedOrders = filteredOrders.slice(startIndex, startIndex + ordersPerPage);
+
+    const handleTabChange = (tabId: string) => {
+        setActiveTab(tabId);
+        setCurrentPage(1);
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        ordersListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const getVisiblePages = () => {
+        if (totalPages <= 7) {
+            return Array.from({ length: totalPages }, (_, i) => i + 1);
+        }
+        const pages: (number | string)[] = [];
+        if (currentPage <= 4) {
+            for (let i = 1; i <= 5; i++) pages.push(i);
+            pages.push("...");
+            pages.push(totalPages);
+        } else if (currentPage >= totalPages - 3) {
+            pages.push(1);
+            pages.push("...");
+            for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            pages.push("...");
+            pages.push(currentPage - 1);
+            pages.push(currentPage);
+            pages.push(currentPage + 1);
+            pages.push("...");
+            pages.push(totalPages);
+        }
+        return pages;
+    };
+
     return (
         <>
             <Navbar />
@@ -338,6 +382,9 @@ export default function OrderHistoryPage() {
                         </div>
                     ) : (
                         <>
+                            {/* Anchor scroll khi đổi trang */}
+                            <div ref={ordersListRef} className="scroll-mt-32"></div>
+
                             {/* Tabs filter — scrollable with arrow buttons */}
                             <div className="relative mb-8">
                                 {/* Left arrow */}
@@ -362,19 +409,17 @@ export default function OrderHistoryPage() {
                                         return (
                                             <button
                                                 key={tab.id}
-                                                onClick={() => setActiveTab(tab.id)}
-                                                className={`px-4 py-2.5 text-xs font-bold tracking-[1px] uppercase whitespace-nowrap border-b-2 transition-all font-sans cursor-pointer flex-shrink-0 ${
-                                                    activeTab === tab.id
-                                                        ? "border-[#c4a84f] text-[#c4a84f]"
-                                                        : "border-transparent text-gray-400 hover:text-[#2c1a00]"
-                                                }`}
+                                                onClick={() => handleTabChange(tab.id)}
+                                                className={`px-4 py-2.5 text-xs font-bold tracking-[1px] uppercase whitespace-nowrap border-b-2 transition-all font-sans cursor-pointer flex-shrink-0 ${activeTab === tab.id
+                                                    ? "border-[#c4a84f] text-[#c4a84f]"
+                                                    : "border-transparent text-gray-400 hover:text-[#2c1a00]"
+                                                    }`}
                                             >
                                                 {tab.label}
-                                                <span className={`ml-1.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${
-                                                    activeTab === tab.id
-                                                        ? 'bg-[#c4a84f] text-white'
-                                                        : 'bg-gray-100 text-gray-500'
-                                                }`}>{count}</span>
+                                                <span className={`ml-1.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${activeTab === tab.id
+                                                    ? 'bg-[#c4a84f] text-white'
+                                                    : 'bg-gray-100 text-gray-500'
+                                                    }`}>{count}</span>
                                             </button>
                                         );
                                     })}
@@ -405,7 +450,7 @@ export default function OrderHistoryPage() {
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    {filteredOrders.map((order, idx) => {
+                                    {paginatedOrders.map((order, idx) => {
                                         const statusCfg = getStatusConfig(order.status);
                                         const StatusIcon = statusCfg.icon;
                                         const orderId = order._id || order.id || order.publicId;
@@ -457,14 +502,17 @@ export default function OrderHistoryPage() {
                                                                     />
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <h4 className="text-sm font-semibold text-[#2c1a00] line-clamp-1 font-sans">
+                                                                    <h4 
+                                                                        className="text-sm font-semibold text-[#2c1a00] line-clamp-1 font-sans break-words [overflow-wrap:anywhere] [word-break:break-all]"
+                                                                        title={p.productName || "Sản phẩm Bát Tràng"}
+                                                                    >
                                                                         {p.productName || "Sản phẩm Bát Tràng"}
                                                                     </h4>
                                                                     <p className="text-xs text-gray-400 mt-1 font-sans">
                                                                         Số lượng: <span className="text-gray-700 font-semibold">{item.quantity}</span>
                                                                     </p>
                                                                 </div>
-                                                                <div className="text-right">
+                                                                <div className="text-right shrink-0">
                                                                     <span className="text-sm font-bold text-gray-800 font-sans">
                                                                         {formatPrice((item.price || 0) * item.quantity)}
                                                                     </span>
@@ -484,11 +532,10 @@ export default function OrderHistoryPage() {
                                                                 <span className="text-base font-extrabold text-[#8b2500] font-sans">{formatPrice(order.total)}</span>
                                                             </div>
                                                             {order.paymentMethod && order.paymentMethod !== 'cod' && (
-                                                                <span className={`w-fit text-[10px] font-bold px-2 py-0.5 rounded uppercase font-sans border ${
-                                                                    order.paymentStatus === 'paid'
-                                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                                                                }`}>
+                                                                <span className={`w-fit text-[10px] font-bold px-2 py-0.5 rounded uppercase font-sans border ${order.paymentStatus === 'paid'
+                                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                                                                    }`}>
                                                                     {order.paymentMethod.toUpperCase()}: {order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
                                                                 </span>
                                                             )}
@@ -598,6 +645,93 @@ export default function OrderHistoryPage() {
                                             </div>
                                         );
                                     })}
+                                </div>
+                            )}
+
+                            {/* Pagination Controls */}
+                            {filteredOrders.length > 0 && totalPages > 1 && (
+                                <div className="mt-8 pt-6 border-t border-[#ede0c4] flex flex-col md:flex-row items-center justify-between gap-4">
+                                    {/* Info text */}
+                                    <div className="text-xs text-gray-500 font-sans order-2 md:order-1 text-center md:text-left">
+                                        Hiển thị <span className="font-bold text-[#2c1a00]">{startIndex + 1}</span> - <span className="font-bold text-[#2c1a00]">{Math.min(startIndex + ordersPerPage, filteredOrders.length)}</span> trên tổng số <span className="font-bold text-[#2c1a00]">{filteredOrders.length}</span> đơn hàng
+                                    </div>
+
+                                    {/* Page navigation */}
+                                    <div className="flex items-center gap-1.5 font-sans order-1 md:order-2">
+                                        {/* Prev Button */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                            className="h-9 px-3 rounded-[2px] border border-[#ede0c4] bg-white text-xs font-semibold text-[#2c1a00] transition-all hover:bg-[#2c1a00] hover:text-[#c4a84f] hover:border-[#2c1a00] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-[#2c1a00] disabled:hover:border-[#ede0c4] cursor-pointer flex items-center gap-1"
+                                            aria-label="Trang trước"
+                                        >
+                                            <ChevronLeft className="w-3.5 h-3.5" />
+                                            <span className="hidden sm:inline">Trước</span>
+                                        </button>
+
+                                        {/* Page Numbers */}
+                                        <div className="flex items-center gap-1">
+                                            {getVisiblePages().map((pageItem, pIdx) => {
+                                                if (pageItem === "...") {
+                                                    return (
+                                                        <span key={`ellipsis-${pIdx}`} className="w-7 h-9 flex items-center justify-center text-xs text-gray-400 select-none">
+                                                            ...
+                                                        </span>
+                                                    );
+                                                }
+                                                const pageNum = Number(pageItem);
+                                                const isCurrent = currentPage === pageNum;
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        type="button"
+                                                        onClick={() => handlePageChange(pageNum)}
+                                                        className={`min-w-[34px] h-9 px-2 rounded-[2px] text-xs font-bold transition-all border cursor-pointer ${
+                                                            isCurrent
+                                                                ? "bg-[#2c1a00] text-[#c4a84f] border-[#2c1a00] shadow-xs"
+                                                                : "bg-white text-[#2c1a00] border-[#ede0c4] hover:bg-[#faf7f2] hover:border-[#c4a84f]"
+                                                        }`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Next Button */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handlePageChange(currentPage + 1)}
+                                            disabled={currentPage === totalPages}
+                                            className="h-9 px-3 rounded-[2px] border border-[#ede0c4] bg-white text-xs font-semibold text-[#2c1a00] transition-all hover:bg-[#2c1a00] hover:text-[#c4a84f] hover:border-[#2c1a00] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-[#2c1a00] disabled:hover:border-[#ede0c4] cursor-pointer flex items-center gap-1"
+                                            aria-label="Trang sau"
+                                        >
+                                            <span className="hidden sm:inline">Sau</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+
+                                    {/* Per page dropdown */}
+                                    <div className="flex items-center gap-2 text-xs text-gray-500 font-sans order-3">
+                                        <span>Xem:</span>
+                                        <div className="w-36">
+                                            <CustomSelect
+                                                value={String(ordersPerPage)}
+                                                onChange={(val) => {
+                                                    setOrdersPerPage(Number(val));
+                                                    setCurrentPage(1);
+                                                }}
+                                                options={[
+                                                    { value: "5", label: "5 đơn / trang" },
+                                                    { value: "10", label: "10 đơn / trang" },
+                                                    { value: "15", label: "15 đơn / trang" },
+                                                    { value: "20", label: "20 đơn / trang" },
+                                                ]}
+                                                buttonClassName="!py-1.5 !px-2.5 !text-xs !rounded-[2px]"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </>

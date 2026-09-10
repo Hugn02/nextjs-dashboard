@@ -57,3 +57,20 @@ export function formatCloudinaryUrl(
 
 export const formatImageUrl = formatCloudinaryUrl;
 
+/**
+ * Format URL video từ Cloudinary (endpoint /video/upload)
+ * Tự động chuyển đổi từ public_id hoặc giữ nguyên nếu đã là full URL
+ */
+export function formatVideoUrl(url?: string): string {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("blob:")) {
+    return url;
+  }
+  const envBase = process.env.NEXT_PUBLIC_VIDEO_BASE_URL;
+  const videoBase = envBase
+    ? envBase.replace(/\/+$/, "")
+    : getCloudinaryBase().replace(/\/image\/upload\/?$/, "/video/upload");
+  const cleanUrl = url.replace(/^\/+/, "");
+  return `${videoBase}/${cleanUrl}`;
+}
+

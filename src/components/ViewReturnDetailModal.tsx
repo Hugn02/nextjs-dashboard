@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { fetchWithAuth } from "@/src/lib/api-client";
-import { formatImageUrl } from "@/src/lib/cloudinary";
+import { formatImageUrl, formatVideoUrl } from "@/src/lib/cloudinary";
 import {
   RotateCcw,
   XCircle,
@@ -14,6 +14,8 @@ import {
   Image as ImageIcon,
   Clock,
   ShieldCheck,
+  Video,
+  ExternalLink,
   X
 } from "lucide-react";
 
@@ -178,11 +180,11 @@ export default function ViewReturnDetailModal({
                 <p className="text-xs font-semibold text-gray-800">
                   {REASON_MAP[returnReq.reason] || returnReq.reason || "Không rõ lý do"}
                 </p>
-                {returnReq.customerNote && (
+                {(returnReq.reasonDetails || returnReq.customerNote) && (
                   <div className="pt-2 border-t border-[#ede0c4]/60">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">Mô tả từ khách hàng:</span>
                     <p className="text-xs text-gray-600 leading-relaxed italic bg-white p-2.5 rounded border border-[#ede0c4]/40">
-                      "{returnReq.customerNote}"
+                      "{returnReq.reasonDetails || returnReq.customerNote}"
                     </p>
                   </div>
                 )}
@@ -218,6 +220,35 @@ export default function ViewReturnDetailModal({
                   <p className="text-xs text-gray-400 italic">Không có hình ảnh bằng chứng.</p>
                 )}
               </div>
+
+              {/* Video bằng chứng */}
+              {returnReq.evidenceVideo && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                      <Video className="w-4 h-4 text-[#8b2500]" />
+                      <span>Video bằng chứng (1 video)</span>
+                    </span>
+                    <a
+                      href={formatVideoUrl(returnReq.evidenceVideo)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs font-semibold text-[#8b2500] hover:text-[#6c1d00] hover:underline inline-flex items-center gap-1 cursor-pointer font-sans"
+                    >
+                      <span>Mở tab mới</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                  <div className="rounded-xl overflow-hidden bg-black border border-[#ede0c4] shadow-inner flex items-center justify-center">
+                    <video
+                      src={formatVideoUrl(returnReq.evidenceVideo)}
+                      controls
+                      preload="metadata"
+                      className="w-full max-h-56 object-contain"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Tài khoản ngân hàng nhận tiền */}
               {returnReq.bankAccount && (

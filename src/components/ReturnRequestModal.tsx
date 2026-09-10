@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { fetchWithAuth } from "@/src/lib/api-client";
 import { formatCloudinaryUrl } from "@/src/lib/cloudinary";
-import { X, Upload, AlertCircle, CheckCircle2, Loader2, Image as ImageIcon } from "lucide-react";
+import { X, Upload, AlertCircle, CheckCircle2, Loader2, Image as ImageIcon, Video, Play } from "lucide-react";
 
 interface ReturnRequestModalProps {
   order: {
@@ -27,12 +27,17 @@ interface ReturnRequestModalProps {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 const MAX_IMAGES = 5;
+const MAX_VIDEO_SIZE_MB = 50;
+const MAX_VIDEO_DURATION_SEC = 60;
 
 export default function ReturnRequestModal({ order, onClose, onSuccess }: ReturnRequestModalProps) {
   const [reason, setReason] = useState<string>("NUT_VO_VAN_CHUYEN");
   const [reasonDetails, setReasonDetails] = useState<string>("");
   const [evidenceImages, setEvidenceImages] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState<boolean>(false);
+  const [evidenceVideo, setEvidenceVideo] = useState<string | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState<boolean>(false);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [bankName, setBankName] = useState<string>("");
   const [accountNumber, setAccountNumber] = useState<string>("");
   const [accountHolder, setAccountHolder] = useState<string>("");
@@ -41,6 +46,8 @@ export default function ReturnRequestModal({ order, onClose, onSuccess }: Return
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -132,6 +139,82 @@ export default function ReturnRequestModal({ order, onClose, onSuccess }: Return
     setEvidenceImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size ≤ 50MB
+    if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
+      setError(`Video vượt quá dung lượng tối đa ${MAX_VIDEO_SIZE_MB}MB.`);
+      if (videoInputRef.current) videoInputRef.current.value = "";
+      return;
+    }
+
+    // Validate duration ≤ 60s bằng cách đọc metadata trước khi upload
+    const localUrl = URL.createObjectURL(file);
+    const duration = await new Promise<number>((resolve) => {
+      const vid = document.createElement("video");
+      vid.preload = "metadata";
+      vid.onloadedmetadata = () => {
+        resolve(vid.duration);
+        URL.revokeObjectURL(localUrl);
+      };
+      vid.onerror = () => resolve(0);
+      vid.src = localUrl;
+    });
+
+    if (duration > MAX_VIDEO_DURATION_SEC) {
+      setError(`Video vượt quá thời lượng tối đa ${MAX_VIDEO_DURATION_SEC} giây (video của bạn: ${Math.round(duration)}s).`);
+      if (videoInputRef.current) videoInputRef.current.value = "";
+      return;
+    }
+
+    setError(null);
+    setUploadingVideo(true);
+    // Hiện preview local trước để UX mượt hơn
+    setVideoPreviewUrl(URL.createObjectURL(file));
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetchWithAuth(`${API_URL}/returns/upload-video`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        let rawUrl = "";
+        if (typeof json === "string") rawUrl = json;
+        else if (typeof json.data === "string") rawUrl = json.data;
+        else if (json.data?.data) rawUrl = json.data.data;
+        else if (json.data?.url) rawUrl = json.data.url;
+        else if (json.url) rawUrl = json.url;
+
+        if (rawUrl) {
+          setEvidenceVideo(rawUrl);
+        }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.message || "Không thể tải video lên. Vui lòng thử lại.");
+        setVideoPreviewUrl(null);
+      }
+    } catch {
+      setError("Lỗi kết nối khi tải video. Vui lòng thử lại.");
+      setVideoPreviewUrl(null);
+    } finally {
+      setUploadingVideo(false);
+      if (videoInputRef.current) videoInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    setEvidenceVideo(null);
+    setVideoPreviewUrl(null);
+    if (videoInputRef.current) videoInputRef.current.value = "";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bankName.trim() || !accountNumber.trim() || !accountHolder.trim()) {
@@ -153,6 +236,7 @@ export default function ReturnRequestModal({ order, onClose, onSuccess }: Return
           reason,
           reasonDetails,
           evidenceImages,
+          evidenceVideo: evidenceVideo || undefined,
           bankAccount: {
             bankName: bankName.trim(),
             accountNumber: accountNumber.trim(),
@@ -340,6 +424,96 @@ export default function ReturnRequestModal({ order, onClose, onSuccess }: Return
               )}
             </div>
 
+            {/* Video bằng chứng — 1 video, ≤50MB, ≤60s */}
+            <div>
+              <label className="block text-xs font-bold text-[#2c1a00] uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Video className="w-3.5 h-3.5 text-[#8b6914]" />
+                  Video bằng chứng (Tùy chọn)
+                </span>
+                <span className="text-[10px] text-gray-500 font-normal font-sans">
+                  Tối đa {MAX_VIDEO_SIZE_MB}MB · ≤{MAX_VIDEO_DURATION_SEC}s · MP4 / MOV / WEBM
+                </span>
+              </label>
+
+              <input
+                type="file"
+                ref={videoInputRef}
+                accept="video/mp4,video/quicktime,video/webm,video/avi"
+                onChange={handleVideoUpload}
+                className="hidden"
+                disabled={!!evidenceVideo || uploadingVideo}
+              />
+
+              {/* Chưa có video → hiện zone chọn */}
+              {!evidenceVideo && !videoPreviewUrl ? (
+                <div
+                  onClick={() => !uploadingVideo && videoInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center transition-all flex flex-col items-center justify-center gap-1.5 group
+                    ${uploadingVideo
+                      ? "border-blue-300 bg-blue-50 cursor-wait"
+                      : "border-[#ede0c4] hover:border-blue-400 bg-[#fbfaf8] hover:bg-blue-50/30 cursor-pointer"}`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm transition-transform
+                    ${uploadingVideo ? "bg-blue-100 text-blue-500" : "bg-[#f4ebd0] text-[#8b6914] group-hover:scale-110 group-hover:bg-blue-100 group-hover:text-blue-600"}`}>
+                    {uploadingVideo ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Video className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#2c1a00] font-sans">
+                      {uploadingVideo ? "Đang tải video lên Cloudinary..." : "Bấm để chọn video bằng chứng"}
+                    </p>
+                    <p className="text-[11px] text-gray-400 font-sans mt-0.5">
+                      Quay clip mở hộp / vết nứt vỡ · Tối đa {MAX_VIDEO_SIZE_MB}MB · {MAX_VIDEO_DURATION_SEC} giây
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* Đã chọn video → hiện preview */
+                <div className="relative rounded-xl overflow-hidden border border-[#ede0c4] bg-black shadow-sm group">
+                  <video
+                    src={videoPreviewUrl || undefined}
+                    controls
+                    className="w-full max-h-48 object-contain"
+                    preload="metadata"
+                  />
+                  {/* Loading overlay khi đang upload */}
+                  {uploadingVideo && (
+                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2">
+                      <Loader2 className="w-8 h-8 text-white animate-spin" />
+                      <p className="text-white text-xs font-bold font-sans">Đang tải lên Cloudinary...</p>
+                    </div>
+                  )}
+                  {/* Nút xóa video */}
+                  {!uploadingVideo && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveVideo}
+                      className="absolute top-2 right-2 w-7 h-7 bg-black/70 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors cursor-pointer shadow-md"
+                      title="Xóa video"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {/* Badge trạng thái */}
+                  <div className="absolute bottom-2 left-2">
+                    {evidenceVideo ? (
+                      <span className="flex items-center gap-1 bg-emerald-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <CheckCircle2 className="w-3 h-3" /> Đã tải lên
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 bg-amber-500/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Đang tải...
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Bank Account Details */}
             <div className="pt-2 border-t border-gray-200">
               <h4 className="text-xs font-bold text-[#8b2500] uppercase tracking-wider mb-2 flex items-center gap-1.5 font-sans">
@@ -406,10 +580,10 @@ export default function ReturnRequestModal({ order, onClose, onSuccess }: Return
               </button>
               <button
                 type="submit"
-                disabled={loading || uploadingImages}
+                disabled={loading || uploadingVideo}
                 className="px-5 py-2 bg-[#8b2500] text-white text-xs font-bold tracking-[1px] uppercase rounded hover:bg-[#6c1d00] transition shadow-sm disabled:opacity-50 cursor-pointer"
               >
-                {loading ? "Đang gửi..." : "Gửi yêu cầu hoàn trả"}
+                {loading ? "Đang gửi..." : uploadingVideo ? "Đang tải video..." : "Gửi yêu cầu hoàn trả"}
               </button>
             </div>
           </form>

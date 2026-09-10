@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import CustomSelect from "@/src/components/ui/CustomSelect";
 import { getProvinces, getDistricts, getWards } from "../services/location.service";
 import type {
   Province,
@@ -242,60 +243,39 @@ export default function AddressFormModal({
           {/* Province */}
           <div>
             <label className={LABEL_CLS}>Tỉnh / Thành phố *</label>
-            <select
-              name="provinceCode"
+            <CustomSelect
               value={form.provinceCode}
-              onChange={handleChange}
-              required
-              className={INPUT_CLS}
-            >
-              <option value="">Chọn tỉnh / thành</option>
-              {provinces.map((p) => (
-                <option key={p.code} value={p.code}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setForm((prev) => ({ ...prev, provinceCode: val }))}
+              options={provinces.map((p) => ({ value: p.code, label: p.name }))}
+              placeholder="Chọn tỉnh / thành"
+              searchable
+            />
           </div>
 
           {/* District */}
           <div>
             <label className={LABEL_CLS}>Quận / Huyện *</label>
-            <select
-              name="districtCode"
+            <CustomSelect
               value={form.districtCode}
-              onChange={handleChange}
-              required
+              onChange={(val) => setForm((prev) => ({ ...prev, districtCode: val }))}
+              options={districts.map((d) => ({ value: d.code, label: d.name }))}
+              placeholder="Chọn quận / huyện"
               disabled={!form.provinceCode}
-              className={`${INPUT_CLS} disabled:opacity-60`}
-            >
-              <option value="">Chọn quận / huyện</option>
-              {districts.map((d) => (
-                <option key={d.code} value={d.code}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
+              searchable
+            />
           </div>
 
           {/* Ward */}
           <div>
             <label className={LABEL_CLS}>Phường / Xã *</label>
-            <select
-              name="wardCode"
+            <CustomSelect
               value={form.wardCode}
-              onChange={handleChange}
-              required
+              onChange={(val) => setForm((prev) => ({ ...prev, wardCode: val }))}
+              options={wards.map((w) => ({ value: w.code, label: w.name }))}
+              placeholder="Chọn phường / xã"
               disabled={!form.districtCode}
-              className={`${INPUT_CLS} disabled:opacity-60`}
-            >
-              <option value="">Chọn phường / xã</option>
-              {wards.map((w) => (
-                <option key={w.code} value={w.code}>
-                  {w.name}
-                </option>
-              ))}
-            </select>
+              searchable
+            />
           </div>
 
           {/* Address detail */}

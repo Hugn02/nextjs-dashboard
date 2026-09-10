@@ -959,7 +959,7 @@ export default function CheckoutPage() {
                           </span>
                         </div>
                         <div className="max-w-[200px]">
-                          <h4 className="text-xs font-semibold font-['Cormorant_Garamond',_serif] text-[#2c1a00] line-clamp-1">
+                          <h4 className="text-xs font-semibold font-['Cormorant_Garamond',_serif] text-[#2c1a00] line-clamp-1 break-words [overflow-wrap:anywhere] [word-break:break-all]" title={p.name}>
                             {p.name}
                           </h4>
                           {p.sku && (
