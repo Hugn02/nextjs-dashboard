@@ -6,13 +6,19 @@ import Link from "next/link";
 interface CartEventDetail {
   productName?: string;
   message?: string;
+  title?: string;
+  actionText?: string;
+  actionHref?: string;
 }
 
 export default function CartAddedNotification() {
   const [visible, setVisible] = useState(false);
   const [modalType, setModalType] = useState<"success" | "warning">("success");
   const [productName, setProductName] = useState("");
+  const [warningTitle, setWarningTitle] = useState("Thông báo tồn kho");
   const [warningMessage, setWarningMessage] = useState("");
+  const [actionText, setActionText] = useState("");
+  const [actionHref, setActionHref] = useState("");
   const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const dismiss = useCallback(() => {
@@ -34,12 +40,15 @@ export default function CartAddedNotification() {
 
     const handleWarning = (e: Event) => {
       const detail = (e as CustomEvent<CartEventDetail>).detail;
+      setWarningTitle(detail?.title || "Thông báo tồn kho");
       setWarningMessage(detail?.message || "Số lượng vượt quá tồn kho hiện có.");
+      setActionText(detail?.actionText || "");
+      setActionHref(detail?.actionHref || "");
       setModalType("warning");
       setVisible(true);
 
       if (timer) clearTimeout(timer);
-      const t = setTimeout(() => setVisible(false), 5000);
+      const t = setTimeout(() => setVisible(false), 6000);
       setTimer(t);
     };
 
@@ -140,24 +149,50 @@ export default function CartAddedNotification() {
             </div>
 
             <h3 className="text-xl font-bold text-[#78350f] m-0" style={serif}>
-              Thông báo tồn kho
+              {warningTitle}
             </h3>
-            <p className="text-sm text-[#92400e] m-0 font-medium leading-relaxed px-2">
+            <p className="text-sm text-[#92400e] m-0 font-medium leading-relaxed px-2 break-words [overflow-wrap:anywhere] [word-break:break-word] max-w-full">
               {warningMessage}
             </p>
 
-            <div className="w-full mt-2">
-              <button
-                onClick={dismiss}
-                className="group relative w-full flex items-center justify-center overflow-hidden rounded-[30px] border border-[#d29f13] bg-[#d29f13] py-2.5 text-[12px] font-bold tracking-[1.5px] uppercase text-white no-underline transition-colors duration-300 cursor-pointer shadow-md"
-                style={serif}
-              >
-                <span className="absolute top-0 left-1/2 h-full w-0 -translate-x-1/2 bg-white transition-all duration-300 ease-out group-hover:w-[110%]" />
-                <span className="relative group-hover:text-[#d29f13] transition-colors duration-300">
-                  Đã hiểu & Đóng
-                </span>
-              </button>
-            </div>
+            {actionHref && actionText ? (
+              <div className="flex gap-3 w-full mt-2">
+                <button
+                  onClick={dismiss}
+                  className="group relative flex-1 flex items-center justify-center overflow-hidden rounded-[30px] border border-[#ddd] bg-white py-2.5 text-[11px] font-bold uppercase tracking-[1.5px] text-gray-500 no-underline transition-colors duration-300 ease-out hover:border-[#c4a84f] hover:text-[#8b6914] cursor-pointer"
+                  style={serif}
+                >
+                  <span className="absolute top-0 left-1/2 h-full w-0 -translate-x-1/2 bg-[#eeeeee] transition-all duration-300 ease-out group-hover:w-[110%]" />
+                  <span className="relative transition-colors duration-300 ease-out">
+                    Đóng
+                  </span>
+                </button>
+                <Link
+                  href={actionHref}
+                  onClick={dismiss}
+                  className="group relative flex-1 flex items-center justify-center overflow-hidden rounded-[30px] border border-[#d29f13] bg-[#d29f13] py-2.5 text-[11px] font-bold tracking-[1.5px] uppercase text-white no-underline transition-colors duration-300 cursor-pointer"
+                  style={serif}
+                >
+                  <span className="absolute top-0 left-1/2 h-full w-0 -translate-x-1/2 bg-white transition-all duration-300 ease-out group-hover:w-[110%]" />
+                  <span className="relative group-hover:text-[#d29f13] transition-colors duration-300">
+                    {actionText}
+                  </span>
+                </Link>
+              </div>
+            ) : (
+              <div className="w-full mt-2">
+                <button
+                  onClick={dismiss}
+                  className="group relative w-full flex items-center justify-center overflow-hidden rounded-[30px] border border-[#d29f13] bg-[#d29f13] py-2.5 text-[12px] font-bold tracking-[1.5px] uppercase text-white no-underline transition-colors duration-300 cursor-pointer shadow-md"
+                  style={serif}
+                >
+                  <span className="absolute top-0 left-1/2 h-full w-0 -translate-x-1/2 bg-white transition-all duration-300 ease-out group-hover:w-[110%]" />
+                  <span className="relative group-hover:text-[#d29f13] transition-colors duration-300">
+                    Đã hiểu & Đóng
+                  </span>
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>

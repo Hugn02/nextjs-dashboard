@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
 import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import Navbar from "@/src/layout/Navbar";
@@ -24,10 +24,15 @@ import {
     Eye,
     CreditCard,
     Loader2,
+    Search,
+    X,
+    RotateCw,
 } from "lucide-react";
 import ReturnRequestModal from "@/src/components/ReturnRequestModal";
 import ViewReturnDetailModal from "@/src/components/ViewReturnDetailModal";
 import CustomSelect from "@/src/components/ui/CustomSelect";
+import { useRouter } from "next/navigation";
+import useCart from "@/src/features/cart/hooks/useCart";
 
 interface Order {
     _id?: string;
@@ -38,8 +43,11 @@ interface Order {
     paymentStatus?: string;
     paymentMethod?: string;
     createdAt: string;
+    updatedAt?: string;
     items: Array<{
         product: {
+            _id?: string;
+            id?: string;
             productName: string;
             imageUrl?: string[];
         };
@@ -62,6 +70,8 @@ const TABS = [
 ];
 
 export default function OrderHistoryPage() {
+    const router = useRouter();
+    const { addItem, setSelectedIds } = useCart();
     const { user: authUser, token } = useAuthStore();
     const [orders, setOrders] = useState<Order[]>([]);
     const tabsScrollRef = useRef<HTMLDivElement>(null);
@@ -70,13 +80,87 @@ export default function OrderHistoryPage() {
     const [user, setUser] = useState<User | null>(null);
     const [cancellingId, setCancellingId] = useState<string | null>(null);
     const [repayingId, setRepayingId] = useState<string | null>(null);
+    const [reorderingId, setReorderingId] = useState<string | null>(null);
     const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null);
     const [showConfirmModal, setShowConfirmModal] = useState<Order | null>(null);
     const [showReturnModal, setShowReturnModal] = useState<Order | null>(null);
     const [activeTab, setActiveTab] = useState("all");
+    const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [ordersPerPage, setOrdersPerPage] = useState(5);
     const ordersListRef = useRef<HTMLDivElement>(null);
+
+    const handleReorder = async (order: Order) => {
+        const orderId = order.publicId || order._id || order.id;
+        if (!orderId || !order.items || order.items.length === 0) return;
+
+        setReorderingId(orderId);
+        try {
+            const productIds: string[] = [];
+            const failedProducts: string[] = [];
+
+            for (const item of order.items) {
+                const pid = item.product?._id || item.product?.id;
+                const pName = item.product?.productName || "Sản phẩm";
+                if (pid) {
+                    try {
+                        await addItem(pid, item.quantity || 1);
+                        productIds.push(pid);
+                    } catch (err: any) {
+                        failedProducts.push(pName);
+                    }
+                }
+            }
+
+            // Nếu tất cả sản phẩm đều thất bại (hết hàng)
+            if (productIds.length === 0) {
+                const msg = failedProducts.length === 1
+                    ? `Sản phẩm "${failedProducts[0]}" trong đơn hàng hiện đã hết hàng hoặc không đủ tồn kho để mua lại.`
+                    : `Tất cả sản phẩm trong đơn hàng (${failedProducts.join(", ")}) hiện đã hết hàng hoặc không đủ tồn kho để mua lại.`;
+                window.dispatchEvent(
+                    new CustomEvent("cart-warning", {
+                        detail: {
+                            title: "Sản phẩm đã hết hàng",
+                            message: msg,
+                            actionText: "Xem sản phẩm khác",
+                            actionHref: "/products/all",
+                        },
+                    })
+                );
+                return;
+            }
+
+            // Có ít nhất 1 sản phẩm thêm thành công
+            setSelectedIds(new Set(productIds));
+            localStorage.setItem("checkout_selected_ids", JSON.stringify(productIds));
+
+            if (failedProducts.length > 0) {
+                window.dispatchEvent(
+                    new CustomEvent("cart-warning", {
+                        detail: {
+                            title: "Thông báo mua lại",
+                            message: `Đã thêm ${productIds.length} sản phẩm vào giỏ hàng. Riêng sản phẩm "${failedProducts.join(", ")}" hiện đã hết hàng nên không thể thêm lại.`,
+                            actionText: "Đến giỏ hàng",
+                            actionHref: "/cart",
+                        },
+                    })
+                );
+            } else {
+                router.push("/cart");
+            }
+        } catch (err: any) {
+            window.dispatchEvent(
+                new CustomEvent("cart-warning", {
+                    detail: {
+                        title: "Không thể mua lại",
+                        message: err.message || "Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng.",
+                    },
+                })
+            );
+        } finally {
+            setReorderingId(null);
+        }
+    };
 
     const handleDownloadInvoice = async (order: Order) => {
         const orderId = order.publicId || order._id || order.id;
@@ -298,10 +382,24 @@ export default function OrderHistoryPage() {
         };
     };
 
-    // Lọc đơn hàng theo tab
-    const filteredOrders = activeTab === "all"
-        ? orders
-        : orders.filter(o => o.status === activeTab);
+    // Lọc đơn hàng theo tab và tìm kiếm
+    const filteredOrders = useMemo(() => {
+        let list = activeTab === "all"
+            ? orders
+            : orders.filter(o => o.status === activeTab);
+
+        if (searchQuery.trim()) {
+            const q = searchQuery.trim().toLowerCase();
+            list = list.filter(o => {
+                const matchPublicId = (o.publicId || "").toLowerCase().includes(q);
+                const matchProduct = (o.items || []).some(item =>
+                    (item.product?.productName || "").toLowerCase().includes(q)
+                );
+                return matchPublicId || matchProduct;
+            });
+        }
+        return list;
+    }, [orders, activeTab, searchQuery]);
 
     // Tính toán phân trang
     const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ordersPerPage));
@@ -385,6 +483,41 @@ export default function OrderHistoryPage() {
                             {/* Anchor scroll khi đổi trang */}
                             <div ref={ordersListRef} className="scroll-mt-32"></div>
 
+                            {/* Thanh tìm kiếm đơn hàng (Search Bar) */}
+                            <div className="mb-6 w-full">
+                                <div className="relative w-full">
+                                    <Search className="w-4 h-4 text-[#c4a84f] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => {
+                                            setSearchQuery(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        placeholder="Tìm kiếm theo mã đơn hàng hoặc tên sản phẩm..."
+                                        className="w-full pl-11 pr-11 py-3 bg-white border border-[#ede0c4] rounded-lg text-sm text-[#2c1a00] placeholder:text-gray-400 focus:outline-none focus:border-[#c4a84f] focus:ring-2 focus:ring-[#c4a84f]/20 transition-all font-sans shadow-sm"
+                                    />
+                                    {searchQuery && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSearchQuery("");
+                                                setCurrentPage(1);
+                                            }}
+                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer p-1 rounded-full hover:bg-gray-100"
+                                            title="Xóa tìm kiếm"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                                {searchQuery.trim() && (
+                                    <p className="text-xs text-gray-500 font-sans mt-2">
+                                        Tìm thấy <span className="font-bold text-[#8b2500]">{filteredOrders.length}</span> đơn hàng phù hợp với từ khóa &ldquo;<span className="italic text-gray-700">{searchQuery}</span>&rdquo;
+                                    </p>
+                                )}
+                            </div>
+
                             {/* Tabs filter — scrollable with arrow buttons */}
                             <div className="relative mb-8">
                                 {/* Left arrow */}
@@ -403,9 +536,16 @@ export default function OrderHistoryPage() {
                                     className="flex overflow-x-auto pb-2 border-b border-[#ede0c4] gap-1 no-scrollbar scroll-smooth mx-8"
                                 >
                                     {TABS.map((tab) => {
+                                        const q = searchQuery.trim().toLowerCase();
                                         const count = tab.id === "all"
-                                            ? orders.length
-                                            : orders.filter(o => o.status === tab.id).length;
+                                            ? (q ? filteredOrders.length : orders.length)
+                                            : (q
+                                                ? orders.filter(o => o.status === tab.id && (
+                                                    (o.publicId || "").toLowerCase().includes(q) ||
+                                                    (o.items || []).some(it => (it.product?.productName || "").toLowerCase().includes(q))
+                                                )).length
+                                                : orders.filter(o => o.status === tab.id).length
+                                            );
                                         return (
                                             <button
                                                 key={tab.id}
@@ -440,13 +580,34 @@ export default function OrderHistoryPage() {
                             {filteredOrders.length === 0 ? (
                                 <div className="bg-white border border-[#ede0c4] rounded-lg p-16 text-center shadow-sm">
                                     <ShoppingBag className="w-16 h-16 text-[#c4a84f] mx-auto mb-4 stroke-1" />
-                                    <p className="text-gray-500 text-sm mb-6 font-sans">Bạn chưa có đơn hàng nào trong trạng thái này.</p>
-                                    <Link
-                                        href="/products/all"
-                                        className="inline-block bg-[#c4a84f] text-white px-8 py-3.5 rounded text-xs font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] hover:bg-[#a8893a] transition-all no-underline"
-                                    >
-                                        Bắt đầu mua sắm
-                                    </Link>
+                                    {searchQuery.trim() ? (
+                                        <>
+                                            <p className="text-gray-800 font-bold text-base mb-1 font-sans">Không tìm thấy đơn hàng nào</p>
+                                            <p className="text-gray-500 text-xs mb-6 font-sans">
+                                                Không có đơn hàng nào khớp với từ khóa &ldquo;<span className="font-semibold text-gray-700">{searchQuery}</span>&rdquo; trong danh mục này.
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSearchQuery("");
+                                                    setCurrentPage(1);
+                                                }}
+                                                className="inline-block bg-[#c4a84f] text-white px-6 py-2.5 rounded text-xs font-bold tracking-[1px] uppercase font-sans hover:bg-[#a8893a] transition-all cursor-pointer"
+                                            >
+                                                Xóa bộ lọc tìm kiếm
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="text-gray-500 text-sm mb-6 font-sans">Bạn chưa có đơn hàng nào trong trạng thái này.</p>
+                                            <Link
+                                                href="/products/all"
+                                                className="inline-block bg-[#c4a84f] text-white px-8 py-3.5 rounded text-xs font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] hover:bg-[#a8893a] transition-all no-underline"
+                                            >
+                                                Bắt đầu mua sắm
+                                            </Link>
+                                        </>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="space-y-6">
@@ -550,12 +711,13 @@ export default function OrderHistoryPage() {
                                                         const hasCancel = order.status === 'pending' &&
                                                             (order.paymentMethod === 'cod' || order.paymentStatus !== 'paid');
                                                         const hasCancelReturn = order.status === 'return_requested';
-                                                        const canReturn = (order.status === 'completed' || order.status === 'shipping') && (() => {
-                                                            const orderDate = new Date(order.createdAt).getTime();
-                                                            const diffDays = (Date.now() - orderDate) / (1000 * 3600 * 24);
-                                                            return diffDays <= 14;
+                                                        const canReorder = (order.status === 'completed' || order.status === 'returned' || order.status === 'cancelled') && !!order.items && order.items.length > 0;
+                                                        const canReturn = order.status === 'completed' && (() => {
+                                                            const referenceDate = new Date(order.updatedAt || order.createdAt).getTime();
+                                                            const diffDays = (Date.now() - referenceDate) / (1000 * 3600 * 24);
+                                                            return diffDays <= 7;
                                                         })();
-                                                        const totalButtons = 2 + (hasRepay ? 1 : 0) + (hasCancel ? 1 : 0) + (canReturn ? 1 : 0) + (hasCancelReturn ? 1 : 0);
+                                                        const totalButtons = 2 + (hasRepay ? 1 : 0) + (hasCancel ? 1 : 0) + (canReturn ? 1 : 0) + (hasCancelReturn ? 1 : 0) + (canReorder ? 1 : 0);
                                                         const detailColSpan = totalButtons === 3 ? 'col-span-2 md:col-span-1' : '';
 
                                                         return (
@@ -593,7 +755,7 @@ export default function OrderHistoryPage() {
                                                                     </button>
                                                                 )}
 
-                                                                {/* Yêu cầu hoàn trả — only if completed/shipping within 14 days */}
+                                                                {/* Yêu cầu hoàn trả — only if completed/shipping within 7 days */}
                                                                 {canReturn && (
                                                                     <button
                                                                         onClick={() => setShowReturnModal(order)}
@@ -601,6 +763,23 @@ export default function OrderHistoryPage() {
                                                                     >
                                                                         <RotateCcw className="w-3.5 h-3.5 shrink-0" />
                                                                         <span className="truncate">Yêu cầu hoàn trả</span>
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Mua lại — for completed or returned */}
+                                                                {canReorder && (
+                                                                    <button
+                                                                        onClick={() => handleReorder(order)}
+                                                                        disabled={reorderingId === orderId}
+                                                                        className="h-9 px-3 bg-[#c4a84f] hover:bg-[#a8893a] text-white rounded text-[11px] font-bold tracking-[0.3px] uppercase transition-all disabled:opacity-50 font-sans cursor-pointer flex items-center justify-center gap-1.5 w-full md:w-auto shadow-sm"
+                                                                        title="Thêm các sản phẩm vào giỏ hàng và đặt lại"
+                                                                    >
+                                                                        {reorderingId === orderId ? (
+                                                                            <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
+                                                                        ) : (
+                                                                            <RotateCw className="w-3.5 h-3.5 shrink-0" />
+                                                                        )}
+                                                                        <span className="truncate">{reorderingId === orderId ? 'Đang thêm...' : 'Mua lại'}</span>
                                                                     </button>
                                                                 )}
 

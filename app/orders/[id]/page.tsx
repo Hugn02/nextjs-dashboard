@@ -29,8 +29,13 @@ import {
     Video,
     X,
     Loader2,
+    RotateCw,
+    Star,
+    Package,
 } from "lucide-react";
 import ViewReturnDetailModal from "@/src/components/ViewReturnDetailModal";
+import ReturnRequestModal from "@/src/components/ReturnRequestModal";
+import useCart from "@/src/features/cart/hooks/useCart";
 import { formatImageUrl, formatVideoUrl } from "@/src/lib/cloudinary";
 
 interface OrderDetail {
@@ -87,7 +92,80 @@ export default function OrderDetailPage() {
     const [cancelling, setCancelling] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [showViewReturnModal, setShowViewReturnModal] = useState<OrderDetail | null>(null);
+    const [showReturnModal, setShowReturnModal] = useState<OrderDetail | null>(null);
     const [downloadingPdf, setDownloadingPdf] = useState(false);
+    const [reordering, setReordering] = useState(false);
+    const { addItem, setSelectedIds } = useCart();
+
+    const handleReorder = async () => {
+        if (!order || !order.items || order.items.length === 0) return;
+        setReordering(true);
+        try {
+            const productIds: string[] = [];
+            const failedProducts: string[] = [];
+
+            for (const item of order.items) {
+                const pid = item.product?._id || item.product?.id;
+                const pName = item.product?.productName || "Sản phẩm";
+                if (pid) {
+                    try {
+                        await addItem(pid, item.quantity || 1);
+                        productIds.push(pid);
+                    } catch (err: any) {
+                        failedProducts.push(pName);
+                    }
+                }
+            }
+
+            // Nếu tất cả sản phẩm đều thất bại (hết hàng)
+            if (productIds.length === 0) {
+                const msg = failedProducts.length === 1
+                    ? `Sản phẩm "${failedProducts[0]}" trong đơn hàng hiện đã hết hàng hoặc không đủ tồn kho để mua lại.`
+                    : `Tất cả sản phẩm trong đơn hàng (${failedProducts.join(", ")}) hiện đã hết hàng hoặc không đủ tồn kho để mua lại.`;
+                window.dispatchEvent(
+                    new CustomEvent("cart-warning", {
+                        detail: {
+                            title: "Sản phẩm đã hết hàng",
+                            message: msg,
+                            actionText: "Xem sản phẩm khác",
+                            actionHref: "/products/all",
+                        },
+                    })
+                );
+                return;
+            }
+
+            // Có ít nhất 1 sản phẩm thêm thành công
+            setSelectedIds(new Set(productIds));
+            localStorage.setItem("checkout_selected_ids", JSON.stringify(productIds));
+
+            if (failedProducts.length > 0) {
+                window.dispatchEvent(
+                    new CustomEvent("cart-warning", {
+                        detail: {
+                            title: "Thông báo mua lại",
+                            message: `Đã thêm ${productIds.length} sản phẩm vào giỏ hàng. Riêng sản phẩm "${failedProducts.join(", ")}" hiện đã hết hàng nên không thể thêm lại.`,
+                            actionText: "Đến giỏ hàng",
+                            actionHref: "/cart",
+                        },
+                    })
+                );
+            } else {
+                router.push("/cart");
+            }
+        } catch (err: any) {
+            window.dispatchEvent(
+                new CustomEvent("cart-warning", {
+                    detail: {
+                        title: "Không thể mua lại",
+                        message: err.message || "Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng.",
+                    },
+                })
+            );
+        } finally {
+            setReordering(false);
+        }
+    };
 
     const handleDownloadInvoicePdf = async () => {
         if (!order) return;
@@ -663,6 +741,83 @@ export default function OrderDetailPage() {
                         );
                     })}
                 </div>
+
+                {/* ── STATUS PROGRESS BANNER (Phương án 1) ── */}
+                {order.status === 'confirmed' && (
+                    <div className="mt-6 pt-5 border-t border-[#f3ede2] flex items-start gap-3.5 bg-[#fdfcf9] p-4 rounded-lg border border-[#ede0c4]/80">
+                        <div className="w-9 h-9 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 flex-shrink-0 mt-0.5">
+                            <Package className="w-4 h-4" />
+                        </div>
+                        <div className="font-sans flex-1">
+                            <div className="flex items-center gap-2">
+                                <h4 className="text-xs font-bold text-[#2c1a00] uppercase tracking-wider">Đang chuẩn bị hàng</h4>
+                                <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">Xưởng Bát Tràng</span>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                                Đơn hàng đã được xác nhận. Xưởng gốm Bát Tràng đang kiểm tra kỹ lưỡng và đóng gói sản phẩm để bàn giao cho đơn vị vận chuyển.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {order.status === 'shipping' && (
+                    <div className="mt-6 pt-5 border-t border-[#f3ede2] flex items-start gap-3.5 bg-[#f8fbff] p-4 rounded-lg border border-blue-200/70">
+                        <div className="w-9 h-9 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 flex-shrink-0 mt-0.5">
+                            <Truck className="w-4 h-4" />
+                        </div>
+                        <div className="font-sans flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider">Đang vận chuyển</h4>
+                                {(order.shippingProviderName || order.shippingProvider) && (
+                                    <span className="text-[10px] bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded-full">
+                                        {order.shippingProviderName || order.shippingProvider}
+                                    </span>
+                                )}
+                                {order.trackingCode && (
+                                    <span className="text-xs font-mono font-bold bg-white text-blue-900 border border-blue-200 px-2 py-0.5 rounded select-all">
+                                        Mã vận đơn: {order.trackingCode}
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                                Đơn hàng đang trên đường giao đến bạn. Quý khách vui lòng chú ý điện thoại từ nhân viên giao hàng (Shipper).
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {order.status === 'pending' && (
+                    <div className="mt-6 pt-5 border-t border-[#f3ede2] flex items-start gap-3.5 bg-[#fdfcf9] p-4 rounded-lg border border-[#ede0c4]/80">
+                        <div className="w-9 h-9 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 flex-shrink-0 mt-0.5">
+                            <Clock className="w-4 h-4" />
+                        </div>
+                        <div className="font-sans flex-1">
+                            <div className="flex items-center gap-2">
+                                <h4 className="text-xs font-bold text-[#2c1a00] uppercase tracking-wider">Chờ xác nhận đơn hàng</h4>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                                Đơn hàng của bạn đã được ghi nhận. Bộ phận chăm sóc khách hàng của Gốm sứ Bát Tràng sẽ sớm kiểm tra và xác nhận đơn hàng.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {order.status === 'completed' && (
+                    <div className="mt-6 pt-5 border-t border-[#f3ede2] flex items-start gap-3.5 bg-[#f6fcf8] p-4 rounded-lg border border-emerald-200/80">
+                        <div className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 flex-shrink-0 mt-0.5">
+                            <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                        <div className="font-sans flex-1">
+                            <div className="flex items-center gap-2">
+                                <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Giao hàng thành công</h4>
+                                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">Đã hoàn tất</span>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                                Đơn hàng đã được giao thành công. Cảm ơn quý khách đã tin chọn sản phẩm thủ công từ làng nghề Gốm Sứ Bát Tràng!
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     };
@@ -846,10 +1001,123 @@ export default function OrderDetailPage() {
                                             <span className="text-sm font-bold uppercase text-[#2c1a00] tracking-wider">Tổng thanh toán:</span>
                                             <span className="text-2xl font-extrabold text-[#8b2500]">{formatPrice(order.total)}</span>
                                         </div>
+
+                                        {/* Hành động đơn hàng ở chân thẻ Chi tiết hóa đơn (Phương án 1) */}
+                                        {(() => {
+                                            const isCompleted = order.status === 'completed';
+                                            const isPending = order.status === 'pending';
+                                            const isCancelled = order.status === 'cancelled';
+                                            const isReturnRelated = order.status === 'return_requested' || order.status === 'returned';
+
+                                            if (!isCompleted && !isPending && !isCancelled && !isReturnRelated) {
+                                                return null;
+                                            }
+
+                                            const completionTime = new Date(order.updatedAt || order.createdAt).getTime();
+                                            const diffDays = (Date.now() - completionTime) / (1000 * 3600 * 24);
+                                            const canReturn = diffDays <= 7;
+                                            const canReview = diffDays <= 30;
+
+                                            return (
+                                                <div className="border-t border-[#ede0c4] pt-4 mt-4 flex flex-wrap gap-2.5 justify-end items-center font-sans">
+                                                    {/* Đơn Chờ xác nhận (pending) */}
+                                                    {isPending && (
+                                                        <button
+                                                            onClick={() => setShowCancelModal(true)}
+                                                            className="w-full sm:w-auto px-4 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold tracking-[0.5px] uppercase rounded transition-all font-sans cursor-pointer"
+                                                        >
+                                                            Hủy đơn hàng này
+                                                        </button>
+                                                    )}
+
+                                                    {/* Đơn Đã hủy (cancelled) */}
+                                                    {isCancelled && (
+                                                        <button
+                                                            onClick={handleReorder}
+                                                            disabled={reordering}
+                                                            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[0.5px] uppercase px-5 py-2.5 rounded transition-all font-sans cursor-pointer shadow-sm disabled:opacity-50"
+                                                        >
+                                                            {reordering ? (
+                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                            ) : (
+                                                                <RotateCw className="w-4 h-4" />
+                                                            )}
+                                                            <span>{reordering ? 'Đang thêm vào giỏ...' : 'Mua lại đơn hàng này'}</span>
+                                                        </button>
+                                                    )}
+
+                                                    {/* Đơn Hoàn trả (return_requested / returned) */}
+                                                    {isReturnRelated && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => setShowViewReturnModal(order)}
+                                                                className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-[#fdf8ef] border border-[#c4a84f] text-[#8b6914] hover:bg-[#f5ebd6] text-xs font-bold tracking-[0.5px] uppercase px-4 py-2.5 rounded transition-all font-sans cursor-pointer"
+                                                            >
+                                                                <Eye className="w-4 h-4 text-[#c4a84f]" />
+                                                                <span>Xem Yêu cầu Hoàn trả</span>
+                                                            </button>
+                                                            {order.status === 'returned' && (
+                                                                <button
+                                                                    onClick={handleReorder}
+                                                                    disabled={reordering}
+                                                                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[0.5px] uppercase px-5 py-2.5 rounded transition-all font-sans cursor-pointer shadow-sm disabled:opacity-50"
+                                                                >
+                                                                    {reordering ? (
+                                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                                    ) : (
+                                                                        <RotateCw className="w-4 h-4" />
+                                                                    )}
+                                                                    <span>{reordering ? 'Đang thêm...' : 'Mua lại đơn hàng này'}</span>
+                                                                </button>
+                                                            )}
+                                                        </>
+                                                    )}
+
+                                                    {/* Đơn Hoàn thành (completed) */}
+                                                    {isCompleted && (
+                                                        <>
+                                                            {canReturn && (
+                                                                <button
+                                                                    onClick={() => setShowReturnModal(order)}
+                                                                    className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-amber-50 border border-amber-300 text-amber-800 hover:bg-amber-100 text-xs font-bold tracking-[0.5px] uppercase px-4 py-2.5 rounded transition-all font-sans cursor-pointer"
+                                                                >
+                                                                    <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
+                                                                    <span>Yêu cầu hoàn trả</span>
+                                                                </button>
+                                                            )}
+
+                                                            {/* Đánh giá đơn hàng: Chỉ hiển thị khi chưa đánh giá & còn trong thời hạn 30 ngày */}
+                                                            {!allReviewed && canReview && (
+                                                                <button
+                                                                    onClick={handleOpenBatchModal}
+                                                                    className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-white border border-[#c4a84f] text-[#8b6914] hover:bg-[#fdf8ef] text-xs font-bold tracking-[0.5px] uppercase px-4 py-2.5 rounded transition-all font-sans cursor-pointer"
+                                                                >
+                                                                    <Star className="w-3.5 h-3.5 fill-[#c4a84f] text-[#c4a84f]" />
+                                                                    <span>Đánh giá đơn hàng</span>
+                                                                </button>
+                                                            )}
+
+                                                            <button
+                                                                onClick={handleReorder}
+                                                                disabled={reordering}
+                                                                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[0.5px] uppercase px-5 py-2.5 rounded transition-all font-sans cursor-pointer shadow-sm disabled:opacity-50"
+                                                            >
+                                                                {reordering ? (
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                ) : (
+                                                                    <RotateCw className="w-4 h-4" />
+                                                                )}
+                                                                <span>{reordering ? 'Đang thêm...' : 'Mua lại đơn hàng này'}</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
 
-                                {/* Right Column: Delivery Information & Actions */}
+                                {/* Right Column: Delivery Information */}
                                 <div className="space-y-6">
                                     {/* Delivery Info Card */}
                                     <div className="bg-white border border-[#ede0c4] rounded-lg shadow-sm p-6 space-y-4">
@@ -922,63 +1190,20 @@ export default function OrderDetailPage() {
                                                     </div>
                                                 </div>
                                             )}
-                                        </div>
-                                    </div>
 
-                                    {/* Action Box Card */}
-                                    <div className="bg-white border border-[#ede0c4] rounded-lg shadow-sm p-6 space-y-4">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#2c1a00] border-b border-[#ede0c4] pb-2 font-sans">
-                                            Hành động đơn hàng
-                                        </h3>
-
-                                        <div className="flex flex-col gap-3">
-                                            {order.status === 'pending' && (
-                                                <button
-                                                    onClick={() => setShowCancelModal(true)}
-                                                    className="w-full bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold tracking-[1px] uppercase py-3.5 rounded transition-all font-sans cursor-pointer"
+                                            {/* Hotline contact bar */}
+                                            <div className="border-t border-[#ede0c4] pt-3.5 mt-2 flex items-center justify-between text-xs font-sans text-gray-500">
+                                                <span className="flex items-center gap-1.5">
+                                                    <Phone className="w-3.5 h-3.5 text-[#c4a84f]" />
+                                                    Cần hỗ trợ đơn hàng?
+                                                </span>
+                                                <a
+                                                    href="tel:0901234567"
+                                                    className="font-bold text-[#8b6914] hover:text-[#c4a84f] transition-colors no-underline"
                                                 >
-                                                    Hủy đơn hàng này
-                                                </button>
-                                            )}
-
-                                            {(order.status === 'return_requested' || order.status === 'returned') && (
-                                                <button
-                                                    onClick={() => setShowViewReturnModal(order)}
-                                                    className="w-full flex items-center justify-center gap-2 bg-[#fdf8ef] border border-[#c4a84f] text-[#8b6914] hover:bg-[#f5ebd6] text-xs font-bold tracking-[1.5px] uppercase py-3.5 rounded transition-all font-sans cursor-pointer"
-                                                >
-                                                    <Eye className="w-4 h-4 text-[#c4a84f]" />
-                                                    Xem Yêu cầu Hoàn trả
-                                                </button>
-                                            )}
-
-                                            {order.status === 'completed' && (
-                                                <div className="space-y-3 border-b border-gray-100 pb-3">
-                                                    {allReviewed ? (
-                                                        <div className="flex items-center gap-2 py-2 px-3 bg-green-50 border border-green-200 rounded">
-                                                            <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                                            <div>
-                                                                <p className="text-xs font-bold text-green-700 font-sans">Đã đánh giá đơn hàng</p>
-                                                                <p className="text-[10px] text-green-600 font-sans mt-0.5">Cảm ơn bạn đã chia sẻ đánh giá!</p>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <button
-                                                            onClick={handleOpenBatchModal}
-                                                            className="w-full flex items-center justify-center gap-2 bg-[#c4a84f] text-white hover:bg-[#a8893a] text-xs font-bold tracking-[1.5px] uppercase py-3.5 rounded transition-all font-sans cursor-pointer border-none shadow-sm"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
-                                                            Đánh giá đơn hàng
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            <Link
-                                                href="/products/all"
-                                                className="w-full bg-[#2c1a00] text-white hover:bg-[#c4a84f] text-xs font-bold tracking-[1.5px] uppercase py-3.5 rounded transition-all text-center no-underline font-sans cursor-pointer"
-                                            >
-                                                Tiếp tục mua sắm
-                                            </Link>
+                                                    Hotline: 0901.234.567
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1352,6 +1577,16 @@ export default function OrderDetailPage() {
                         </div>
                     </div>
                 </div>
+            )}
+            {showReturnModal && (
+                <ReturnRequestModal
+                    order={showReturnModal}
+                    onClose={() => setShowReturnModal(null)}
+                    onSuccess={() => {
+                        setShowReturnModal(null);
+                        fetchOrder();
+                    }}
+                />
             )}
             {showViewReturnModal && (
                 <ViewReturnDetailModal
