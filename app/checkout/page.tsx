@@ -364,8 +364,14 @@ export default function CheckoutPage() {
         setDiscountAmount(0);
       } else {
         setAppliedCoupon(result.coupon || null);
-        setDiscountAmount(result.discountAmount);
-        setCouponSuccessMsg(`Đã áp dụng mã "${code.toUpperCase()}" (-${result.discountAmount.toLocaleString("vi-VN")}₫)`);
+        const isFreeShip = result.coupon?.discountType === 'FREE_SHIPPING';
+        const finalDiscount = isFreeShip ? checkoutShippingFee : result.discountAmount;
+        setDiscountAmount(finalDiscount);
+        if (isFreeShip) {
+          setCouponSuccessMsg(`Đã áp dụng mã "${code.toUpperCase()}" (Miễn phí vận chuyển -${checkoutShippingFee.toLocaleString("vi-VN")}₫)`);
+        } else {
+          setCouponSuccessMsg(`Đã áp dụng mã "${code.toUpperCase()}" (-${result.discountAmount.toLocaleString("vi-VN")}₫)`);
+        }
         setCouponCodeInput(code.toUpperCase());
       }
     } catch (err: any) {
@@ -376,6 +382,12 @@ export default function CheckoutPage() {
       setValidatingCoupon(false);
     }
   };
+
+  useEffect(() => {
+    if (appliedCoupon?.discountType === 'FREE_SHIPPING') {
+      setDiscountAmount(checkoutShippingFee);
+    }
+  }, [appliedCoupon, checkoutShippingFee]);
 
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
@@ -945,7 +957,7 @@ export default function CheckoutPage() {
                       key={pid}
                       className="flex gap-3 items-center justify-between"
                     >
-                      <div className="flex gap-3 items-center">
+                      <div className="flex gap-2.5 items-center min-w-0 flex-1">
                         <div className="relative w-12 h-12 flex-shrink-0">
                           <div className="w-full h-full bg-[#faf7f2] border border-[#ede0c4] rounded overflow-hidden relative">
                             <ImageWithFallback
@@ -956,22 +968,22 @@ export default function CheckoutPage() {
                               sizes="48px"
                             />
                           </div>
-                          <span className="absolute -top-1.5 -right-1.5 z-10 bg-[#8b6914] text-white text-[9px] rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center font-bold shadow-sm">
+                          <span className="absolute -top-1.5 -right-1.5 z-10 bg-[#8b6914] text-white text-[9px] rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center font-bold shadow-xs font-sans">
                             {item.quantity}
                           </span>
                         </div>
-                        <div className="max-w-[200px]">
-                          <h4 className="text-xs font-semibold font-['Cormorant_Garamond',_serif] text-[#2c1a00] line-clamp-1 break-words [overflow-wrap:anywhere] [word-break:break-all]" title={p.name}>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-xs font-semibold text-[#2c1a00] line-clamp-1 break-words [overflow-wrap:anywhere] [word-break:break-all]" title={p.name}>
                             {p.name}
                           </h4>
                           {p.sku && (
-                            <span className="text-[9px] text-gray-400 tracking-wide uppercase">
+                            <span className="text-[10px] text-gray-400 tracking-wide uppercase font-sans block">
                               SKU: {p.sku}
                             </span>
                           )}
                         </div>
                       </div>
-                      <span className="font-['Cormorant_Garamond',_serif] text-xs font-bold text-gray-800">
+                      <span className="font-sans text-xs font-bold text-gray-800 flex-shrink-0 ml-2">
                         {formatPrice(item.price * item.quantity)}
                       </span>
                     </div>
@@ -981,9 +993,9 @@ export default function CheckoutPage() {
             </div>
 
             {/* Coupon Section */}
-            <div className="border-b border-[#ede0c4] pb-4 mb-4 font-['Cormorant_Garamond',_serif]">
+            <div className="border-b border-[#ede0c4] pb-4 mb-4 font-sans">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-gray-700 font-sans flex items-center gap-1.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-1.5">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b6914" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
                     <line x1="7" y1="7" x2="7.01" y2="7" />
@@ -993,7 +1005,7 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => setShowCouponModal(true)}
-                  className="text-xs font-bold text-[#8b6914] hover:underline font-sans"
+                  className="text-xs font-bold text-[#8b6914] hover:underline"
                 >
                   Chọn voucher →
                 </button>
@@ -1006,7 +1018,7 @@ export default function CheckoutPage() {
                     value={couponCodeInput}
                     onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
                     placeholder="MÃ GIẢM GIÁ"
-                    className="flex-1 border border-[#ede0c4] rounded px-3 py-2 text-xs font-mono uppercase bg-[#faf8f5] focus:outline-none focus:border-[#c4a84f]"
+                    className="flex-1 border border-[#ede0c4] rounded px-3 py-2 text-xs font-mono uppercase bg-[#faf8f5] focus:outline-none focus:border-[#c4a84f] placeholder:text-gray-400"
                   />
                   <button
                     type="button"
@@ -1020,22 +1032,22 @@ export default function CheckoutPage() {
               ) : (
                 <div className="bg-emerald-50 border border-emerald-200 rounded p-2.5 flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-xs text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
                         {appliedCoupon.code}
                       </span>
-                      <span className="text-xs font-semibold text-emerald-700 font-sans">
+                      <span className="text-xs font-bold text-emerald-700">
                         -{formatPrice(discountAmount)}
                       </span>
                     </div>
-                    <span className="text-[10px] text-emerald-600 block mt-0.5 font-sans">
+                    <span className="text-[11px] text-emerald-600 block mt-0.5">
                       {appliedCoupon.title}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={handleRemoveCoupon}
-                    className="text-xs font-bold text-red-500 hover:text-red-700 font-sans p-1"
+                    className="text-xs font-bold text-red-500 hover:text-red-700 p-1"
                     title="Bỏ sử dụng mã"
                   >
                     ✕
@@ -1044,8 +1056,8 @@ export default function CheckoutPage() {
               )}
 
               {couponError && (
-                <p className="text-[11px] text-red-600 mt-1.5 font-sans flex items-start gap-1">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-px">
+                <p className="text-[11px] text-red-600 mt-1.5 flex items-start gap-1">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
                     <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -1054,7 +1066,7 @@ export default function CheckoutPage() {
                 </p>
               )}
               {couponSuccessMsg && !couponError && (
-                <p className="text-[11px] text-emerald-600 mt-1.5 font-sans flex items-center gap-1">
+                <p className="text-[11px] text-emerald-600 mt-1.5 flex items-center gap-1">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
@@ -1065,22 +1077,28 @@ export default function CheckoutPage() {
             </div>
 
             {/* Pricing Totals */}
-            <div className="flex flex-col gap-2.5 text-xs text-gray-600 font-['Cormorant_Garamond',_serif] border-b border-[#ede0c4] pb-4 mb-4">
-              <div className="flex justify-between items-center">
+            <div className="flex flex-col gap-2.5 text-xs border-b border-[#ede0c4] pb-3.5 mb-3.5 font-sans">
+              <div className="flex justify-between items-center text-gray-600">
                 <span>Tạm tính:</span>
-                <span className="font-semibold text-gray-800">
+                <span className="font-bold text-gray-800">
                   {formatPrice(checkoutSubtotal)}
                 </span>
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between items-center text-emerald-700 font-semibold">
-                  <span>Giảm giá (Voucher):</span>
-                  <span>-{formatPrice(discountAmount)}</span>
+                <div className="flex justify-between items-center text-emerald-700">
+                  <span>
+                    {appliedCoupon?.discountType === 'FREE_SHIPPING'
+                      ? 'Miễn phí vận chuyển:'
+                      : 'Giảm giá (Voucher):'}
+                  </span>
+                  <span className="font-bold text-emerald-700">
+                    -{formatPrice(discountAmount)}
+                  </span>
                 </div>
               )}
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center text-gray-600">
                 <span>Phí vận chuyển:</span>
-                <span>
+                <span className="font-bold text-gray-800">
                   {checkoutShippingFee > 0
                     ? formatPrice(checkoutShippingFee)
                     : "Miễn phí"}
@@ -1088,9 +1106,11 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="flex justify-between items-center text-sm font-bold font-['Cormorant_Garamond',_serif] text-[#2c1a00] uppercase">
-              <span>Tổng cộng:</span>
-              <span className="text-lg text-[#8b2500] font-extrabold">
+            <div className="flex justify-between items-center font-sans">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#2c1a00]">
+                Tổng cộng:
+              </span>
+              <span className="text-base font-extrabold text-[#8b2500] tracking-tight">
                 {formatPrice(checkoutTotal)}
               </span>
             </div>

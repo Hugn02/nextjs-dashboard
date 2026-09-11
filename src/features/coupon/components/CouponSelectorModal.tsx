@@ -212,16 +212,40 @@ export default function CouponSelectorModal({
                     </p>
                   )}
 
-                  <div className="flex flex-wrap items-center justify-between text-[11px] text-gray-400 font-sans pt-2 border-t border-gray-100">
-                    <span>
-                      {coupon.minOrderValue > 0
-                        ? `Đơn tối thiểu: ${formatPrice(coupon.minOrderValue)}`
-                        : "Áp dụng cho mọi đơn hàng"}
-                    </span>
-                    <span>
-                      HSD: {new Date(coupon.endDate).toLocaleDateString("vi-VN")}
-                    </span>
-                  </div>
+                  {(() => {
+                    const daysLeft = Math.ceil((new Date(coupon.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                    const isExpiringSoon = daysLeft >= 0 && daysLeft <= 3;
+
+                    return (
+                      <div className="flex flex-wrap items-center justify-between text-xs text-gray-600 font-sans pt-2 border-t border-gray-100">
+                        <span>
+                          {coupon.minOrderValue > 0 ? (
+                            <>
+                              <span>Đơn tối thiểu: </span>
+                              <span className="font-bold text-red-600 font-sans">
+                                {formatPrice(coupon.minOrderValue)}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="font-medium text-emerald-700">
+                              Áp dụng cho mọi đơn hàng
+                            </span>
+                          )}
+                        </span>
+                        <span>
+                          <span className="text-gray-500">HSD: </span>
+                          <span className={`font-semibold font-sans ${isExpiringSoon ? 'text-red-600' : 'text-gray-800'}`}>
+                            {new Date(coupon.endDate).toLocaleDateString("vi-VN")}
+                          </span>
+                          {isExpiringSoon && (
+                            <span className="text-[10px] text-red-500 font-bold ml-1 font-sans">
+                              (Còn {daysLeft} ngày)
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })()}
 
                   {/* Thông báo lý do không khả dụng / đủ điều kiện */}
                   {errorMessage ? (
