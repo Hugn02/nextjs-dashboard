@@ -95,6 +95,10 @@ export default function OrderDetailPage() {
     const [showReturnModal, setShowReturnModal] = useState<OrderDetail | null>(null);
     const [downloadingPdf, setDownloadingPdf] = useState(false);
     const [reordering, setReordering] = useState(false);
+    const [confirmingReceipt, setConfirmingReceipt] = useState(false);
+    const [showConfirmReceivedModal, setShowConfirmReceivedModal] = useState(false);
+    const [syncingShipping, setSyncingShipping] = useState(false);
+    const [syncMsg, setSyncMsg] = useState<string | null>(null);
     const { addItem, setSelectedIds } = useCart();
 
     const handleReorder = async () => {
@@ -530,6 +534,50 @@ export default function OrderDetailPage() {
         }
     };
 
+    const handleConfirmReceipt = async () => {
+        if (!id) return;
+        setConfirmingReceipt(true);
+        try {
+            const response = await fetchWithAuth(`${API_URL}/orders/${id}/confirm-receipt`, {
+                method: 'PATCH',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Xác nhận nhận hàng thất bại.");
+            }
+
+            setShowConfirmReceivedModal(false);
+            await fetchOrder();
+        } catch (err: any) {
+            alert(err.message || "Có lỗi xảy ra khi xác nhận nhận hàng.");
+        } finally {
+            setConfirmingReceipt(false);
+        }
+    };
+
+    const handleSyncShipping = async () => {
+        if (!id) return;
+        setSyncingShipping(true);
+        setSyncMsg(null);
+        try {
+            const res = await fetchWithAuth(`${API_URL}/orders/${id}/sync-shipping`, {
+                method: 'POST',
+            });
+            const data = await res.json();
+            if (data?.message) {
+                setSyncMsg(data.message);
+                setTimeout(() => setSyncMsg(null), 4000);
+            }
+            await fetchOrder();
+        } catch (err: any) {
+            setSyncMsg("Không thể cập nhật tiến độ bưu kiện lúc này.");
+            setTimeout(() => setSyncMsg(null), 4000);
+        } finally {
+            setSyncingShipping(false);
+        }
+    };
+
     const getStatusText = (status: string) => {
         const statusMap: { [key: string]: string } = {
             pending: "Chờ xác nhận",
@@ -761,13 +809,40 @@ export default function OrderDetailPage() {
                 )}
 
                 {order.status === 'shipping' && (
-                    <div className="mt-6 pt-5 border-t border-[#f3ede2] flex items-start gap-3.5 bg-[#f8fbff] p-4 rounded-lg border border-blue-200/70">
-                        <div className="w-9 h-9 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 flex-shrink-0 mt-0.5">
-                            <Truck className="w-4 h-4" />
+                    <div className={`mt-6 pt-5 border-t border-[#f3ede2] flex items-start gap-3.5 p-4 rounded-lg border transition-all ${order.shippingStatus === 'delivered'
+                            ? 'bg-[#f4fbf7] border-emerald-300 shadow-xs'
+                            : order.shippingStatus === 'cancelled'
+                            ? 'bg-rose-50/80 border-rose-200'
+                            : 'bg-[#f8fbff] border-blue-200/70'
+                        }`}>
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${order.shippingStatus === 'delivered'
+                                ? 'bg-emerald-100 border border-emerald-300 text-emerald-700'
+                                : order.shippingStatus === 'cancelled'
+                                ? 'bg-rose-100 border border-rose-300 text-rose-700'
+                                : 'bg-blue-50 border border-blue-200 text-blue-600'
+                            }`}>
+                            {order.shippingStatus === 'delivered' ? (
+                                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                            ) : order.shippingStatus === 'cancelled' ? (
+                                <XCircle className="w-5 h-5 text-rose-600" />
+                            ) : (
+                                <Truck className="w-4 h-4" />
+                            )}
                         </div>
                         <div className="font-sans flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider">Đang vận chuyển</h4>
+                                <h4 className={`text-xs font-bold uppercase tracking-wider ${order.shippingStatus === 'delivered'
+                                        ? 'text-emerald-900'
+                                        : order.shippingStatus === 'cancelled'
+                                        ? 'text-rose-900'
+                                        : 'text-blue-900'
+                                    }`}>
+                                    {order.shippingStatus === 'delivered'
+                                        ? 'Shipper đã giao kiện hàng đến bạn'
+                                        : order.shippingStatus === 'cancelled'
+                                        ? 'Đơn vị vận chuyển đã hủy vận đơn'
+                                        : 'Đang vận chuyển'}
+                                </h4>
                                 {(order.shippingProviderName || order.shippingProvider) && (
                                     <span className="text-[10px] bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded-full">
                                         {order.shippingProviderName || order.shippingProvider}
@@ -778,9 +853,25 @@ export default function OrderDetailPage() {
                                         Mã vận đơn: {order.trackingCode}
                                     </span>
                                 )}
+                                {order.shippingStatus === 'delivered' && (
+                                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200">
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                        Giao hàng thành công
+                                    </span>
+                                )}
+                                {order.shippingStatus === 'cancelled' && (
+                                    <span className="text-[10px] bg-rose-100 text-rose-800 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-rose-200">
+                                        <XCircle className="w-3 h-3 text-rose-600" />
+                                        Hãng đã hủy mã
+                                    </span>
+                                )}
                             </div>
-                            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                                Đơn hàng đang trên đường giao đến bạn. Quý khách vui lòng chú ý điện thoại từ nhân viên giao hàng (Shipper).
+                            <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
+                                {order.shippingStatus === 'delivered'
+                                    ? 'Nhân viên giao hàng đã báo giao kiện hàng thành công. Quý khách vui lòng kiểm tra kỹ sản phẩm gốm sứ và bấm nút "Đã nhận được hàng" bên dưới để hoàn tất nghiệm thu.'
+                                    : order.shippingStatus === 'cancelled'
+                                    ? 'Mã vận chuyển này đã bị hủy trên cổng của hãng vận chuyển. Cửa hàng đang tiến hành kiểm tra và gửi lại kiện hàng mới cho bạn.'
+                                    : 'Đơn hàng đang trên đường giao đến bạn. Quý khách vui lòng chú ý điện thoại từ nhân viên giao hàng (Shipper). Nút xác nhận nhận hàng sẽ khả dụng sau khi shipper giao hàng thành công.'}
                             </p>
                         </div>
                     </div>
@@ -927,8 +1018,8 @@ export default function OrderDetailPage() {
                                                         {/* Info */}
                                                         <div className="flex-1 min-w-0">
                                                             <h4 className="text-[13px] font-bold text-[#2c1a00] hover:text-[#c4a84f] transition-colors font-sans leading-snug">
-                                                                <Link 
-                                                                    href={`/products/${p.slug}`} 
+                                                                <Link
+                                                                    href={`/products/${p.slug}`}
                                                                     className="no-underline text-inherit cursor-pointer line-clamp-2 break-words [overflow-wrap:anywhere] [word-break:break-all]"
                                                                     title={p.productName || "Sản phẩm Bát Tràng"}
                                                                 >
@@ -1007,9 +1098,10 @@ export default function OrderDetailPage() {
                                             const isCompleted = order.status === 'completed';
                                             const isPending = order.status === 'pending';
                                             const isCancelled = order.status === 'cancelled';
+                                            const isShipping = order.status === 'shipping';
                                             const isReturnRelated = order.status === 'return_requested' || order.status === 'returned';
 
-                                            if (!isCompleted && !isPending && !isCancelled && !isReturnRelated) {
+                                            if (!isCompleted && !isPending && !isCancelled && !isReturnRelated && !isShipping) {
                                                 return null;
                                             }
 
@@ -1020,6 +1112,42 @@ export default function OrderDetailPage() {
 
                                             return (
                                                 <div className="border-t border-[#ede0c4] pt-4 mt-4 flex flex-wrap gap-2.5 justify-end items-center font-sans">
+                                                    {/* Đơn Đang vận chuyển (shipping) */}
+                                                    {isShipping && (
+                                                        <>
+                                                            {syncMsg && (
+                                                                <span className="text-xs text-blue-600 font-medium italic mr-auto">
+                                                                    {syncMsg}
+                                                                </span>
+                                                            )}
+                                                            {order.trackingCode && order.shippingStatus !== 'delivered' && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleSyncShipping}
+                                                                    disabled={syncingShipping}
+                                                                    className="w-full sm:w-auto px-4 py-2.5 bg-white border border-gray-300 hover:border-[#c4a84f] text-gray-700 hover:text-[#8b6914] text-xs font-semibold rounded transition-all font-sans cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-xs"
+                                                                    title="Tra cứu trạng thái vận đơn trực tiếp từ cổng vận chuyển"
+                                                                >
+                                                                    <RotateCw className={`w-3.5 h-3.5 ${syncingShipping ? 'animate-spin text-amber-600' : 'text-gray-500'}`} />
+                                                                    <span>{syncingShipping ? 'Đang kiểm tra...' : 'Tra cứu vận đơn'}</span>
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                type="button"
+                                                                disabled={order.shippingStatus !== 'delivered'}
+                                                                onClick={() => setShowConfirmReceivedModal(true)}
+                                                                className={`w-full sm:w-auto px-5 py-2.5 text-xs font-bold tracking-[0.5px] uppercase rounded transition-all font-sans flex items-center justify-center gap-2 shadow-xs ${order.shippingStatus === 'delivered'
+                                                                        ? 'bg-[#c4a84f] hover:bg-[#a8893a] text-white cursor-pointer ring-2 ring-[#c4a84f]/20 active:scale-[0.99]'
+                                                                        : 'bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed'
+                                                                    }`}
+                                                                title={order.shippingStatus !== 'delivered' ? 'Chỉ khả dụng sau khi đơn vị vận chuyển cập nhật trạng thái Giao hàng thành công' : 'Bấm để xác nhận bạn đã nhận đủ hàng'}
+                                                            >
+                                                                <CheckCircle2 className="w-4 h-4" />
+                                                                <span>Đã nhận được hàng</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+
                                                     {/* Đơn Chờ xác nhận (pending) */}
                                                     {isPending && (
                                                         <button
@@ -1214,6 +1342,68 @@ export default function OrderDetailPage() {
             </main>
             <Footer />
 
+            {/* Confirm Received Modal */}
+            {showConfirmReceivedModal && order && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full border border-[#ede0c4] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-[#2c1a00] font-['Cormorant_Garamond',_serif] uppercase tracking-[1px] flex items-center gap-2">
+                                <Package className="w-5 h-5 text-[#c4a84f]" />
+                                <span>Xác nhận đã nhận hàng</span>
+                            </h3>
+                            <button
+                                onClick={() => setShowConfirmReceivedModal(false)}
+                                className="text-gray-400 hover:text-gray-600 transition"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-sm text-gray-600 font-sans leading-relaxed">
+                                Bạn xác nhận đã nhận đầy đủ kiện hàng mã <strong className="font-mono font-bold text-[#2c1a00]">{order.publicId}</strong> từ shipper và sản phẩm gốm sứ nguyên vẹn?
+                            </p>
+                            {order.paymentMethod === 'cod' && (
+                                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-xs font-sans">
+                                    <strong className="block mb-0.5">Xác nhận thanh toán COD:</strong>
+                                    Số tiền <strong>{formatPrice(order.total)}</strong> đã được thanh toán cho shipper và đơn hàng sẽ chuyển sang trạng thái <strong>Hoàn thành</strong>.
+                                </div>
+                            )}
+                            <p className="text-xs text-gray-400 font-sans mt-3 italic">
+                                * Sau khi hoàn tất, bạn có thể tham gia viết đánh giá sản phẩm để chia sẻ trải nghiệm.
+                            </p>
+                        </div>
+                        <div className="bg-[#fbfaf8] border-t border-[#ede0c4] px-6 py-4 flex justify-end gap-3 font-sans">
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmReceivedModal(false)}
+                                disabled={confirmingReceipt}
+                                className="px-5 py-2.5 bg-gray-150 text-gray-700 text-xs font-bold tracking-[1px] uppercase rounded hover:bg-gray-200 transition cursor-pointer"
+                            >
+                                Quay lại
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleConfirmReceipt}
+                                disabled={confirmingReceipt}
+                                className="px-5 py-2.5 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[1px] uppercase rounded transition shadow-sm disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                            >
+                                {confirmingReceipt ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>Đang xử lý...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        <span>Tôi đã nhận đủ hàng</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Cancel Order Confirm Modal */}
             {showCancelModal && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
@@ -1254,7 +1444,7 @@ export default function OrderDetailPage() {
             {/* Batch Review Modal (Hybrid - Đánh giá tất cả sản phẩm trong 1 Modal) */}
             {showBatchModal && order && (
                 <div className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 px-3 sm:px-6 md:px-8 pt-28 sm:pt-32 pb-4 sm:pb-6 backdrop-blur-sm overflow-hidden">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col border border-[#ede0c4] overflow-hidden" style={{maxHeight: 'calc(100dvh - 8rem)'}}>
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col border border-[#ede0c4] overflow-hidden" style={{ maxHeight: 'calc(100dvh - 8rem)' }}>
                         {/* Header */}
                         <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4 flex justify-between items-center flex-shrink-0 sticky top-0 z-10">
                             <div>
@@ -1316,7 +1506,7 @@ export default function OrderDetailPage() {
                                                     <ImageWithFallback src={imgUrl} alt={p?.productName || "Sản phẩm"} fill className="object-cover" sizes="56px" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p 
+                                                    <p
                                                         className="text-sm font-bold text-[#2c1a00] line-clamp-1 leading-snug break-words [overflow-wrap:anywhere] [word-break:break-all]"
                                                         title={p?.productName || "Sản phẩm"}
                                                     >
