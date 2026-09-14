@@ -55,6 +55,8 @@ interface OrderDetail {
     shippingProviderName?: string;
     trackingCode?: string | null;
     shippingStatus?: string;
+    shippingDetail?: string | null;
+    shippingRawStatus?: string | null;
     expectedDeliveryDate?: string | null;
     paymentMethod: string;
     paymentStatus: string;
@@ -873,6 +875,12 @@ export default function OrderDetailPage() {
                                     ? 'Mã vận chuyển này đã bị hủy trên cổng của hãng vận chuyển. Cửa hàng đang tiến hành kiểm tra và gửi lại kiện hàng mới cho bạn.'
                                     : 'Đơn hàng đang trên đường giao đến bạn. Quý khách vui lòng chú ý điện thoại từ nhân viên giao hàng (Shipper). Nút xác nhận nhận hàng sẽ khả dụng sau khi shipper giao hàng thành công.'}
                             </p>
+                            {order.shippingDetail && (
+                                <div className="mt-2 text-[11px] text-blue-800 font-medium bg-blue-50/80 px-2.5 py-1.5 rounded border border-blue-200/60 flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                                    <span>Tiến độ bưu cục: {order.shippingDetail}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
