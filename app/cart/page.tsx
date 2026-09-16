@@ -1,105 +1,33 @@
 "use client";
 
-import React, { useMemo } from "react";
-import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/src/layout/Navbar";
 import Footer from "@/src/layout/Footer";
 import useCart from "@/src/features/cart/hooks/useCart";
-import { formatCloudinaryUrl, cloudinaryLoader } from "@/src/lib/cloudinary";
 
-const formatImageUrl = (url?: string) => formatCloudinaryUrl(url, { width: 240, quality: 80 });
+import CartItemRow, { Checkbox } from "@/src/features/cart/components/CartItemRow";
+import CartOrderSummary from "@/src/features/cart/components/CartOrderSummary";
+import CartEmptyState from "@/src/features/cart/components/CartEmptyState";
+import CartRevalidationBanner from "@/src/features/cart/components/CartRevalidationBanner";
 
 const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
 
-// Custom Checkbox component
-function Checkbox({ checked, onChange, id }: { checked: boolean; onChange: () => void; id?: string }) {
-  return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={checked}
-      id={id}
-      onClick={onChange}
-      className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c4a84f] focus:ring-offset-1 ${checked ? "bg-[#c4a84f] border-[#c4a84f]" : "bg-white border-[#d1c0a2] hover:border-[#c4a84f]"
-        }`}
-    >
-      {checked && (
-        <svg width="10" height="7" viewBox="0 0 10 7" fill="none">
-          <path d="M1 3.5L3.5 6L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </button>
-  );
-}
-
-function CartItemQuantityInput({
-  cartId,
-  quantity,
-  stock,
-  disabled,
-  onUpdateQuantity,
-  className = "w-8 text-center text-sm font-semibold text-[#2c1a00]",
-}: {
-  cartId: string;
-  quantity: number;
-  stock?: number | null;
-  disabled?: boolean;
-  onUpdateQuantity: (cartId: string, newQty: number) => Promise<void>;
-  className?: string;
-}) {
-  const [val, setVal] = React.useState(String(quantity));
-
-  React.useEffect(() => {
-    setVal(String(quantity));
-  }, [quantity]);
-
-  const handleBlur = async () => {
-    let parsed = parseInt(val, 10);
-    if (isNaN(parsed) || parsed < 1) {
-      parsed = 1;
-    }
-    if (stock !== undefined && stock !== null && parsed > stock) {
-      parsed = stock;
-      window.dispatchEvent(
-        new CustomEvent("cart-warning", {
-          detail: { message: `Số lượng tồn kho chỉ còn ${stock} sản phẩm.` },
-        })
-      );
-    }
-    setVal(String(parsed));
-    if (parsed !== quantity) {
-      await onUpdateQuantity(cartId, parsed);
-    }
-  };
-
-  return (
-    <input
-      type="number"
-      min={1}
-      max={stock || 9999}
-      disabled={disabled}
-      value={val}
-      onChange={(e) => setVal(e.target.value)}
-      onBlur={handleBlur}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          handleBlur();
-        }
-      }}
-      className={`${className} bg-transparent border-none outline-none focus:bg-[#faf7f2] rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
-    />
-  );
-}
-
 export default function CartPage() {
   const router = useRouter();
-  const { cart, summary, updateItem, removeItem, loading, updatingIds, selectedIds, setSelectedIds } = useCart();
-  const [note, setNote] = React.useState("");
-  const [loginWarning, setLoginWarning] = React.useState(false);
-
-  const fmt = (n: number) => n.toLocaleString("vi-VN") + "₫";
+  const {
+    cart,
+    summary,
+    updateItem,
+    removeItem,
+    loading,
+    updatingIds,
+    selectedIds,
+    setSelectedIds,
+  } = useCart();
+  const [note, setNote] = useState("");
+  const [loginWarning, setLoginWarning] = useState(false);
 
   const changeQty = (id: string, qty: number, delta: number, stock?: number) => {
     const next = qty + delta;
@@ -118,7 +46,6 @@ export default function CartPage() {
     localStorage.setItem("checkout_note", note);
   };
 
-  // All product IDs in cart (skip items where product was deleted)
   // All product IDs in cart (skip items where product was deleted or unavailable)
   const allIds = useMemo(() => {
     if (!cart) return [] as string[];
@@ -173,7 +100,6 @@ export default function CartPage() {
   }, [selectedItems]);
 
   const handleCheckout = () => {
-    // Kiểm tra đăng nhập
     const isLoggedIn = !!localStorage.getItem("token");
     if (!isLoggedIn) {
       setLoginWarning(true);
@@ -186,10 +112,8 @@ export default function CartPage() {
   };
 
   const handleRemoveItem = (cartId: string, productId: string) => {
-    // Gọi hàm xóa theo cartId (id bản ghi cart)
     removeItem(cartId);
-    // Cập nhật lại selectedIds để loại bỏ productId của sản phẩm vừa xóa
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       next.delete(productId);
       return next;
@@ -201,7 +125,6 @@ export default function CartPage() {
       <Navbar />
       <main className="min-h-screen bg-[#faf8f5] pt-[100px] md:pt-[136px] pb-16 px-0 sm:px-4 md:px-8">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-0">
-
           {/* Breadcrumbs */}
           <nav className="text-[13px] text-gray-400 mb-6 pt-2 sm:pt-3" style={serif}>
             <Link href="/" className="hover:text-[#c4a84f] text-gray-400 no-underline transition-colors">
@@ -217,46 +140,17 @@ export default function CartPage() {
 
           {/* Banner thông báo revalidation nếu có thay đổi giá hoặc tồn kho */}
           {hasPriceChangesOrUnavailable && cart && cart.items.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-950 px-4 py-3.5 rounded mb-6 flex items-start gap-3 shadow-sm">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-              <div className="flex-1 text-xs sm:text-sm">
-                <p className="font-bold text-amber-900">
-                  Thông tin giỏ hàng đã được cập nhật lại theo thực tế hệ thống:
-                </p>
-                <p className="text-amber-700 text-xs mt-1">
-                  Giá của một số sản phẩm hoặc trạng thái khả dụng đã thay đổi. Vui lòng kiểm tra lại trước khi tiến hành thanh toán.
-                </p>
-              </div>
-            </div>
+            <CartRevalidationBanner />
           )}
 
-          {(!cart || cart.items.length === 0) ? (
-            <div className="text-center py-20 bg-white border border-[#ede0c4] rounded">
-              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#c4a84f" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 opacity-30">
-                <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-              </svg>
-              <p className="text-gray-400 text-base mb-6" style={serif}>Chưa có sản phẩm nào trong giỏ hàng.</p>
-              <Link
-                href="/products/all"
-                className="inline-block bg-[#c4a84f] text-white px-8 py-3 rounded text-xs font-bold tracking-[2px] uppercase no-underline hover:bg-[#a8893a] transition-colors"
-                style={serif}
-              >
-                Tiếp tục mua hàng
-              </Link>
-            </div>
+          {!cart || cart.items.length === 0 ? (
+            <CartEmptyState />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-start">
-
               {/* Left: Items + Note */}
               <div className="flex flex-col gap-4 sm:gap-6">
                 <div className="bg-white border-y sm:border border-[#ede0c4] sm:rounded shadow-sm overflow-hidden">
-
-                  {/* ── SELECT ALL HEADER ── */}
+                  {/* SELECT ALL HEADER */}
                   <div className="flex items-center gap-3 px-4 sm:px-6 py-3 bg-[#faf8f5] border-b border-[#ede0c4]">
                     <Checkbox
                       checked={isAllSelected}
@@ -265,8 +159,9 @@ export default function CartPage() {
                     />
                     <label
                       htmlFor="select-all"
-                      className={`text-[11px] font-semibold uppercase tracking-widest cursor-pointer select-none transition-colors ${isAllSelected || isIndeterminate ? "text-[#c4a84f]" : "text-gray-400"
-                        }`}
+                      className={`text-[11px] font-semibold uppercase tracking-widest cursor-pointer select-none transition-colors ${
+                        isAllSelected || isIndeterminate ? "text-[#c4a84f]" : "text-gray-400"
+                      }`}
                     >
                       {isAllSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
                     </label>
@@ -285,274 +180,23 @@ export default function CartPage() {
                   <div className="divide-y divide-[#f3ebdb]">
                     {cart.items.map((item) => {
                       const p = item.product;
-                      // Guard: product có thể bị xóa khỏi DB
                       const isDeleted = !p || (!p.id && !p._id);
-                      const cid = item.id; // cartId — dùng để gọi PATCH/DELETE /carts/:cartId
-                      const pid = isDeleted ? `deleted-${cid}` : ((p.id || p._id) as string); // productId — dùng cho checkbox selection
-                      const imgSrc = isDeleted ? "" : formatImageUrl(p?.imageUrl?.[0] || p?.images?.[0]);
+                      const cid = item.id;
+                      const pid = isDeleted ? `deleted-${cid}` : ((p.id || p._id) as string);
                       const isChecked = !isDeleted && item.isAvailable !== false && selectedIds.has(pid);
 
                       return (
-                        <div
+                        <CartItemRow
                           key={cid || pid}
-                          className={`transition-colors duration-150 ${isDeleted || item.isAvailable === false ? "bg-red-50/60 border-l-2 border-red-300" : isChecked ? "bg-[#fffdf7]" : "bg-white"}`}
-                        >
-                          {/* ── IF DELETED PRODUCT ── */}
-                          {isDeleted ? (
-                            <div className="flex items-center gap-3 px-4 py-4">
-                              <div className="w-[80px] h-[80px] flex-shrink-0 bg-red-50/80 border border-dashed border-red-200 rounded-sm flex items-center justify-center">
-                                <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-semibold text-red-600">Sản phẩm không còn tồn tại</p>
-                                <p className="text-xs text-gray-400 mt-0.5">Sản phẩm này đã bị xóa khỏi hệ thống</p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveItem(cid, pid)}
-                                disabled={loading || updatingIds.has(cid)}
-                                className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-[10px] text-gray-300 hover:text-red-500 border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
-                                title="Xóa sản phẩm"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ) : (
-                            <>
-                              {/* ── MOBILE LAYOUT (< sm) ── */}
-                              <div className="flex sm:hidden gap-3 px-4 py-4 items-start">
-                                {/* Checkbox */}
-                                <div className="flex-shrink-0 pt-[3px]">
-                                  <Checkbox
-                                    checked={isChecked}
-                                    onChange={() => {
-                                      if (item.isAvailable === false) return;
-                                      toggleItem(pid);
-                                    }}
-                                  />
-                                </div>
-
-                                {/* Product image */}
-                                <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
-                                  <ImageWithFallback src={imgSrc} alt={p.name} fill loader={typeof imgSrc === "string" && imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined} className="object-cover" sizes="80px" />
-                                </div>
-
-                                {/* Right side: name + controls */}
-                                <div className="flex-1 min-w-0">
-                                  <Link
-                                    href={`/products/${p.slug}`}
-                                    className="font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline text-[13px] leading-snug line-clamp-2 break-words [overflow-wrap:anywhere] [word-break:break-all]"
-                                    title={p.name}
-                                    style={serif}
-                                  >
-                                    {p.name}
-                                  </Link>
-                                  {p.sku && (
-                                    <span className="block text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">
-                                      SKU: {p.sku}
-                                    </span>
-                                  )}
-                                  <span className="block text-[11px] text-gray-500 font-medium mt-0.5">Đơn giá: {fmt(item.price)}</span>
-                                  {item.priceChanged && item.originalPrice && (
-                                    <span className="block text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded mt-1 w-fit font-medium">
-                                      Giá mới (cũ: {fmt(item.originalPrice)})
-                                    </span>
-                                  )}
-                                  {item.isAvailable === false && (
-                                    <span className="block text-[10px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded mt-1 w-fit font-medium flex items-center gap-1">
-                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                      {item.availabilityMessage || "Không khả dụng"}
-                                    </span>
-                                  )}
-                                  {item.availabilityMessage && item.isAvailable !== false && (
-                                    <span className="block text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded mt-1 w-fit flex items-center gap-1">
-                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                      {item.availabilityMessage}
-                                    </span>
-                                  )}
-
-                                  {/* Qty + total + delete row */}
-                                  <div className="flex items-center justify-between mt-2.5 gap-2">
-                                    {/* Qty */}
-                                    <div className="flex items-center border border-[#ddd] rounded overflow-hidden">
-                                      <button
-                                        onClick={() => changeQty(cid, item.quantity, -1)}
-                                        disabled={loading || updatingIds.has(cid) || item.quantity <= 1}
-                                        className={`w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none transition-colors ${
-                                          item.quantity <= 1
-                                            ? 'opacity-30 cursor-not-allowed'
-                                            : (loading || updatingIds.has(cid))
-                                              ? 'cursor-default'
-                                              : 'cursor-pointer hover:bg-[#faf7f2]'
-                                        }`}
-                                      >
-                                        −
-                                      </button>
-                                      <CartItemQuantityInput
-                                        cartId={cid}
-                                        quantity={item.quantity}
-                                        stock={p?.stock}
-                                        disabled={loading || updatingIds.has(cid)}
-                                        onUpdateQuantity={updateItem}
-                                        className="w-8 text-center text-sm font-semibold text-[#2c1a00]"
-                                      />
-                                      <button
-                                        onClick={() => changeQty(cid, item.quantity, 1, p?.stock)}
-                                        disabled={loading || updatingIds.has(cid) || (p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock)}
-                                        className={`w-7 h-7 flex items-center justify-center text-[13px] text-[#2c1a00] bg-transparent border-none transition-colors ${
-                                          p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock
-                                            ? 'opacity-30 cursor-not-allowed'
-                                            : (loading || updatingIds.has(cid))
-                                              ? 'cursor-default'
-                                              : 'cursor-pointer hover:bg-[#faf7f2]'
-                                        }`}
-                                      >
-                                        +
-                                      </button>
-                                    </div>
-
-                                    {/* Line total */}
-                                    <span className="text-sm font-bold text-red-600" style={serif}>
-                                      {fmt(item.price * item.quantity)}
-                                    </span>
-
-                                    {/* Delete */}
-                                    <button
-                                      onClick={() => handleRemoveItem(cid, pid)}
-                                      disabled={loading || updatingIds.has(cid)}
-                                      className="w-7 h-7 flex items-center justify-center text-[10px] text-gray-300 hover:text-red-500 border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
-                                      title="Xóa sản phẩm"
-                                    >
-                                      ✕
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* ── DESKTOP LAYOUT (≥ sm) ── */}
-                              <div className="hidden sm:flex items-center gap-4 px-6 py-5">
-                                {/* Checkbox */}
-                                <Checkbox
-                                  checked={isChecked}
-                                  onChange={() => {
-                                    if (item.isAvailable === false) return;
-                                    toggleItem(pid);
-                                  }}
-                                />
-
-                                {/* Image */}
-                                <div className="relative w-[80px] h-[80px] flex-shrink-0 border border-[#ede0c4] bg-[#faf7f2] overflow-hidden rounded-sm">
-                                  <ImageWithFallback src={imgSrc} alt={p.name} fill loader={typeof imgSrc === "string" && imgSrc.includes("res.cloudinary.com") ? cloudinaryLoader : undefined} className="object-cover" sizes="80px" />
-                                </div>
-
-                                {/* Name + SKU + Badges */}
-                                <div className="flex-1 min-w-0">
-                                  <Link
-                                    href={`/products/${p.slug}`}
-                                    className="font-semibold text-[#2c1a00] hover:text-[#c4a84f] no-underline text-sm md:text-base leading-snug line-clamp-2 break-words [overflow-wrap:anywhere] [word-break:break-all]"
-                                    title={p.name}
-                                    style={serif}
-                                  >
-                                    {p.name}
-                                  </Link>
-                                  {p.sku && (
-                                    <span className="block text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">
-                                      SKU: {p.sku}
-                                    </span>
-                                  )}
-                                  {item.priceChanged && item.originalPrice && (
-                                    <span className="inline-block text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded mt-1 font-medium">
-                                      Giá đã cập nhật: {fmt(item.originalPrice)} ➔ {fmt(item.price)}
-                                    </span>
-                                  )}
-                                  {item.isAvailable === false && (
-                                    <span className="inline-flex items-center gap-1 text-[11px] text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded mt-1 font-medium">
-                                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                      {item.availabilityMessage || "Không thể thanh toán"}
-                                    </span>
-                                  )}
-                                  {item.availabilityMessage && item.isAvailable !== false && (
-                                    <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded mt-1">
-                                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                      {item.availabilityMessage}
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Đơn giá */}
-                                <div className="w-[110px] text-center shrink-0">
-                                  <span className="text-sm font-medium text-gray-600 font-sans block">
-                                    {fmt(item.price)}
-                                  </span>
-                                  {item.priceChanged && item.originalPrice && (
-                                    <span className="text-[10px] text-gray-400 line-through block">
-                                      {fmt(item.originalPrice)}
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Qty */}
-                                <div className="flex items-center justify-center border border-[#ddd] rounded overflow-hidden w-[110px] shrink-0">
-                                  <button
-                                    onClick={() => changeQty(cid, item.quantity, -1)}
-                                    disabled={loading || updatingIds.has(cid) || item.quantity <= 1}
-                                    className={`w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none transition-colors ${
-                                      item.quantity <= 1
-                                        ? 'opacity-30 cursor-not-allowed'
-                                        : (loading || updatingIds.has(cid))
-                                          ? 'cursor-default'
-                                          : 'cursor-pointer hover:bg-[#faf7f2]'
-                                    }`}
-                                  >
-                                    −
-                                  </button>
-                                  <CartItemQuantityInput
-                                    cartId={cid}
-                                    quantity={item.quantity}
-                                    stock={p?.stock}
-                                    disabled={loading || updatingIds.has(cid)}
-                                    onUpdateQuantity={updateItem}
-                                    className="w-9 text-center text-sm font-semibold text-[#2c1a00]"
-                                  />
-                                  <button
-                                    onClick={() => changeQty(cid, item.quantity, 1, p?.stock)}
-                                    disabled={loading || updatingIds.has(cid) || (p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock)}
-                                    className={`w-8 h-8 flex items-center justify-center text-sm text-[#2c1a00] bg-transparent border-none transition-colors ${
-                                      p?.stock !== undefined && p?.stock !== null && item.quantity >= p.stock
-                                        ? 'opacity-30 cursor-not-allowed'
-                                        : (loading || updatingIds.has(cid))
-                                          ? 'cursor-default'
-                                          : 'cursor-pointer hover:bg-[#faf7f2]'
-                                    }`}
-                                  >
-                                    +
-                                  </button>
-                                </div>
-
-                                {/* Line total */}
-                                <div className="w-[120px] text-right">
-                                  <span className="text-sm font-bold text-red-600" style={serif}>
-                                    {fmt(item.price * item.quantity)}
-                                  </span>
-                                </div>
-
-                                {/* Delete */}
-                                <div className="w-[44px] flex justify-center">
-                                  <button
-                                    onClick={() => handleRemoveItem(cid, pid)}
-                                    disabled={loading || updatingIds.has(cid)}
-                                    className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 bg-transparent border border-[#e8e8e8] hover:border-red-300 rounded cursor-pointer transition-colors disabled:opacity-40"
-                                    title="Xóa sản phẩm"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                          item={item}
+                          isChecked={isChecked}
+                          loading={loading}
+                          updatingIds={updatingIds}
+                          onToggleItem={toggleItem}
+                          onChangeQty={changeQty}
+                          onUpdateItem={updateItem}
+                          onRemoveItem={handleRemoveItem}
+                        />
                       );
                     })}
                   </div>
@@ -574,85 +218,12 @@ export default function CartPage() {
               </div>
 
               {/* Right: Summary */}
-              <div className="bg-white border border-[#ede0c4] rounded p-6 shadow-sm sticky top-[120px] mx-4 sm:mx-0">
-                <h2 className="text-base font-bold text-[#2c1a00] uppercase tracking-wide border-b border-[#ede0c4] pb-3 mb-5" style={serif}>
-                  Thông tin đơn hàng
-                </h2>
-
-                {selectedIds.size === 0 ? (
-                  <p className="text-sm text-gray-400 text-center py-3 italic" style={serif}>
-                    Vui lòng chọn sản phẩm để thanh toán.
-                  </p>
-                ) : (
-                  <div className="flex flex-col gap-3 text-sm border-b border-[#ede0c4] pb-4 mb-4" style={serif}>
-                    <div className="flex justify-between text-gray-500">
-                      <span>Đã chọn ({selectedSummary.itemCount} sản phẩm):</span>
-                      <span className="font-semibold text-gray-700">{fmt(selectedSummary.subtotal)}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center text-base font-bold mb-2" style={serif}>
-                  <span className="uppercase tracking-wide text-[#2c1a00]">Tổng tiền:</span>
-                  <span className="text-xl font-bold text-red-600">
-                    {selectedIds.size > 0 ? fmt(selectedSummary.subtotal) : "0₫"}
-                  </span>
-                </div>
-                <p className="text-[11px] text-gray-400 italic mb-4" style={serif}>
-                  * Phí vận chuyển sẽ được tính khi thanh toán.
-                </p>
-
-                <div className="flex flex-col gap-3">
-                  {selectedIds.size > 0 ? (
-                    <button
-                      onClick={handleCheckout}
-                      className="flex items-center justify-center rounded border border-[#d29f13] bg-[#d29f13] py-4 text-xs font-bold tracking-[2px] uppercase text-white transition-colors duration-200 hover:bg-white hover:text-[#2c1a00]"
-                      style={serif}
-                    >
-                      Thanh toán ({selectedIds.size} sản phẩm)
-                    </button>
-                  ) : (
-                    <button
-                      disabled
-                      className="flex items-center justify-center rounded border border-[#ddd] bg-[#f0ebe0] py-4 text-xs font-bold tracking-[2px] uppercase text-[#bbb] cursor-not-allowed"
-                      style={serif}
-                    >
-                      Chọn sản phẩm để thanh toán
-                    </button>
-                  )}
-
-                  {/* Banner cảnh báo chưa đăng nhập */}
-                  {loginWarning && (
-                    <div className="flex flex-col gap-2.5 bg-amber-50 border border-amber-300 rounded-lg p-3.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                      <div className="flex items-start gap-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
-                        <p className="text-xs text-amber-800 font-semibold leading-relaxed" style={serif}>
-                          Bạn cần <strong>đăng nhập</strong> để tiến hành thanh toán!
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => window.dispatchEvent(new CustomEvent("open-login-modal"))}
-                        className="w-full py-2.5 rounded bg-[#c4a84f] text-white text-xs font-bold tracking-[1.5px] uppercase hover:bg-[#a8893a] transition-colors"
-                        style={serif}
-                      >
-                        Đăng nhập ngay
-                      </button>
-                    </div>
-                  )}
-
-                  <Link
-                    href="/products/all"
-                    className="inline-flex items-center gap-2 text-[#8b6914] hover:text-[#c4a84f] no-underline text-xs font-semibold tracking-[1px] uppercase transition-colors duration-200 pt-1 justify-center"
-                    style={serif}
-                  >
-                    <span className="text-base">←</span>
-                    Tiếp tục mua hàng
-                  </Link>
-                </div>
-              </div>
+              <CartOrderSummary
+                selectedCount={selectedIds.size}
+                selectedSummary={selectedSummary}
+                loginWarning={loginWarning}
+                onCheckout={handleCheckout}
+              />
             </div>
           )}
         </div>

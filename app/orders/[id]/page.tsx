@@ -1,85 +1,24 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Navbar from "@/src/layout/Navbar";
 import Footer from "@/src/layout/Footer";
 import { fetchWithAuth } from "@/src/lib/api-client";
-import {
-    ArrowLeft,
-    Calendar,
-    FileText,
-    Phone,
-    User,
-    MapPin,
-    MessageSquare,
-    CreditCard,
-    Clock,
-    CheckCircle2,
-    Truck,
-    XCircle,
-    ShoppingBag,
-    HelpCircle,
-    Eye,
-    RotateCcw,
-    Camera,
-    Image as ImageIcon,
-    Video,
-    X,
-    Loader2,
-    RotateCw,
-    Star,
-    Package,
-} from "lucide-react";
+import { ArrowLeft, Calendar, FileText, HelpCircle } from "lucide-react";
 import ViewReturnDetailModal from "@/src/components/ViewReturnDetailModal";
 import ReturnRequestModal from "@/src/components/ReturnRequestModal";
 import useCart from "@/src/features/cart/hooks/useCart";
-import { formatImageUrl, formatVideoUrl } from "@/src/lib/cloudinary";
 
-interface OrderDetail {
-    _id: string;
-    publicId: string;
-    customerName: string;
-    phone: string;
-    email?: string;
-    address: string;
-    province: string;
-    district: string;
-    ward: string;
-    note?: string;
-    total: number;
-    shippingFee: number;
-    shippingProvider?: string;
-    shippingProviderName?: string;
-    trackingCode?: string | null;
-    shippingStatus?: string;
-    shippingDetail?: string | null;
-    shippingRawStatus?: string | null;
-    expectedDeliveryDate?: string | null;
-    paymentMethod: string;
-    paymentStatus: string;
-    status: string;
-    createdAt: string;
-    updatedAt?: string;
-    subtotal?: number;
-    discountAmount?: number;
-    couponCode?: string | null;
-    couponId?: string | null;
-    items: Array<{
-        product: {
-            _id: string;
-            id: string;
-            productName: string;
-            imageUrl: string[];
-            slug: string;
-            sku?: string;
-        };
-        quantity: number;
-        price: number;
-    }>;
-}
+import { OrderDetail } from "@/src/features/orders/types";
+import OrderDetailStatusStepper from "@/src/features/orders/components/detail/OrderDetailStatusStepper";
+import OrderDetailItemsCard from "@/src/features/orders/components/detail/OrderDetailItemsCard";
+import OrderDetailPaymentCard from "@/src/features/orders/components/detail/OrderDetailPaymentCard";
+import OrderDetailDeliveryCard from "@/src/features/orders/components/detail/OrderDetailDeliveryCard";
+import OrderConfirmReceivedModal from "@/src/features/orders/components/detail/OrderConfirmReceivedModal";
+import OrderCancelModal from "@/src/features/orders/components/detail/OrderCancelModal";
+import OrderBatchReviewModal from "@/src/features/orders/components/detail/OrderBatchReviewModal";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -91,6 +30,7 @@ export default function OrderDetailPage() {
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
     const [cancelling, setCancelling] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [showViewReturnModal, setShowViewReturnModal] = useState<OrderDetail | null>(null);
@@ -101,7 +41,79 @@ export default function OrderDetailPage() {
     const [showConfirmReceivedModal, setShowConfirmReceivedModal] = useState(false);
     const [syncingShipping, setSyncingShipping] = useState(false);
     const [syncMsg, setSyncMsg] = useState<string | null>(null);
+
+    // Reviews state
+    const [myReviews, setMyReviews] = useState<any[]>([]);
+    const [showBatchModal, setShowBatchModal] = useState(false);
+
     const { addItem, setSelectedIds } = useCart();
+
+    const fetchMyReviews = async () => {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/reviews/my`);
+            if (res.ok) {
+                const data = await res.json();
+                setMyReviews(data.data || []);
+            }
+        } catch (err) {
+            console.error("Failed to fetch my reviews:", err);
+        }
+    };
+
+    const fetchOrder = async () => {
+        if (!id) return;
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetchWithAuth(`${API_URL}/orders/${id}`);
+            if (!res.ok) {
+                throw new Error("Không thể tải thông tin đơn hàng.");
+            }
+            const data = await res.json();
+            setOrder(data.data);
+        } catch (err: any) {
+            setError(err.message || "Có lỗi xảy ra.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMyReviews();
+    }, []);
+
+    useEffect(() => {
+        fetchOrder();
+    }, [id]);
+
+    const isSameOrder = (rOrder: any, currentOrder: any) => {
+        if (!rOrder || !currentOrder) return false;
+        const currentIds = [currentOrder.id, currentOrder._id, currentOrder.publicId].filter(Boolean);
+        if (typeof rOrder === "string") {
+            return currentIds.includes(rOrder);
+        }
+        if (typeof rOrder === "object") {
+            const rIds = [rOrder.id, rOrder._id, rOrder.publicId].filter(Boolean);
+            return rIds.some((rId) => currentIds.includes(rId));
+        }
+        return false;
+    };
+
+    const checkIsReviewed = (productId: string) => {
+        if (!order) return false;
+        return myReviews.some((r) => {
+            const matchProduct =
+                r.product?.id === productId ||
+                r.product?._id === productId ||
+                (typeof r.product === "string" && r.product === productId);
+            return matchProduct && isSameOrder(r.order, order);
+        });
+    };
+
+    const allReviewed = order?.items.every((item) => {
+        const pid = item.product?.id || item.product?._id;
+        return pid ? checkIsReviewed(pid) : false;
+    }) ?? false;
 
     const handleReorder = async () => {
         if (!order || !order.items || order.items.length === 0) return;
@@ -123,7 +135,6 @@ export default function OrderDetailPage() {
                 }
             }
 
-            // Nếu tất cả sản phẩm đều thất bại (hết hàng)
             if (productIds.length === 0) {
                 const msg = failedProducts.length === 1
                     ? `Sản phẩm "${failedProducts[0]}" trong đơn hàng hiện đã hết hàng hoặc không đủ tồn kho để mua lại.`
@@ -141,7 +152,6 @@ export default function OrderDetailPage() {
                 return;
             }
 
-            // Có ít nhất 1 sản phẩm thêm thành công
             setSelectedIds(new Set(productIds));
             localStorage.setItem("checkout_selected_ids", JSON.stringify(productIds));
 
@@ -177,348 +187,21 @@ export default function OrderDetailPage() {
         if (!order) return;
         setDownloadingPdf(true);
         try {
-            const { downloadOrderInvoicePdf } = await import('@/src/lib/downloadOrderInvoicePdf');
+            const { downloadOrderInvoicePdf } = await import("@/src/lib/downloadOrderInvoicePdf");
             await downloadOrderInvoicePdf(order);
         } catch (err: any) {
-            alert(err.message || 'Lỗi khi xuất file PDF.');
+            alert(err.message || "Lỗi khi xuất file PDF.");
         } finally {
             setDownloadingPdf(false);
         }
     };
-
-    // Batch Review state (Hybrid Modal - đánh giá cả đơn hàng 1 lần)
-    const [myReviews, setMyReviews] = useState<any[]>([]);
-    const [showBatchModal, setShowBatchModal] = useState(false);
-    // batchReviews: map productId -> { rating, comment, selected, images, video }
-    const [batchReviews, setBatchReviews] = useState<
-        Record<
-            string,
-            {
-                rating: number;
-                comment: string;
-                selected?: boolean;
-                images?: string[];
-                video?: string | null;
-                uploadingImages?: boolean;
-                uploadingVideo?: boolean;
-            }
-        >
-    >({});
-    const [submittingBatch, setSubmittingBatch] = useState(false);
-    const [batchError, setBatchError] = useState<string | null>(null);
-    const [reviewLightboxImg, setReviewLightboxImg] = useState<string | null>(null);
-
-    const formatPrice = (n: number) => {
-        return n.toLocaleString("vi-VN") + "₫";
-    };
-
-    const fetchMyReviews = async () => {
-        try {
-            const res = await fetchWithAuth(`${API_URL}/reviews/my`);
-            if (res.ok) {
-                const data = await res.json();
-                setMyReviews(data.data || []);
-            }
-        } catch (err) {
-            console.error("Failed to fetch my reviews:", err);
-        }
-    };
-
-    useEffect(() => {
-        fetchMyReviews();
-    }, []);
-
-    const isSameOrder = (rOrder: any, currentOrder: any) => {
-        if (!rOrder || !currentOrder) return false;
-        const currentIds = [currentOrder.id, currentOrder._id, currentOrder.publicId].filter(Boolean);
-        if (typeof rOrder === "string") {
-            return currentIds.includes(rOrder);
-        }
-        if (typeof rOrder === "object") {
-            const rIds = [rOrder.id, rOrder._id, rOrder.publicId].filter(Boolean);
-            return rIds.some((rId) => currentIds.includes(rId));
-        }
-        return false;
-    };
-
-    const checkIsReviewed = (productId: string) => {
-        if (!order) return false;
-        return myReviews.some((r) => {
-            const matchProduct =
-                r.product?.id === productId ||
-                r.product?._id === productId ||
-                (typeof r.product === "string" && r.product === productId);
-            return matchProduct && isSameOrder(r.order, order);
-        });
-    };
-
-    const getReviewInfo = (productId: string) => {
-        if (!order) return null;
-        return myReviews.find((r) => {
-            const matchProduct =
-                r.product?.id === productId ||
-                r.product?._id === productId ||
-                (typeof r.product === "string" && r.product === productId);
-            return matchProduct && isSameOrder(r.order, order);
-        }) || null;
-    };
-
-    // Kiểm tra tất cả sản phẩm trong đơn đã được đánh giá hết chưa
-    const allReviewed = order?.items.every((item) =>
-        checkIsReviewed(item.product?.id || item.product?._id)
-    ) ?? false;
-
-    // Mở Batch Modal và khởi tạo state rating mặc định 5 sao & selected=true cho từng sản phẩm chưa đánh giá
-    const handleOpenBatchModal = () => {
-        if (!order) return;
-        const initial: Record<
-            string,
-            {
-                rating: number;
-                comment: string;
-                selected: boolean;
-                images: string[];
-                video: string | null;
-            }
-        > = {};
-        order.items.forEach((item) => {
-            const pid = item.product?.id || item.product?._id;
-            if (pid && !checkIsReviewed(pid)) {
-                initial[pid] = {
-                    rating: 5,
-                    comment: "",
-                    selected: true,
-                    images: [],
-                    video: null,
-                };
-            }
-        });
-        setBatchReviews(initial);
-        setBatchError(null);
-        setShowBatchModal(true);
-    };
-
-    const handleReviewImagesUpload = async (pid: string, files: FileList | null) => {
-        if (!files || files.length === 0) return;
-        const currentImages = batchReviews[pid]?.images || [];
-        if (currentImages.length >= 5) {
-            setBatchError("Mỗi sản phẩm chỉ được tải lên tối đa 5 hình ảnh.");
-            return;
-        }
-
-        const remainingSlots = 5 - currentImages.length;
-        const filesToUpload = Array.from(files).slice(0, remainingSlots);
-
-        setBatchReviews((prev) => ({
-            ...prev,
-            [pid]: { ...prev[pid], uploadingImages: true },
-        }));
-        setBatchError(null);
-
-        const newUploaded: string[] = [];
-        for (const file of filesToUpload) {
-            if (file.size > 5 * 1024 * 1024) {
-                setBatchError(`File ${file.name} vượt quá dung lượng tối đa 5MB.`);
-                continue;
-            }
-            try {
-                const formData = new FormData();
-                formData.append("file", file);
-                const res = await fetchWithAuth(`${API_URL}/reviews/upload-image`, {
-                    method: "POST",
-                    body: formData,
-                });
-                if (res.ok) {
-                    const json = await res.json();
-                    let rawUrl = "";
-                    if (typeof json === "string") rawUrl = json;
-                    else if (typeof json.data === "string") rawUrl = json.data;
-                    else if (json.data?.data) rawUrl = json.data.data;
-                    else if (json.data?.url) rawUrl = json.data.url;
-                    if (rawUrl) newUploaded.push(rawUrl);
-                }
-            } catch (err) {
-                console.error("Lỗi tải ảnh review:", err);
-            }
-        }
-
-        setBatchReviews((prev) => ({
-            ...prev,
-            [pid]: {
-                ...prev[pid],
-                images: [...(prev[pid]?.images || []), ...newUploaded],
-                uploadingImages: false,
-            },
-        }));
-    };
-
-    const handleReviewRemoveImage = (pid: string, index: number) => {
-        setBatchReviews((prev) => ({
-            ...prev,
-            [pid]: {
-                ...prev[pid],
-                images: (prev[pid]?.images || []).filter((_, i) => i !== index),
-            },
-        }));
-    };
-
-    const handleReviewVideoUpload = async (pid: string, file: File) => {
-        if (!file) return;
-
-        if (file.size > 50 * 1024 * 1024) {
-            setBatchError("Video vượt quá dung lượng tối đa 50MB.");
-            return;
-        }
-
-        const localUrl = URL.createObjectURL(file);
-        const duration = await new Promise<number>((resolve) => {
-            const vid = document.createElement("video");
-            vid.preload = "metadata";
-            vid.onloadedmetadata = () => {
-                resolve(vid.duration);
-                URL.revokeObjectURL(localUrl);
-            };
-            vid.onerror = () => resolve(0);
-            vid.src = localUrl;
-        });
-
-        if (duration > 60) {
-            setBatchError(
-                `Video vượt quá thời lượng tối đa 60 giây (video của bạn: ${Math.round(duration)}s).`
-            );
-            return;
-        }
-
-        setBatchReviews((prev) => ({
-            ...prev,
-            [pid]: { ...prev[pid], uploadingVideo: true },
-        }));
-        setBatchError(null);
-
-        try {
-            const formData = new FormData();
-            formData.append("file", file);
-            const res = await fetchWithAuth(`${API_URL}/reviews/upload-video`, {
-                method: "POST",
-                body: formData,
-            });
-            if (res.ok) {
-                const json = await res.json();
-                let rawUrl = "";
-                if (typeof json === "string") rawUrl = json;
-                else if (typeof json.data === "string") rawUrl = json.data;
-                else if (json.data?.data) rawUrl = json.data.data;
-                else if (json.data?.url) rawUrl = json.data.url;
-                if (rawUrl) {
-                    setBatchReviews((prev) => ({
-                        ...prev,
-                        [pid]: { ...prev[pid], video: rawUrl },
-                    }));
-                }
-            } else {
-                const errData = await res.json().catch(() => ({}));
-                setBatchError(errData.message || "Không thể tải video lên.");
-            }
-        } catch (err) {
-            setBatchError("Lỗi kết nối khi tải video.");
-        } finally {
-            setBatchReviews((prev) => ({
-                ...prev,
-                [pid]: { ...prev[pid], uploadingVideo: false },
-            }));
-        }
-    };
-
-    const handleReviewRemoveVideo = (pid: string) => {
-        setBatchReviews((prev) => ({
-            ...prev,
-            [pid]: { ...prev[pid], video: null },
-        }));
-    };
-
-    const handleBatchSubmit = async () => {
-        if (!order || !id) return;
-
-        // Chỉ lọc các sản phẩm được tích chọn (selected === true)
-        const selectedEntries = Object.entries(batchReviews).filter(
-            ([_, val]) => val.selected
-        );
-
-        if (selectedEntries.length === 0) {
-            setBatchError("Vui lòng chọn ít nhất 1 sản phẩm để gửi đánh giá.");
-            return;
-        }
-
-        setSubmittingBatch(true);
-        setBatchError(null);
-
-        try {
-            const res = await fetchWithAuth(`${API_URL}/reviews/batch`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    orderId: id,
-                    reviews: selectedEntries.map(([productId, val]) => ({
-                        productId,
-                        rating: val.rating,
-                        comment: val.comment.trim() || `Đánh giá ${val.rating} sao`,
-                        images: val.images || [],
-                        video: val.video || undefined,
-                    })),
-                }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.message || "Gửi đánh giá thất bại.");
-            }
-
-            setShowBatchModal(false);
-            await fetchMyReviews();
-        } catch (err: any) {
-            setBatchError(err.message || "Đã xảy ra lỗi.");
-        } finally {
-            setSubmittingBatch(false);
-        }
-    };
-
-    const STAR_LABELS: Record<number, string> = {
-        5: "Cực kỳ hài lòng",
-        4: "Hài lòng",
-        3: "Bình thường",
-        2: "Không hài lòng",
-        1: "Rất không hài lòng",
-    };
-
-    const fetchOrder = async () => {
-        if (!id) return;
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await fetchWithAuth(`${API_URL}/orders/${id}`);
-
-            if (!res.ok) {
-                throw new Error("Không thể tải thông tin đơn hàng.");
-            }
-            const data = await res.json();
-            setOrder(data.data);
-        } catch (err: any) {
-            setError(err.message || "Có lỗi xảy ra.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchOrder();
-    }, [id]);
 
     const handleCancelOrder = async () => {
         if (!id) return;
         setCancelling(true);
         try {
             const response = await fetchWithAuth(`${API_URL}/orders/${id}/cancel`, {
-                method: 'PATCH',
+                method: "PATCH",
             });
 
             if (!response.ok) {
@@ -526,7 +209,6 @@ export default function OrderDetailPage() {
                 throw new Error(errorData.message || "Hủy đơn hàng thất bại.");
             }
 
-            // Reload order details
             await fetchOrder();
             setShowCancelModal(false);
         } catch (err: any) {
@@ -541,7 +223,7 @@ export default function OrderDetailPage() {
         setConfirmingReceipt(true);
         try {
             const response = await fetchWithAuth(`${API_URL}/orders/${id}/confirm-receipt`, {
-                method: 'PATCH',
+                method: "PATCH",
             });
 
             if (!response.ok) {
@@ -564,7 +246,7 @@ export default function OrderDetailPage() {
         setSyncMsg(null);
         try {
             const res = await fetchWithAuth(`${API_URL}/orders/${id}/sync-shipping`, {
-                method: 'POST',
+                method: "POST",
             });
             const data = await res.json();
             if (data?.message) {
@@ -580,353 +262,12 @@ export default function OrderDetailPage() {
         }
     };
 
-    const getStatusText = (status: string) => {
-        const statusMap: { [key: string]: string } = {
-            pending: "Chờ xác nhận",
-            confirmed: "Đã xác nhận",
-            shipping: "Đang vận chuyển",
-            completed: "Hoàn thành",
-            cancelled: "Đã hủy",
-            return_requested: "Yêu cầu hoàn trả",
-            returned: "Đã hoàn trả",
-        };
-        return statusMap[status] || status;
-    };
-
-    const getPaymentMethodText = (method: string) => {
-        const methodMap: { [key: string]: string } = {
-            cod: "Thanh toán khi nhận hàng (COD)",
-            banking: "Chuyển khoản ngân hàng",
-            vnpay: "Thanh toán qua VNPAY",
-        };
-        return methodMap[method] || method.toUpperCase();
-    };
-
-    const getPaymentStatusText = (status: string) => {
-        const statusMap: { [key: string]: string } = {
-            unpaid: "Chưa thanh toán",
-            paid: "Đã thanh toán",
-            refunded: "Đã hoàn tiền",
-        };
-        return statusMap[status] || status;
-    };
-
-    // Calculate subtotal (excluding shipping fee)
-    const getSubtotal = () => {
-        if (!order) return 0;
-        return order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    };
-
-
-    // Helper rendering the timeline stepper - redesigned for mobile-first
-    const renderTimeline = () => {
-        if (!order) return null;
-
-        const isCancelled = order.status === "cancelled";
-
-        if (isCancelled) {
-            return (
-                <div className="bg-white border border-red-200 rounded-lg p-5 mb-6 shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 bg-red-50 rounded-full flex items-center justify-center border border-red-200 text-red-600 flex-shrink-0">
-                            <XCircle className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-red-600 font-sans text-sm">Đơn hàng đã bị hủy</h3>
-                            <p className="text-xs text-gray-400 font-sans mt-0.5">
-                                Vào lúc: {new Date(order.updatedAt || order.createdAt).toLocaleString("vi-VN")}
-                            </p>
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 font-sans mt-4 leading-relaxed border-t border-red-100 pt-3">
-                        Đơn hàng của bạn đã được hủy bỏ. Nếu bạn đã chuyển khoản trước đó, chúng tôi sẽ liên hệ trong vòng 24h để hoàn tất thủ tục hoàn tiền.
-                    </p>
-                </div>
-            );
-        }
-
-        if (order.status === "return_requested") {
-            return (
-                <div className="bg-white border border-orange-200 rounded-lg p-5 mb-6 shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 bg-orange-50 rounded-full flex items-center justify-center border border-orange-200 text-orange-600 flex-shrink-0">
-                            <RotateCcw className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-orange-700 font-sans text-sm">Đang yêu cầu hoàn trả đơn hàng</h3>
-                            <p className="text-xs text-gray-400 font-sans mt-0.5">
-                                Cập nhật: {new Date(order.updatedAt || order.createdAt).toLocaleString("vi-VN")}
-                            </p>
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 font-sans mt-4 leading-relaxed border-t border-orange-100 pt-3">
-                        Yêu cầu hoàn trả và thông tin nhận hoàn tiền của bạn đang được tiếp nhận xử lý. Bạn có thể nhấn nút "Xem Yêu cầu Hoàn trả" ở bên dưới để theo dõi chi tiết.
-                    </p>
-                </div>
-            );
-        }
-
-        if (order.status === "returned") {
-            return (
-                <div className="bg-white border border-teal-200 rounded-lg p-5 mb-6 shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 bg-teal-50 rounded-full flex items-center justify-center border border-teal-200 text-teal-700 flex-shrink-0">
-                            <CheckCircle2 className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-teal-800 font-sans text-sm">Đơn hàng đã hoàn trả & hoàn tiền thành công</h3>
-                            <p className="text-xs text-gray-400 font-sans mt-0.5">
-                                Hoàn tất: {new Date(order.updatedAt || order.createdAt).toLocaleString("vi-VN")}
-                            </p>
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 font-sans mt-4 leading-relaxed border-t border-teal-100 pt-3">
-                        Đơn hàng đã được xác nhận hoàn trả và hoàn tiền thành công theo thông tin bạn đã cung cấp.
-                    </p>
-                </div>
-            );
-        }
-
-        const steps = [
-            { key: "pending", label: "Chờ xác nhận", icon: Clock },
-            { key: "confirmed", label: "Đã xác nhận", icon: CheckCircle2 },
-            { key: "shipping", label: "Đang vận chuyển", icon: Truck },
-            { key: "completed", label: "Hoàn thành", icon: CheckCircle2 },
-        ];
-
-        const currentIdx = steps.findIndex(s => s.key === order.status);
-
-        return (
-            <div className="bg-white border border-[#ede0c4] rounded-lg p-5 md:p-8 mb-6 shadow-sm">
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-5 font-sans text-center">
-                    Trạng thái đơn hàng
-                </h3>
-
-                {/* ── MOBILE: Vertical Stepper ── */}
-                <div className="flex md:hidden flex-col items-center">
-                    <div className="w-fit mx-auto flex flex-col">
-                        {steps.map((step, idx) => {
-                            const StepIcon = step.icon;
-                            const isCompleted = idx <= currentIdx;
-                            const isActive = idx === currentIdx;
-                            const isLast = idx === steps.length - 1;
-
-                            return (
-                                <div key={step.key} className="flex gap-4 items-stretch">
-                                    {/* Left: icon + vertical line */}
-                                    <div className="flex flex-col items-center">
-                                        <div
-                                            className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all duration-300 ${isCompleted
-                                                ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
-                                                : "bg-white border-gray-200 text-gray-400"
-                                                } ${isActive ? "ring-4 ring-[#c4a84f]/20 scale-110" : ""}`}
-                                        >
-                                            <StepIcon className="w-4 h-4" />
-                                        </div>
-                                        {/* Vertical connector */}
-                                        {!isLast && (
-                                            <div className="w-[2px] flex-1 my-1 min-h-[24px]"
-                                                style={{ background: idx < currentIdx ? "#c4a84f" : "#e5e7eb" }}
-                                            />
-                                        )}
-                                    </div>
-
-                                    {/* Right: label */}
-                                    <div className={`flex items-start pt-2 pb-5 flex-1 min-w-[130px] ${isLast ? "pb-0" : ""}`}>
-                                        <div>
-                                            <p className={`text-sm font-bold tracking-[0.3px] font-sans leading-tight ${isCompleted ? "text-[#2c1a00]" : "text-gray-400"
-                                                }`}>
-                                                {step.label}
-                                            </p>
-                                            {isActive && (
-                                                <span className="inline-block px-2 py-0.5 mt-1 bg-[#fffbeb] border border-[#fef3c7] text-[#d97706] rounded text-[10px] font-semibold font-sans">
-                                                    Hiện tại
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* ── DESKTOP: Horizontal Stepper ── */}
-                <div className="hidden md:flex justify-between items-start relative gap-4 font-sans">
-                    {/* Horizontal Line */}
-                    <div className="absolute top-[20px] left-[10%] right-[10%] h-[2px] bg-gray-100 z-0">
-                        <div
-                            className="h-full bg-[#c4a84f] transition-all duration-500"
-                            style={{ width: `${(Math.max(0, currentIdx) / (steps.length - 1)) * 100}%` }}
-                        />
-                    </div>
-
-                    {steps.map((step, idx) => {
-                        const StepIcon = step.icon;
-                        const isCompleted = idx <= currentIdx;
-                        const isActive = idx === currentIdx;
-
-                        return (
-                            <div key={step.key} className="flex flex-col items-center gap-2 flex-1 z-10">
-                                <div
-                                    className={`w-11 h-11 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isCompleted
-                                        ? "bg-[#c4a84f] border-[#c4a84f] text-white shadow-md shadow-[#c4a84f]/20"
-                                        : "bg-white border-gray-200 text-gray-400"
-                                        } ${isActive ? "ring-4 ring-[#c4a84f]/20 scale-110" : ""}`}
-                                >
-                                    <StepIcon className="w-5 h-5" />
-                                </div>
-                                <div className="text-center">
-                                    <p className={`text-xs font-bold tracking-[0.5px] uppercase font-sans ${isCompleted ? "text-[#2c1a00]" : "text-gray-400"
-                                        }`}>
-                                        {step.label}
-                                    </p>
-                                    {isActive && (
-                                        <span className="inline-block px-2 py-0.5 mt-1 bg-[#fffbeb] border border-[#fef3c7] text-[#d97706] rounded text-[10px] font-semibold">
-                                            Hiện tại
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* ── STATUS PROGRESS BANNER (Phương án 1) ── */}
-                {order.status === 'confirmed' && (
-                    <div className="mt-6 pt-5 border-t border-[#f3ede2] flex items-start gap-3.5 bg-[#fdfcf9] p-4 rounded-lg border border-[#ede0c4]/80">
-                        <div className="w-9 h-9 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 flex-shrink-0 mt-0.5">
-                            <Package className="w-4 h-4" />
-                        </div>
-                        <div className="font-sans flex-1">
-                            <div className="flex items-center gap-2">
-                                <h4 className="text-xs font-bold text-[#2c1a00] uppercase tracking-wider">Đang chuẩn bị hàng</h4>
-                                <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">Xưởng Bát Tràng</span>
-                            </div>
-                            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                                Đơn hàng đã được xác nhận. Xưởng gốm Bát Tràng đang kiểm tra kỹ lưỡng và đóng gói sản phẩm để bàn giao cho đơn vị vận chuyển.
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {order.status === 'shipping' && (
-                    <div className={`mt-6 pt-5 border-t border-[#f3ede2] flex items-start gap-3.5 p-4 rounded-lg border transition-all ${order.shippingStatus === 'delivered'
-                            ? 'bg-[#f4fbf7] border-emerald-300 shadow-xs'
-                            : order.shippingStatus === 'cancelled'
-                            ? 'bg-rose-50/80 border-rose-200'
-                            : 'bg-[#f8fbff] border-blue-200/70'
-                        }`}>
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${order.shippingStatus === 'delivered'
-                                ? 'bg-emerald-100 border border-emerald-300 text-emerald-700'
-                                : order.shippingStatus === 'cancelled'
-                                ? 'bg-rose-100 border border-rose-300 text-rose-700'
-                                : 'bg-blue-50 border border-blue-200 text-blue-600'
-                            }`}>
-                            {order.shippingStatus === 'delivered' ? (
-                                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                            ) : order.shippingStatus === 'cancelled' ? (
-                                <XCircle className="w-5 h-5 text-rose-600" />
-                            ) : (
-                                <Truck className="w-4 h-4" />
-                            )}
-                        </div>
-                        <div className="font-sans flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <h4 className={`text-xs font-bold uppercase tracking-wider ${order.shippingStatus === 'delivered'
-                                        ? 'text-emerald-900'
-                                        : order.shippingStatus === 'cancelled'
-                                        ? 'text-rose-900'
-                                        : 'text-blue-900'
-                                    }`}>
-                                    {order.shippingStatus === 'delivered'
-                                        ? 'Shipper đã giao kiện hàng đến bạn'
-                                        : order.shippingStatus === 'cancelled'
-                                        ? 'Đơn vị vận chuyển đã hủy vận đơn'
-                                        : 'Đang vận chuyển'}
-                                </h4>
-                                {(order.shippingProviderName || order.shippingProvider) && (
-                                    <span className="text-[10px] bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded-full">
-                                        {order.shippingProviderName || order.shippingProvider}
-                                    </span>
-                                )}
-                                {order.trackingCode && (
-                                    <span className="text-xs font-mono font-bold bg-white text-blue-900 border border-blue-200 px-2 py-0.5 rounded select-all">
-                                        Mã vận đơn: {order.trackingCode}
-                                    </span>
-                                )}
-                                {order.shippingStatus === 'delivered' && (
-                                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200">
-                                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                        Giao hàng thành công
-                                    </span>
-                                )}
-                                {order.shippingStatus === 'cancelled' && (
-                                    <span className="text-[10px] bg-rose-100 text-rose-800 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-rose-200">
-                                        <XCircle className="w-3 h-3 text-rose-600" />
-                                        Hãng đã hủy mã
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
-                                {order.shippingStatus === 'delivered'
-                                    ? 'Nhân viên giao hàng đã báo giao kiện hàng thành công. Quý khách vui lòng kiểm tra kỹ sản phẩm gốm sứ và bấm nút "Đã nhận được hàng" bên dưới để hoàn tất nghiệm thu.'
-                                    : order.shippingStatus === 'cancelled'
-                                    ? 'Mã vận chuyển này đã bị hủy trên cổng của hãng vận chuyển. Cửa hàng đang tiến hành kiểm tra và gửi lại kiện hàng mới cho bạn.'
-                                    : 'Đơn hàng đang trên đường giao đến bạn. Quý khách vui lòng chú ý điện thoại từ nhân viên giao hàng (Shipper). Nút xác nhận nhận hàng sẽ khả dụng sau khi shipper giao hàng thành công.'}
-                            </p>
-                            {order.shippingDetail && (
-                                <div className="mt-2 text-[11px] text-blue-800 font-medium bg-blue-50/80 px-2.5 py-1.5 rounded border border-blue-200/60 flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-                                    <span>Tiến độ bưu cục: {order.shippingDetail}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {order.status === 'pending' && (
-                    <div className="mt-6 pt-5 border-t border-[#f3ede2] flex items-start gap-3.5 bg-[#fdfcf9] p-4 rounded-lg border border-[#ede0c4]/80">
-                        <div className="w-9 h-9 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 flex-shrink-0 mt-0.5">
-                            <Clock className="w-4 h-4" />
-                        </div>
-                        <div className="font-sans flex-1">
-                            <div className="flex items-center gap-2">
-                                <h4 className="text-xs font-bold text-[#2c1a00] uppercase tracking-wider">Chờ xác nhận đơn hàng</h4>
-                            </div>
-                            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                                Đơn hàng của bạn đã được ghi nhận. Bộ phận chăm sóc khách hàng của Gốm sứ Bát Tràng sẽ sớm kiểm tra và xác nhận đơn hàng.
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {order.status === 'completed' && (
-                    <div className="mt-6 pt-5 border-t border-[#f3ede2] flex items-start gap-3.5 bg-[#f6fcf8] p-4 rounded-lg border border-emerald-200/80">
-                        <div className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 flex-shrink-0 mt-0.5">
-                            <CheckCircle2 className="w-4 h-4" />
-                        </div>
-                        <div className="font-sans flex-1">
-                            <div className="flex items-center gap-2">
-                                <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Giao hàng thành công</h4>
-                                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">Đã hoàn tất</span>
-                            </div>
-                            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                                Đơn hàng đã được giao thành công. Cảm ơn quý khách đã tin chọn sản phẩm thủ công từ làng nghề Gốm Sứ Bát Tràng!
-                            </p>
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
-    };
-
     return (
         <>
             <Navbar />
             <main className="min-h-screen bg-[#faf8f5] pt-[88px] md:pt-[120px] pb-20 px-4 md:px-8">
                 <div className="max-w-5xl mx-auto mt-8 md:mt-12">
-                    {/* Back Button + Download Invoice — same row */}
+                    {/* Back Button + Download Invoice */}
                     <div className="mb-6 flex items-center justify-between gap-3">
                         <Link
                             href="/orders/history"
@@ -937,15 +278,15 @@ export default function OrderDetailPage() {
                             <span className="xs:hidden sm:hidden">Quay lại</span>
                         </Link>
 
-                        {/* Download Invoice PDF button — only shown when order is loaded */}
                         {order && (
                             <button
+                                type="button"
                                 onClick={handleDownloadInvoicePdf}
                                 disabled={downloadingPdf}
                                 className="inline-flex items-center gap-1.5 bg-white border border-[#c4a84f] text-[#8b6914] hover:bg-[#fdf8ef] h-8 px-3 rounded text-[11px] font-bold tracking-[0.5px] uppercase transition-all disabled:opacity-50 font-sans cursor-pointer shadow-sm flex-shrink-0"
                             >
                                 <FileText className="w-3.5 h-3.5 text-[#c4a84f] shrink-0" />
-                                <span>{downloadingPdf ? 'Đang xuất...' : 'Tải hóa đơn PDF'}</span>
+                                <span>{downloadingPdf ? "Đang xuất..." : "Tải hóa đơn PDF"}</span>
                             </button>
                         )}
                     </div>
@@ -958,8 +299,12 @@ export default function OrderDetailPage() {
                     ) : error || !order ? (
                         <div className="bg-white border border-[#ede0c4] rounded-lg p-16 text-center shadow-sm max-w-lg mx-auto">
                             <HelpCircle className="w-16 h-16 text-[#c4a84f] mx-auto mb-4 stroke-1" />
-                            <h3 className="text-lg font-bold text-[#2c1a00] font-['Cormorant_Garamond',_serif] mb-2">Không tìm thấy đơn hàng</h3>
-                            <p className="text-gray-500 text-sm mb-6 font-sans">{error || "Mã đơn hàng không hợp lệ hoặc đã bị xóa khỏi hệ thống."}</p>
+                            <h3 className="text-lg font-bold text-[#2c1a00] font-['Cormorant_Garamond',_serif] mb-2">
+                                Không tìm thấy đơn hàng
+                            </h3>
+                            <p className="text-gray-500 text-sm mb-6 font-sans">
+                                {error || "Mã đơn hàng không hợp lệ hoặc đã bị xóa khỏi hệ thống."}
+                            </p>
                             <Link
                                 href="/orders/history"
                                 className="inline-block bg-[#c4a84f] text-white px-8 py-3 rounded text-xs font-bold tracking-[2px] uppercase font-['Cormorant_Garamond',_serif] hover:bg-[#a8893a] transition-all no-underline"
@@ -969,7 +314,7 @@ export default function OrderDetailPage() {
                         </div>
                     ) : (
                         <div>
-                            {/* Title Block - Left & Right layout on mobile & desktop */}
+                            {/* Title Block */}
                             <div className="flex justify-between items-start gap-4 mb-6">
                                 <div>
                                     <div className="flex items-center gap-1.5 text-[#c4a84f] text-[10px] sm:text-xs font-bold tracking-[1.5px] uppercase mb-1">
@@ -991,357 +336,34 @@ export default function OrderDetailPage() {
                                 </div>
                             </div>
 
-                            {/* Visual Progress Stepper */}
-                            {renderTimeline()}
+                            {/* Visual Progress Stepper & Status Banners */}
+                            <OrderDetailStatusStepper order={order} />
 
                             {/* Two Column details grid */}
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
-
-                                {/* Left Column: Order Items */}
+                                {/* Left Column: Order Items & Payment Breakdown */}
                                 <div className="lg:col-span-2 space-y-6">
-                                    <div className="bg-white border border-[#ede0c4] rounded-lg shadow-sm overflow-hidden">
-                                        <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4">
-                                            <h3 className="text-xs font-bold uppercase tracking-wider text-[#2c1a00] font-sans">
-                                                Danh sách sản phẩm ({order.items.length})
-                                            </h3>
-                                        </div>
+                                    <OrderDetailItemsCard items={order.items} />
 
-                                        <div className="divide-y divide-gray-100 px-4 sm:px-6">
-                                            {order.items.map((item, idx) => {
-                                                const p = item.product || {};
-                                                const imgUrl = p.imageUrl?.[0] || "https://placehold.co/80x80";
-                                                return (
-                                                    <div key={idx} className="py-4 flex gap-3 sm:gap-4 items-start sm:items-center">
-                                                        {/* Image */}
-                                                        <div className="relative w-14 h-14 sm:w-16 sm:h-16 bg-white border border-[#ede0c4] rounded overflow-hidden flex-shrink-0 mt-0.5 sm:mt-0">
-                                                            <ImageWithFallback
-                                                                src={imgUrl}
-                                                                alt={p.productName || "Sản phẩm"}
-                                                                fill
-                                                                className="object-cover"
-                                                                sizes="64px"
-                                                            />
-                                                        </div>
-
-                                                        {/* Info */}
-                                                        <div className="flex-1 min-w-0">
-                                                            <h4 className="text-[13px] font-bold text-[#2c1a00] hover:text-[#c4a84f] transition-colors font-sans leading-snug">
-                                                                <Link
-                                                                    href={`/products/${p.slug}`}
-                                                                    className="no-underline text-inherit cursor-pointer line-clamp-2 break-words [overflow-wrap:anywhere] [word-break:break-all]"
-                                                                    title={p.productName || "Sản phẩm Bát Tràng"}
-                                                                >
-                                                                    {p.productName || "Sản phẩm Bát Tràng"}
-                                                                </Link>
-                                                            </h4>
-                                                            {p.sku && (
-                                                                <p className="text-[10px] font-mono text-gray-400 mt-0.5">
-                                                                    Mã SP: {p.sku}
-                                                                </p>
-                                                            )}
-                                                            <div className="flex items-center justify-between mt-1.5 gap-2">
-                                                                <p className="text-xs text-gray-400 font-sans">
-                                                                    SL: <span className="text-gray-700 font-semibold">{item.quantity}</span>
-                                                                    <span className="mx-1.5 text-gray-300">·</span>
-                                                                    <span className="text-gray-400">{formatPrice(item.price)}</span>
-                                                                </p>
-                                                                <span className="text-sm font-bold text-gray-800 font-sans whitespace-nowrap shrink-0">
-                                                                    {formatPrice(item.price * item.quantity)}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    {/* Cost breakdown Card */}
-                                    <div className="bg-white border border-[#ede0c4] rounded-lg shadow-sm p-6 space-y-4">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#2c1a00] border-b border-[#ede0c4] pb-2 font-sans">
-                                            Chi tiết hóa đơn
-                                        </h3>
-                                        <div className="space-y-2 text-sm text-gray-500 font-sans">
-                                            <div className="flex justify-between">
-                                                <span>Tạm tính:</span>
-                                                <span className="text-gray-800 font-medium">{formatPrice(getSubtotal())}</span>
-                                            </div>
-                                            {((order.discountAmount ?? 0) > 0 || order.couponCode) && (
-                                                <div className="flex justify-between text-emerald-700 font-medium">
-                                                    <span className="flex items-center gap-1.5">
-                                                        <span>Giảm giá (Voucher):</span>
-                                                        {order.couponCode && (
-                                                            <span className="font-mono text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 px-1.5 py-0.5 rounded font-bold">
-                                                                {order.couponCode}
-                                                            </span>
-                                                        )}
-                                                    </span>
-                                                    <span className="font-bold">-{formatPrice(order.discountAmount || 0)}</span>
-                                                </div>
-                                            )}
-                                            <div className="flex justify-between">
-                                                <span>Phí giao hàng:</span>
-                                                <span className="text-gray-800 font-medium">
-                                                    {order.shippingFee > 0 ? formatPrice(order.shippingFee) : "Miễn phí"}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between border-t border-gray-100 pt-3">
-                                                <span>Phương thức thanh toán:</span>
-                                                <span className="text-gray-800 font-semibold">{getPaymentMethodText(order.paymentMethod)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span>Trạng thái thanh toán:</span>
-                                                <span className={`font-semibold ${order.paymentStatus === 'paid' ? 'text-green-600' : 'text-red-500'}`}>
-                                                    {getPaymentStatusText(order.paymentStatus)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-between items-center border-t border-[#ede0c4] pt-4 font-sans">
-                                            <span className="text-sm font-bold uppercase text-[#2c1a00] tracking-wider">Tổng thanh toán:</span>
-                                            <span className="text-2xl font-extrabold text-[#8b2500]">{formatPrice(order.total)}</span>
-                                        </div>
-
-                                        {/* Hành động đơn hàng ở chân thẻ Chi tiết hóa đơn (Phương án 1) */}
-                                        {(() => {
-                                            const isCompleted = order.status === 'completed';
-                                            const isPending = order.status === 'pending';
-                                            const isCancelled = order.status === 'cancelled';
-                                            const isShipping = order.status === 'shipping';
-                                            const isReturnRelated = order.status === 'return_requested' || order.status === 'returned';
-
-                                            if (!isCompleted && !isPending && !isCancelled && !isReturnRelated && !isShipping) {
-                                                return null;
-                                            }
-
-                                            const completionTime = new Date(order.updatedAt || order.createdAt).getTime();
-                                            const diffDays = (Date.now() - completionTime) / (1000 * 3600 * 24);
-                                            const canReturn = diffDays <= 7;
-                                            const canReview = diffDays <= 30;
-
-                                            return (
-                                                <div className="border-t border-[#ede0c4] pt-4 mt-4 flex flex-wrap gap-2.5 justify-end items-center font-sans">
-                                                    {/* Đơn Đang vận chuyển (shipping) */}
-                                                    {isShipping && (
-                                                        <>
-                                                            {syncMsg && (
-                                                                <span className="text-xs text-blue-600 font-medium italic mr-auto">
-                                                                    {syncMsg}
-                                                                </span>
-                                                            )}
-                                                            {order.trackingCode && order.shippingStatus !== 'delivered' && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={handleSyncShipping}
-                                                                    disabled={syncingShipping}
-                                                                    className="w-full sm:w-auto px-4 py-2.5 bg-white border border-gray-300 hover:border-[#c4a84f] text-gray-700 hover:text-[#8b6914] text-xs font-semibold rounded transition-all font-sans cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-xs"
-                                                                    title="Tra cứu trạng thái vận đơn trực tiếp từ cổng vận chuyển"
-                                                                >
-                                                                    <RotateCw className={`w-3.5 h-3.5 ${syncingShipping ? 'animate-spin text-amber-600' : 'text-gray-500'}`} />
-                                                                    <span>{syncingShipping ? 'Đang kiểm tra...' : 'Tra cứu vận đơn'}</span>
-                                                                </button>
-                                                            )}
-                                                            <button
-                                                                type="button"
-                                                                disabled={order.shippingStatus !== 'delivered'}
-                                                                onClick={() => setShowConfirmReceivedModal(true)}
-                                                                className={`w-full sm:w-auto px-5 py-2.5 text-xs font-bold tracking-[0.5px] uppercase rounded transition-all font-sans flex items-center justify-center gap-2 shadow-xs ${order.shippingStatus === 'delivered'
-                                                                        ? 'bg-[#c4a84f] hover:bg-[#a8893a] text-white cursor-pointer ring-2 ring-[#c4a84f]/20 active:scale-[0.99]'
-                                                                        : 'bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed'
-                                                                    }`}
-                                                                title={order.shippingStatus !== 'delivered' ? 'Chỉ khả dụng sau khi đơn vị vận chuyển cập nhật trạng thái Giao hàng thành công' : 'Bấm để xác nhận bạn đã nhận đủ hàng'}
-                                                            >
-                                                                <CheckCircle2 className="w-4 h-4" />
-                                                                <span>Đã nhận được hàng</span>
-                                                            </button>
-                                                        </>
-                                                    )}
-
-                                                    {/* Đơn Chờ xác nhận (pending) */}
-                                                    {isPending && (
-                                                        <button
-                                                            onClick={() => setShowCancelModal(true)}
-                                                            className="w-full sm:w-auto px-4 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold tracking-[0.5px] uppercase rounded transition-all font-sans cursor-pointer"
-                                                        >
-                                                            Hủy đơn hàng này
-                                                        </button>
-                                                    )}
-
-                                                    {/* Đơn Đã hủy (cancelled) */}
-                                                    {isCancelled && (
-                                                        <button
-                                                            onClick={handleReorder}
-                                                            disabled={reordering}
-                                                            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[0.5px] uppercase px-5 py-2.5 rounded transition-all font-sans cursor-pointer shadow-sm disabled:opacity-50"
-                                                        >
-                                                            {reordering ? (
-                                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                                            ) : (
-                                                                <RotateCw className="w-4 h-4" />
-                                                            )}
-                                                            <span>{reordering ? 'Đang thêm vào giỏ...' : 'Mua lại đơn hàng này'}</span>
-                                                        </button>
-                                                    )}
-
-                                                    {/* Đơn Hoàn trả (return_requested / returned) */}
-                                                    {isReturnRelated && (
-                                                        <>
-                                                            <button
-                                                                onClick={() => setShowViewReturnModal(order)}
-                                                                className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-[#fdf8ef] border border-[#c4a84f] text-[#8b6914] hover:bg-[#f5ebd6] text-xs font-bold tracking-[0.5px] uppercase px-4 py-2.5 rounded transition-all font-sans cursor-pointer"
-                                                            >
-                                                                <Eye className="w-4 h-4 text-[#c4a84f]" />
-                                                                <span>Xem Yêu cầu Hoàn trả</span>
-                                                            </button>
-                                                            {order.status === 'returned' && (
-                                                                <button
-                                                                    onClick={handleReorder}
-                                                                    disabled={reordering}
-                                                                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[0.5px] uppercase px-5 py-2.5 rounded transition-all font-sans cursor-pointer shadow-sm disabled:opacity-50"
-                                                                >
-                                                                    {reordering ? (
-                                                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                                                    ) : (
-                                                                        <RotateCw className="w-4 h-4" />
-                                                                    )}
-                                                                    <span>{reordering ? 'Đang thêm...' : 'Mua lại đơn hàng này'}</span>
-                                                                </button>
-                                                            )}
-                                                        </>
-                                                    )}
-
-                                                    {/* Đơn Hoàn thành (completed) */}
-                                                    {isCompleted && (
-                                                        <>
-                                                            {canReturn && (
-                                                                <button
-                                                                    onClick={() => setShowReturnModal(order)}
-                                                                    className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-amber-50 border border-amber-300 text-amber-800 hover:bg-amber-100 text-xs font-bold tracking-[0.5px] uppercase px-4 py-2.5 rounded transition-all font-sans cursor-pointer"
-                                                                >
-                                                                    <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
-                                                                    <span>Yêu cầu hoàn trả</span>
-                                                                </button>
-                                                            )}
-
-                                                            {/* Đánh giá đơn hàng: Chỉ hiển thị khi chưa đánh giá & còn trong thời hạn 30 ngày */}
-                                                            {!allReviewed && canReview && (
-                                                                <button
-                                                                    onClick={handleOpenBatchModal}
-                                                                    className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-white border border-[#c4a84f] text-[#8b6914] hover:bg-[#fdf8ef] text-xs font-bold tracking-[0.5px] uppercase px-4 py-2.5 rounded transition-all font-sans cursor-pointer"
-                                                                >
-                                                                    <Star className="w-3.5 h-3.5 fill-[#c4a84f] text-[#c4a84f]" />
-                                                                    <span>Đánh giá đơn hàng</span>
-                                                                </button>
-                                                            )}
-
-                                                            <button
-                                                                onClick={handleReorder}
-                                                                disabled={reordering}
-                                                                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[0.5px] uppercase px-5 py-2.5 rounded transition-all font-sans cursor-pointer shadow-sm disabled:opacity-50"
-                                                            >
-                                                                {reordering ? (
-                                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                                ) : (
-                                                                    <RotateCw className="w-4 h-4" />
-                                                                )}
-                                                                <span>{reordering ? 'Đang thêm...' : 'Mua lại đơn hàng này'}</span>
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
-                                    </div>
+                                    <OrderDetailPaymentCard
+                                        order={order}
+                                        syncingShipping={syncingShipping}
+                                        syncMsg={syncMsg}
+                                        reordering={reordering}
+                                        allReviewed={allReviewed}
+                                        onSyncShipping={handleSyncShipping}
+                                        onConfirmReceived={() => setShowConfirmReceivedModal(true)}
+                                        onCancelOrder={() => setShowCancelModal(true)}
+                                        onReorder={handleReorder}
+                                        onViewReturn={() => setShowViewReturnModal(order)}
+                                        onRequestReturn={() => setShowReturnModal(order)}
+                                        onOpenReview={() => setShowBatchModal(true)}
+                                    />
                                 </div>
 
                                 {/* Right Column: Delivery Information */}
                                 <div className="space-y-6">
-                                    {/* Delivery Info Card */}
-                                    <div className="bg-white border border-[#ede0c4] rounded-lg shadow-sm p-6 space-y-4">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#2c1a00] border-b border-[#ede0c4] pb-2 font-sans">
-                                            Thông tin giao hàng
-                                        </h3>
-                                        <div className="space-y-4 font-sans text-sm text-gray-700">
-                                            {/* Customer Name */}
-                                            <div className="flex gap-3">
-                                                <User className="w-5 h-5 text-[#c4a84f] flex-shrink-0" />
-                                                <div>
-                                                    <span className="text-xs text-gray-400 block">Khách nhận hàng</span>
-                                                    <span className="font-semibold text-gray-800">{order.customerName}</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Phone Number */}
-                                            <div className="flex gap-3">
-                                                <Phone className="w-5 h-5 text-[#c4a84f] flex-shrink-0" />
-                                                <div>
-                                                    <span className="text-xs text-gray-400 block">Số điện thoại</span>
-                                                    <span className="font-semibold text-gray-800">{order.phone}</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Address */}
-                                            <div className="flex gap-3">
-                                                <MapPin className="w-5 h-5 text-[#c4a84f] flex-shrink-0" />
-                                                <div>
-                                                    <span className="text-xs text-gray-400 block">Địa chỉ nhận hàng</span>
-                                                    <span className="font-semibold text-gray-750 leading-relaxed">
-                                                        {order.address}, {order.ward}, {order.district}, {order.province}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Shipping Provider & Tracking */}
-                                            <div className="flex gap-3 border-t border-gray-100 pt-3">
-                                                <Truck className="w-5 h-5 text-[#c4a84f] flex-shrink-0 mt-0.5" />
-                                                <div className="w-full space-y-1">
-                                                    <span className="text-xs text-gray-400 block">Đơn vị vận chuyển</span>
-                                                    <div className="font-semibold text-gray-800 text-sm">
-                                                        {order.shippingProviderName || order.shippingProvider || "Giao hàng Tiêu chuẩn"}
-                                                    </div>
-                                                    {order.trackingCode && (
-                                                        <div className="mt-1.5 p-2.5 bg-amber-50/80 border border-amber-200/80 rounded-md">
-                                                            <span className="text-[10px] text-amber-700 block font-sans font-medium uppercase tracking-wider mb-0.5">Mã vận đơn (Tracking Code)</span>
-                                                            <span className="text-xs font-mono font-bold text-amber-900 break-all select-all block leading-normal">
-                                                                {order.trackingCode}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {order.expectedDeliveryDate && (
-                                                        <span className="text-xs text-gray-500 block pt-0.5">
-                                                            Dự kiến giao: {order.expectedDeliveryDate}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Note */}
-                                            {order.note && (
-                                                <div className="flex gap-3 border-t border-gray-100 pt-3">
-                                                    <MessageSquare className="w-5 h-5 text-[#c4a84f] flex-shrink-0" />
-                                                    <div className="w-full">
-                                                        <span className="text-xs text-gray-400 block">Ghi chú giao nhận</span>
-                                                        <p className="text-xs italic text-gray-500 bg-[#fbfaf8] border border-gray-200 rounded p-2.5 mt-1 leading-normal">
-                                                            "{order.note}"
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Hotline contact bar */}
-                                            <div className="border-t border-[#ede0c4] pt-3.5 mt-2 flex items-center justify-between text-xs font-sans text-gray-500">
-                                                <span className="flex items-center gap-1.5">
-                                                    <Phone className="w-3.5 h-3.5 text-[#c4a84f]" />
-                                                    Cần hỗ trợ đơn hàng?
-                                                </span>
-                                                <a
-                                                    href="tel:0901234567"
-                                                    className="font-bold text-[#8b6914] hover:text-[#c4a84f] transition-colors no-underline"
-                                                >
-                                                    Hotline: 0901.234.567
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <OrderDetailDeliveryCard order={order} />
                                 </div>
                             </div>
                         </div>
@@ -1350,432 +372,37 @@ export default function OrderDetailPage() {
             </main>
             <Footer />
 
-            {/* Confirm Received Modal */}
+            {/* Modals */}
             {showConfirmReceivedModal && order && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full border border-[#ede0c4] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4 flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-[#2c1a00] font-['Cormorant_Garamond',_serif] uppercase tracking-[1px] flex items-center gap-2">
-                                <Package className="w-5 h-5 text-[#c4a84f]" />
-                                <span>Xác nhận đã nhận hàng</span>
-                            </h3>
-                            <button
-                                onClick={() => setShowConfirmReceivedModal(false)}
-                                className="text-gray-400 hover:text-gray-600 transition"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="p-6">
-                            <p className="text-sm text-gray-600 font-sans leading-relaxed">
-                                Bạn xác nhận đã nhận đầy đủ kiện hàng mã <strong className="font-mono font-bold text-[#2c1a00]">{order.publicId}</strong> từ shipper và sản phẩm gốm sứ nguyên vẹn?
-                            </p>
-                            {order.paymentMethod === 'cod' && (
-                                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-xs font-sans">
-                                    <strong className="block mb-0.5">Xác nhận thanh toán COD:</strong>
-                                    Số tiền <strong>{formatPrice(order.total)}</strong> đã được thanh toán cho shipper và đơn hàng sẽ chuyển sang trạng thái <strong>Hoàn thành</strong>.
-                                </div>
-                            )}
-                            <p className="text-xs text-gray-400 font-sans mt-3 italic">
-                                * Sau khi hoàn tất, bạn có thể tham gia viết đánh giá sản phẩm để chia sẻ trải nghiệm.
-                            </p>
-                        </div>
-                        <div className="bg-[#fbfaf8] border-t border-[#ede0c4] px-6 py-4 flex justify-end gap-3 font-sans">
-                            <button
-                                type="button"
-                                onClick={() => setShowConfirmReceivedModal(false)}
-                                disabled={confirmingReceipt}
-                                className="px-5 py-2.5 bg-gray-150 text-gray-700 text-xs font-bold tracking-[1px] uppercase rounded hover:bg-gray-200 transition cursor-pointer"
-                            >
-                                Quay lại
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleConfirmReceipt}
-                                disabled={confirmingReceipt}
-                                className="px-5 py-2.5 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[1px] uppercase rounded transition shadow-sm disabled:opacity-50 cursor-pointer flex items-center gap-2"
-                            >
-                                {confirmingReceipt ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        <span>Đang xử lý...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 className="w-4 h-4" />
-                                        <span>Tôi đã nhận đủ hàng</span>
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <OrderConfirmReceivedModal
+                    order={order}
+                    confirmingReceipt={confirmingReceipt}
+                    onClose={() => setShowConfirmReceivedModal(false)}
+                    onConfirm={handleConfirmReceipt}
+                />
             )}
 
-            {/* Cancel Order Confirm Modal */}
             {showCancelModal && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full border border-[#ede0c4] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4">
-                            <h3 className="text-lg font-bold text-[#2c1a00] font-['Cormorant_Garamond',_serif] uppercase tracking-[1px]">Xác nhận hủy đơn hàng</h3>
-                        </div>
-                        <div className="p-6">
-                            <p className="text-sm text-gray-500 font-sans leading-relaxed">
-                                Bạn có chắc chắn muốn hủy đơn hàng này không?
-                            </p>
-                            <div className="my-3 p-3 bg-gray-50 border border-gray-200 rounded font-mono text-xs text-gray-700 break-all">
-                                {order?.publicId}
-                            </div>
-                            <p className="text-xs text-red-500 font-sans font-medium">
-                                * Lưu ý: Hành động hủy đơn hàng sẽ không thể khôi phục sau khi hoàn tất.
-                            </p>
-                        </div>
-                        <div className="bg-[#fbfaf8] border-t border-[#ede0c4] px-6 py-4 flex justify-end gap-3">
-                            <button
-                                onClick={() => setShowCancelModal(false)}
-                                disabled={cancelling}
-                                className="px-5 py-2.5 bg-gray-150 text-gray-700 text-xs font-bold tracking-[1px] uppercase rounded hover:bg-gray-200 transition font-sans cursor-pointer"
-                            >
-                                Quay lại
-                            </button>
-                            <button
-                                onClick={handleCancelOrder}
-                                disabled={cancelling}
-                                className="px-5 py-2.5 bg-red-600 text-white text-xs font-bold tracking-[1px] uppercase rounded hover:bg-red-700 transition shadow-sm disabled:opacity-50 font-sans cursor-pointer"
-                            >
-                                {cancelling ? 'Đang xử lý...' : 'Xác nhận hủy'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <OrderCancelModal
+                    publicId={order?.publicId}
+                    cancelling={cancelling}
+                    onClose={() => setShowCancelModal(false)}
+                    onConfirm={handleCancelOrder}
+                />
             )}
-            {/* Batch Review Modal (Hybrid - Đánh giá tất cả sản phẩm trong 1 Modal) */}
+
             {showBatchModal && order && (
-                <div className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 px-3 sm:px-6 md:px-8 pt-28 sm:pt-32 pb-4 sm:pb-6 backdrop-blur-sm overflow-hidden">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col border border-[#ede0c4] overflow-hidden" style={{ maxHeight: 'calc(100dvh - 8rem)' }}>
-                        {/* Header */}
-                        <div className="bg-[#fbfaf8] border-b border-[#ede0c4] px-6 py-4 flex justify-between items-center flex-shrink-0 sticky top-0 z-10">
-                            <div>
-                                <h3 className="text-base font-bold text-[#2c1a00] uppercase tracking-[1px] font-sans">Đánh giá đơn hàng</h3>
-                                <p className="text-[10px] text-gray-400 font-sans mt-0.5">Mã đơn: <span className="font-mono text-[#c4a84f]">{order.publicId}</span></p>
-                            </div>
-                            <button
-                                onClick={() => setShowBatchModal(false)}
-                                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 bg-transparent border-none rounded-full cursor-pointer text-lg leading-none transition-colors"
-                            >
-                                &times;
-                            </button>
-                        </div>
-
-                        {/* Scrollable product list - nội dung scroll bên trong */}
-                        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 font-sans modal-scroll">
-                            {(() => {
-                                const reviewableItemsCount = order.items.filter(item => {
-                                    const pid = item.product?.id || item.product?._id;
-                                    return pid && !checkIsReviewed(pid);
-                                }).length;
-
-                                return order.items.map((item, idx) => {
-                                    const p = item.product;
-                                    const pid = p?.id || p?._id || "";
-                                    const imgUrl = p?.imageUrl?.[0] || "https://placehold.co/64x64";
-                                    const alreadyReviewed = checkIsReviewed(pid);
-                                    const reviewInfo = alreadyReviewed ? getReviewInfo(pid) : null;
-                                    const entry = batchReviews[pid];
-                                    const isSelected = entry?.selected ?? false;
-
-                                    return (
-                                        <div
-                                            key={idx}
-                                            className={`rounded-xl border p-4 transition-all ${alreadyReviewed
-                                                ? "bg-green-50/60 border-green-200"
-                                                : isSelected
-                                                    ? "bg-white border-[#ede0c4] shadow-sm"
-                                                    : "bg-gray-50/70 border-dashed border-gray-300 opacity-60"
-                                                }`}
-                                        >
-                                            {/* Product info row & Checkbox */}
-                                            <div className="flex gap-3 items-center mb-3">
-                                                {!alreadyReviewed && entry && reviewableItemsCount > 1 && (
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={isSelected}
-                                                        onChange={(e) =>
-                                                            setBatchReviews((prev) => ({
-                                                                ...prev,
-                                                                [pid]: { ...prev[pid], selected: e.target.checked },
-                                                            }))
-                                                        }
-                                                        title="Tích chọn để đánh giá sản phẩm này"
-                                                        className="w-5 h-5 accent-[#c4a84f] rounded cursor-pointer flex-shrink-0"
-                                                    />
-                                                )}
-                                                <div className="relative w-14 h-14 flex-shrink-0 border border-[#ede0c4] rounded-lg overflow-hidden bg-[#faf7f2]">
-                                                    <ImageWithFallback src={imgUrl} alt={p?.productName || "Sản phẩm"} fill className="object-cover" sizes="56px" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p
-                                                        className="text-sm font-bold text-[#2c1a00] line-clamp-1 leading-snug break-words [overflow-wrap:anywhere] [word-break:break-all]"
-                                                        title={p?.productName || "Sản phẩm"}
-                                                    >
-                                                        {p?.productName || "Sản phẩm"}
-                                                    </p>
-                                                    {p?.sku && <span className="text-[10px] font-mono text-gray-400">SKU: {p.sku}</span>}
-                                                </div>
-                                                {alreadyReviewed ? (
-                                                    <div className="flex-shrink-0 flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full border border-green-200 whitespace-nowrap">
-                                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                                                        Đã đánh giá
-                                                    </div>
-                                                ) : (
-                                                    <span className={`text-[11px] font-semibold flex-shrink-0 whitespace-nowrap ${isSelected ? "text-[#c4a84f]" : "text-gray-400"}`}>
-                                                        {isSelected ? "Bật đánh giá" : "Bỏ qua lần này"}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {alreadyReviewed && reviewInfo ? (
-                                                /* Hiển thị đánh giá đã gửi */
-                                                <div className="bg-white rounded-lg border border-green-200 p-3 space-y-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-amber-500 text-sm tracking-widest">{"\u2605".repeat(reviewInfo.rating)}{"\u2606".repeat(5 - reviewInfo.rating)}</span>
-                                                        <span className="text-xs text-gray-400 font-sans">{STAR_LABELS[reviewInfo.rating]}</span>
-                                                    </div>
-                                                    {reviewInfo.comment && (
-                                                        <p className="text-xs text-gray-600 italic leading-relaxed break-words [overflow-wrap:anywhere] [word-break:break-word]">&ldquo;{reviewInfo.comment}&rdquo;</p>
-                                                    )}
-                                                    {reviewInfo.images && reviewInfo.images.length > 0 && (
-                                                        <div className="flex flex-wrap gap-2 pt-1">
-                                                            {reviewInfo.images.map((img: string, i: number) => (
-                                                                <button
-                                                                    key={i}
-                                                                    type="button"
-                                                                    onClick={() => setReviewLightboxImg(formatImageUrl(img))}
-                                                                    className="w-14 h-14 rounded-lg overflow-hidden border border-[#ede0c4] bg-[#faf7f2] hover:border-[#c4a84f] transition cursor-zoom-in"
-                                                                >
-                                                                    <img src={formatImageUrl(img)} alt={`Ảnh ${i + 1}`} className="w-full h-full object-cover" />
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                    {reviewInfo.video && (
-                                                        <div className="pt-1 max-w-xs rounded-lg overflow-hidden border border-[#ede0c4] bg-black">
-                                                            <video src={formatVideoUrl(reviewInfo.video)} controls preload="metadata" className="w-full max-h-36 object-contain" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ) : entry && isSelected ? (
-                                                /* Form đánh giá khi được tích chọn */
-                                                <div className="space-y-3.5 pt-1 border-t border-gray-100">
-                                                    {/* Star Picker */}
-                                                    <div>
-                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Mức độ hài lòng</label>
-                                                        <div className="flex items-center gap-1">
-                                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                                <button
-                                                                    key={star}
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        setBatchReviews((prev) => ({
-                                                                            ...prev,
-                                                                            [pid]: { ...prev[pid], rating: star },
-                                                                        }))
-                                                                    }
-                                                                    className={`text-2xl transition-all cursor-pointer bg-transparent border-none p-0.5 leading-none ${star <= entry.rating
-                                                                        ? "text-amber-500 scale-110"
-                                                                        : "text-gray-300 hover:text-amber-400"
-                                                                        }`}
-                                                                >
-                                                                    ★
-                                                                </button>
-                                                            ))}
-                                                            <span className="text-xs font-semibold text-[#c4a84f] ml-2">{STAR_LABELS[entry.rating]}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Comment */}
-                                                    <div>
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                                                Nhận xét <span className="text-gray-300 font-normal normal-case">(tùy chọn)</span>
-                                                            </label>
-                                                            <span className={`text-[11px] font-sans transition-colors ${(entry.comment || '').length >= 950 ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>
-                                                                {(entry.comment || '').length}/1000
-                                                            </span>
-                                                        </div>
-                                                        <textarea
-                                                            value={entry.comment}
-                                                            maxLength={1000}
-                                                            onChange={(e) =>
-                                                                setBatchReviews((prev) => ({
-                                                                    ...prev,
-                                                                    [pid]: { ...prev[pid], comment: e.target.value.slice(0, 1000) },
-                                                                }))
-                                                            }
-                                                            placeholder={`Chia sẻ cảm nhận của bạn về ${p?.productName && p.productName.length > 25 ? p.productName.slice(0, 25) + '...' : (p?.productName || 'sản phẩm')}...`}
-                                                            rows={3}
-                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-[#c4a84f] focus:ring-2 focus:ring-[#c4a84f]/20 focus:outline-none text-sm font-sans resize-none transition"
-                                                        />
-                                                    </div>
-
-                                                    {/* Media Upload (Images & Video) */}
-                                                    <div className="space-y-3 pt-2 border-t border-gray-100">
-                                                        {/* Hình ảnh đánh giá (Tối đa 5 ảnh) */}
-                                                        <div>
-                                                            <div className="flex items-center justify-between mb-1.5">
-                                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                                                                    <ImageIcon className="w-3.5 h-3.5 text-[#c4a84f]" />
-                                                                    <span>Hình ảnh thực tế ({(entry.images || []).length}/5)</span>
-                                                                </label>
-                                                                <span className="text-[10px] text-gray-400">Tối đa 5MB/ảnh</span>
-                                                            </div>
-                                                            <div className="flex flex-wrap gap-2 items-center">
-                                                                {(entry.images || []).map((imgUrl, imgIdx) => (
-                                                                    <div key={imgIdx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-[#ede0c4] bg-[#faf7f2] group">
-                                                                        <img src={formatImageUrl(imgUrl)} alt={`Đánh giá ${imgIdx + 1}`} className="w-full h-full object-cover" />
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => handleReviewRemoveImage(pid, imgIdx)}
-                                                                            className="absolute top-1 right-1 w-4 h-4 bg-black/70 hover:bg-rose-600 text-white rounded-full flex items-center justify-center transition cursor-pointer"
-                                                                            title="Xóa ảnh"
-                                                                        >
-                                                                            <X className="w-2.5 h-2.5" />
-                                                                        </button>
-                                                                    </div>
-                                                                ))}
-                                                                {(entry.images || []).length < 5 && (
-                                                                    <label className={`w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 hover:border-[#c4a84f] flex flex-col items-center justify-center cursor-pointer transition text-gray-400 hover:text-[#c4a84f] bg-white ${entry.uploadingImages ? 'pointer-events-none opacity-50' : ''}`}>
-                                                                        <input
-                                                                            type="file"
-                                                                            accept="image/*"
-                                                                            multiple
-                                                                            className="hidden"
-                                                                            disabled={entry.uploadingImages}
-                                                                            onChange={(e) => {
-                                                                                handleReviewImagesUpload(pid, e.target.files);
-                                                                                e.target.value = '';
-                                                                            }}
-                                                                        />
-                                                                        {entry.uploadingImages ? (
-                                                                            <Loader2 className="w-4 h-4 animate-spin text-[#c4a84f]" />
-                                                                        ) : (
-                                                                            <>
-                                                                                <Camera className="w-4 h-4 mb-0.5" />
-                                                                                <span className="text-[9px] font-bold uppercase">Thêm ảnh</span>
-                                                                            </>
-                                                                        )}
-                                                                    </label>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Video đánh giá (Tối đa 1 video ≤50MB, ≤60s) */}
-                                                        <div>
-                                                            <div className="flex items-center justify-between mb-1.5">
-                                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                                                                    <Video className="w-3.5 h-3.5 text-[#8b2500]" />
-                                                                    <span>Video thực tế (1 video)</span>
-                                                                </label>
-                                                                <span className="text-[10px] text-gray-400">Tối đa 50MB · ≤60s</span>
-                                                            </div>
-                                                            {entry.video ? (
-                                                                <div className="relative rounded-xl overflow-hidden border border-[#ede0c4] bg-black w-full shadow-sm group">
-                                                                    <video
-                                                                        src={formatVideoUrl(entry.video)}
-                                                                        controls
-                                                                        preload="metadata"
-                                                                        className="w-full max-h-48 object-contain"
-                                                                    />
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleReviewRemoveVideo(pid)}
-                                                                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/70 hover:bg-rose-600 text-white rounded-full flex items-center justify-center transition cursor-pointer shadow"
-                                                                        title="Xóa video"
-                                                                    >
-                                                                        <X className="w-3 h-3" />
-                                                                    </button>
-                                                                </div>
-                                                            ) : (
-                                                                <label className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-gray-300 hover:border-[#8b2500] hover:text-[#8b2500] text-gray-600 text-xs font-semibold bg-white cursor-pointer transition ${entry.uploadingVideo ? 'pointer-events-none opacity-50' : ''}`}>
-                                                                    <input
-                                                                        type="file"
-                                                                        accept="video/mp4,video/mov,video/webm,video/*"
-                                                                        className="hidden"
-                                                                        disabled={entry.uploadingVideo}
-                                                                        onChange={(e) => {
-                                                                            const f = e.target.files?.[0];
-                                                                            if (f) handleReviewVideoUpload(pid, f);
-                                                                            e.target.value = '';
-                                                                        }}
-                                                                    />
-                                                                    {entry.uploadingVideo ? (
-                                                                        <>
-                                                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#8b2500]" />
-                                                                            <span>Đang tải video lên Cloudinary...</span>
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <Video className="w-3.5 h-3.5 text-[#8b2500]" />
-                                                                            <span>+ Thêm video mở hộp / dùng thử</span>
-                                                                        </>
-                                                                    )}
-                                                                </label>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ) : entry && !isSelected ? (
-                                                <p className="text-xs text-gray-400 italic m-0 pt-1">Tích chọn ở góc trái nếu muốn gửi đánh giá cho sản phẩm này.</p>
-                                            ) : null}
-                                        </div>
-                                    );
-                                });
-                            })()}
-                        </div>
-
-                        {/* Footer */}
-                        <div className="flex-shrink-0 bg-[#fbfaf8] border-t border-[#ede0c4] px-5 py-4">
-                            {batchError && (
-                                <p className="text-xs text-red-500 font-semibold font-sans mb-3">{batchError}</p>
-                            )}
-                            <div className="flex justify-end gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowBatchModal(false)}
-                                    disabled={submittingBatch}
-                                    className="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-xs font-bold tracking-[1px] uppercase rounded-lg hover:bg-gray-50 transition font-sans cursor-pointer disabled:opacity-50"
-                                >
-                                    Đóng
-                                </button>
-                                {!allReviewed && (
-                                    <button
-                                        type="button"
-                                        onClick={handleBatchSubmit}
-                                        disabled={
-                                            submittingBatch ||
-                                            Object.values(batchReviews).some((r) => r.selected && (r.uploadingImages || r.uploadingVideo)) ||
-                                            Object.values(batchReviews).filter((r) => r.selected).length === 0
-                                        }
-                                        className="px-6 py-2.5 bg-[#c4a84f] hover:bg-[#a8893a] text-white text-xs font-bold tracking-[1.5px] uppercase rounded-lg transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed font-sans cursor-pointer flex items-center gap-2"
-                                    >
-                                        {submittingBatch ? (
-                                            <>
-                                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                Đang gửi...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                                                Gửi {Object.values(batchReviews).filter((r) => r.selected).length} đánh giá
-                                            </>
-                                        )}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <OrderBatchReviewModal
+                    order={order}
+                    myReviews={myReviews}
+                    isOpen={showBatchModal}
+                    onClose={() => setShowBatchModal(false)}
+                    onSuccess={async () => {
+                        await fetchMyReviews();
+                    }}
+                />
             )}
+
             {showReturnModal && (
                 <ReturnRequestModal
                     order={showReturnModal}
@@ -1786,33 +413,13 @@ export default function OrderDetailPage() {
                     }}
                 />
             )}
+
             {showViewReturnModal && (
                 <ViewReturnDetailModal
                     order={showViewReturnModal}
                     onClose={() => setShowViewReturnModal(null)}
                     onCancelSuccess={() => fetchOrder()}
                 />
-            )}
-            {reviewLightboxImg && (
-                <div
-                    className="fixed inset-0 bg-black/85 z-[100000] flex items-center justify-center p-4 cursor-zoom-out"
-                    onClick={() => setReviewLightboxImg(null)}
-                >
-                    <div className="relative max-w-3xl max-h-[90vh] overflow-hidden rounded-xl bg-black">
-                        <img
-                            src={reviewLightboxImg}
-                            alt="Phóng to ảnh đánh giá"
-                            className="w-full h-full object-contain max-h-[85vh]"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setReviewLightboxImg(null)}
-                            className="absolute top-3 right-3 p-2 bg-black/60 text-white rounded-full hover:bg-black transition cursor-pointer"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
             )}
         </>
     );
