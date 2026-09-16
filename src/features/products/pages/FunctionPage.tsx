@@ -7,6 +7,7 @@ import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
 import Image from "next/image";
 import ProductFilter, { ActiveFilters } from "../components/ProductFilter";
+import ProductSortDropdown from "../components/ProductSortDropdown";
 import { useProductFilterOptions } from "../hooks/useProductFilterOptions";
 import VaseIcon from "@/src/components/ui/VaseIcon";
 
@@ -258,17 +259,14 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
                             />
 
                             {/* Sắp xếp */}
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                                className="font-['Cormorant_Garamond',_Georgia,_serif] cursor-pointer rounded-[2px] border border-[#ddd] px-3 py-2 text-[13px] text-[#3d2b00] outline-none hover:border-[#c4a84f] bg-white transition-colors"
-                            >
-                                {sortOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        Sắp xếp: {opt.label}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="flex items-center gap-2">
+                                <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] text-[#888]">Sắp xếp:</span>
+                                <ProductSortDropdown
+                                    value={sortBy}
+                                    onChange={setSortBy}
+                                    options={sortOptions}
+                                />
+                            </div>
                         </div>
                     </div>
 

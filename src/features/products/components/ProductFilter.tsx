@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { Lock } from "lucide-react";
 import { CategoryOption, CollectionOption, FunctionOption } from "../hooks/useProductFilterOptions";
 
 const PRICE_PRESETS = [
@@ -133,15 +134,15 @@ export default function ProductFilter({
                                 disabled={isCategoryDisabled}
                                 onClick={() => !isCategoryDisabled && toggleSection("category")}
                                 className={`flex w-full items-center justify-between px-4 py-3 font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] font-semibold uppercase tracking-[1.5px] border-none bg-transparent transition-colors ${isCategoryDisabled
-                                    ? "opacity-50 cursor-not-allowed text-[#999] bg-[#faf7f2]/50"
+                                    ? "cursor-default text-[#543d2b] bg-[#f8f4ec] border-l-[3px] border-l-[#c4a84f]"
                                     : "text-[#2c1a00] cursor-pointer hover:bg-[#faf7f2]"
                                     }`}
                             >
-                                <span className="flex items-center gap-2">
-                                    Loại sản phẩm
+                                <span className="flex items-center gap-2 flex-wrap">
+                                    <span>Loại sản phẩm</span>
                                     {isCategoryDisabled ? (
-                                        <span className="text-[10px] lowercase italic text-[#aaa] font-normal tracking-normal">
-                                            (Đang xem trang này)
+                                        <span className="inline-flex items-center gap-1 rounded bg-[#eadbc0]/70 px-1.5 py-0.5 text-[10.5px] font-medium text-[#7a581e] lowercase italic tracking-normal border border-[#d8c397]">
+                                            (đang xem trang này)
                                         </span>
                                     ) : (
                                         ((selectedCategory !== undefined && selectedCategory !== null) || currentCategorySlug) && (
@@ -149,7 +150,11 @@ export default function ProductFilter({
                                         )
                                     )}
                                 </span>
-                                {!isCategoryDisabled && (
+                                {isCategoryDisabled ? (
+                                    <span className="text-[11px] text-[#8e6e28] font-normal flex items-center gap-1" title="Đang cố định theo trang này">
+                                        <Lock size={12} className="text-[#a68233]" />
+                                    </span>
+                                ) : (
                                     <span
                                         className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${expandedSection === "category" ? "rotate-45" : ""
                                             }`}
@@ -238,15 +243,15 @@ export default function ProductFilter({
                                 disabled={isCollectionDisabled}
                                 onClick={() => !isCollectionDisabled && toggleSection("collection")}
                                 className={`flex w-full items-center justify-between px-4 py-3 font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] font-semibold uppercase tracking-[1.5px] border-none bg-transparent transition-colors ${isCollectionDisabled
-                                    ? "opacity-50 cursor-not-allowed text-[#999] bg-[#faf7f2]/50"
+                                    ? "cursor-default text-[#543d2b] bg-[#f8f4ec] border-l-[3px] border-l-[#c4a84f]"
                                     : "text-[#2c1a00] cursor-pointer hover:bg-[#faf7f2]"
                                     }`}
                             >
-                                <span className="flex items-center gap-2">
-                                    Bộ sưu tập
+                                <span className="flex items-center gap-2 flex-wrap">
+                                    <span>Bộ sưu tập</span>
                                     {isCollectionDisabled ? (
-                                        <span className="text-[10px] lowercase italic text-[#aaa] font-normal tracking-normal">
-                                            (Đang xem trang này)
+                                        <span className="inline-flex items-center gap-1 rounded bg-[#eadbc0]/70 px-1.5 py-0.5 text-[10.5px] font-medium text-[#7a581e] lowercase italic tracking-normal border border-[#d8c397]">
+                                            (đang xem trang này)
                                         </span>
                                     ) : (
                                         ((selectedCollection !== undefined && selectedCollection !== null) || currentCollectionSlug) && (
@@ -254,7 +259,11 @@ export default function ProductFilter({
                                         )
                                     )}
                                 </span>
-                                {!isCollectionDisabled && (
+                                {isCollectionDisabled ? (
+                                    <span className="text-[11px] text-[#8e6e28] font-normal flex items-center gap-1" title="Đang cố định theo trang này">
+                                        <Lock size={12} className="text-[#a68233]" />
+                                    </span>
+                                ) : (
                                     <span
                                         className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${expandedSection === "collection" ? "rotate-45" : ""
                                             }`}
@@ -343,15 +352,15 @@ export default function ProductFilter({
                                 disabled={isFunctionDisabled}
                                 onClick={() => !isFunctionDisabled && toggleSection("function")}
                                 className={`flex w-full items-center justify-between px-4 py-3 font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] font-semibold uppercase tracking-[1.5px] border-none bg-transparent transition-colors ${isFunctionDisabled
-                                    ? "opacity-50 cursor-not-allowed text-[#999] bg-[#faf7f2]/50"
+                                    ? "cursor-default text-[#543d2b] bg-[#f8f4ec] border-l-[3px] border-l-[#c4a84f]"
                                     : "text-[#2c1a00] cursor-pointer hover:bg-[#faf7f2]"
                                     }`}
                             >
-                                <span className="flex items-center gap-2">
-                                    Chức năng
+                                <span className="flex items-center gap-2 flex-wrap">
+                                    <span>Chức năng</span>
                                     {isFunctionDisabled ? (
-                                        <span className="text-[10px] lowercase italic text-[#aaa] font-normal tracking-normal">
-                                            (Đang xem trang này)
+                                        <span className="inline-flex items-center gap-1 rounded bg-[#eadbc0]/70 px-1.5 py-0.5 text-[10.5px] font-medium text-[#7a581e] lowercase italic tracking-normal border border-[#d8c397]">
+                                            (đang xem trang này)
                                         </span>
                                     ) : (
                                         ((selectedFunction !== undefined && selectedFunction !== null) || currentFunctionSlug) && (
@@ -359,7 +368,11 @@ export default function ProductFilter({
                                         )
                                     )}
                                 </span>
-                                {!isFunctionDisabled && (
+                                {isFunctionDisabled ? (
+                                    <span className="text-[11px] text-[#8e6e28] font-normal flex items-center gap-1" title="Đang cố định theo trang này">
+                                        <Lock size={12} className="text-[#a68233]" />
+                                    </span>
+                                ) : (
                                     <span
                                         className={`text-[16px] text-[#c4a84f] transition-transform duration-200 ${expandedSection === "function" ? "rotate-45" : ""
                                             }`}

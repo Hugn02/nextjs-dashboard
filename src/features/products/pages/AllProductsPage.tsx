@@ -7,6 +7,7 @@ import { fetchProducts } from '../services/product.service';
 import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
 import ProductFilter, { ActiveFilters } from "../components/ProductFilter";
+import ProductSortDropdown from "../components/ProductSortDropdown";
 import { useProductFilterOptions } from "../hooks/useProductFilterOptions";
 
 function SkeletonCard() {
@@ -205,15 +206,11 @@ export default function AllProductsPage() {
                             {/* Sắp xếp */}
                             <div className="flex items-center gap-2">
                                 <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] text-[#888]">Sắp xếp:</span>
-                                <select
+                                <ProductSortDropdown
                                     value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="font-['Cormorant_Garamond',_Georgia,_serif] min-w-[150px] cursor-pointer rounded-[2px] border border-[#ddd] bg-white px-3 py-2 text-[13px] text-[#3d2b00] outline-none transition-colors hover:border-[#c4a84f]"
-                                >
-                                    {sortOptions.map(opt => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                    ))}
-                                </select>
+                                    onChange={setSortBy}
+                                    options={sortOptions}
+                                />
                             </div>
                         </div>
                     </div>
