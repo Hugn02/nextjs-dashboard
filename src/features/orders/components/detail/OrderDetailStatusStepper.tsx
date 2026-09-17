@@ -275,7 +275,7 @@ export default function OrderDetailStatusStepper({ order }: OrderDetailStatusSte
                         </div>
                         <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
                             {order.shippingStatus === "delivered"
-                                ? 'Nhân viên giao hàng đã báo giao kiện hàng thành công. Quý khách vui lòng kiểm tra kỹ sản phẩm gốm sứ và bấm nút "Đã nhận được hàng" bên dưới để hoàn tất nghiệm thu.'
+                                ? 'Nhân viên giao hàng đã báo giao kiện hàng thành công. Quý khách vui lòng kiểm tra kỹ sản phẩm gốm sứ và bấm nút "Đã nhận được hàng" bên dưới để hoàn tất nghiệm thu (Đơn hàng sẽ tự động hoàn tất sau 3 ngày nếu không có khiếu nại phát sinh).'
                                 : order.shippingStatus === "cancelled"
                                     ? "Mã vận chuyển này đã bị hủy trên cổng của hãng vận chuyển. Cửa hàng đang tiến hành kiểm tra và gửi lại kiện hàng mới cho bạn."
                                     : 'Đơn hàng đang trên đường giao đến bạn. Quý khách vui lòng chú ý điện thoại từ nhân viên giao hàng (Shipper). Nút xác nhận nhận hàng sẽ khả dụng sau khi shipper giao hàng thành công.'}

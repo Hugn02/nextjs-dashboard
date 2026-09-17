@@ -34,6 +34,7 @@ export interface OrderDetail {
     shippingDetail?: string | null;
     shippingRawStatus?: string | null;
     expectedDeliveryDate?: string | null;
+    deliveredAt?: string | null;
     paymentMethod: string;
     paymentStatus: string;
     status: string;
