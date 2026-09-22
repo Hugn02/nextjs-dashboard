@@ -77,20 +77,24 @@ export default function ProfileSidebar({
                 <div>
                     <div className="text-xs font-bold text-[#2c1a00] uppercase tracking-wider mb-2.5 px-2">Tài khoản của tôi</div>
                     <div className="flex flex-col gap-1 pl-3 border-l-2 border-[#f3ebdb]">
-                        {(["info", "address", "change-password"] as const)
-                            .filter((tab) => !(tab === "change-password" && user?.provider === "google"))
-                            .map((tab) => (
-                                <button
-                                    key={tab}
-                                    type="button"
-                                    onClick={() => onTabChange(tab)}
-                                    className={`text-left px-3 py-2 rounded text-xs md:text-sm font-medium transition-colors border-none bg-transparent cursor-pointer ${
-                                        profileTab === tab ? "bg-[#faf6ed] text-[#c4a84f] font-bold" : "text-gray-600 hover:text-[#c4a84f] hover:bg-[#faf7f2]"
-                                    }`}
-                                >
-                                    {tab === "info" ? "Hồ sơ" : tab === "address" ? "Địa chỉ" : "Đổi mật khẩu"}
-                                </button>
-                            ))}
+                        {(["info", "address", "change-password"] as const).map((tab) => (
+                            <button
+                                key={tab}
+                                type="button"
+                                onClick={() => onTabChange(tab)}
+                                className={`text-left px-3 py-2 rounded text-xs md:text-sm font-medium transition-colors border-none bg-transparent cursor-pointer ${
+                                    profileTab === tab ? "bg-[#faf6ed] text-[#c4a84f] font-bold" : "text-gray-600 hover:text-[#c4a84f] hover:bg-[#faf7f2]"
+                                }`}
+                            >
+                                {tab === "info"
+                                    ? "Hồ sơ"
+                                    : tab === "address"
+                                    ? "Địa chỉ"
+                                    : user?.provider === "google"
+                                    ? "Bảo mật tài khoản"
+                                    : "Đổi mật khẩu"}
+                            </button>
+                        ))}
                     </div>
                 </div>
                 <div>
