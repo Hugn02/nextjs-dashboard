@@ -289,6 +289,10 @@ export default function CheckoutPage() {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+  const checkoutWeightGrams = checkoutItems.reduce(
+    (sum, item) => sum + ((item.product as any)?.weightGrams ?? 500) * item.quantity,
+    0
+  );
   const checkoutItemCount = checkoutItems.reduce(
     (sum, item) => sum + item.quantity,
     0
@@ -303,12 +307,15 @@ export default function CheckoutPage() {
       districtName: form.district || selectedLocation?.districtName,
       wardName: form.ward || selectedLocation?.wardName,
       subtotal: checkoutSubtotal,
+      weightGrams: checkoutWeightGrams > 0 ? checkoutWeightGrams : undefined,
     })
       .then((opts) => {
         if (!active) return;
         setShippingOptions(opts);
-        if (opts.length > 0 && !opts.some((o) => o.providerId === selectedShippingProvider)) {
-          setSelectedShippingProvider(opts[0].providerId);
+        if (opts.length > 0) {
+          setSelectedShippingProvider((prev) =>
+            opts.some((o) => o.providerId === prev) ? prev : opts[0].providerId
+          );
         }
       })
       .catch((err) => console.error("Failed to load shipping options", err))
@@ -319,7 +326,7 @@ export default function CheckoutPage() {
     return () => {
       active = false;
     };
-  }, [selectedLocation, form.province, form.district, form.ward, checkoutSubtotal, selectedShippingProvider]);
+  }, [selectedLocation, form.province, form.district, form.ward, checkoutSubtotal, checkoutWeightGrams]);
 
   const activeShippingOption =
     shippingOptions.find((opt) => opt.providerId === selectedShippingProvider) ||

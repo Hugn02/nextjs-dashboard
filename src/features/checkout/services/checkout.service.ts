@@ -39,6 +39,7 @@ export async function fetchShippingOptions(params: {
   districtName?: string;
   wardName?: string;
   subtotal?: number;
+  weightGrams?: number;
 }): Promise<ShippingFeeOption[]> {
   try {
     const res = await apiClient<{ success: boolean; message: string; data: { success: boolean; options: ShippingFeeOption[] } }>(
