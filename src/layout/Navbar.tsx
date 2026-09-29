@@ -57,6 +57,14 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [openMobileSections, setOpenMobileSections] = useState<Record<string, boolean>>({});
+
+  const toggleMobileSection = (label: string) => {
+    setOpenMobileSections((prev) => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
+  };
 
   // Effect để lấy dữ liệu menu (chỉ chạy một lần khi component mount)
   useEffect(() => {
@@ -303,39 +311,70 @@ export default function Navbar() {
         }}
       >
         <div className="flex flex-col p-6 pb-32 gap-1 min-h-full bg-white relative">
-          {menuItems.map((item) => (
-            <div key={item.label} className="border-b border-[#b49664]/10 last:border-none py-4">
-              <div className="flex justify-between items-center mb-2">
-                {item.children ? (
-                  <span className="text-[#3d2b00] text-base font-bold uppercase tracking-widest font-['Cormorant_Garamond',_serif] block w-full transition-colors duration-200 hover:text-[#c4a84f] cursor-default">
-                    {item.label}
-                  </span>
-                ) : (
-                  <Link
-                    href={item.href || "#"}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-[#3d2b00] no-underline text-base font-bold uppercase tracking-widest font-['Cormorant_Garamond',_serif] block w-full transition-colors duration-200 hover:text-[#c4a84f]"
+          {menuItems.map((item) => {
+            const hasChildren = Boolean(item.children && item.children.length > 0);
+            const isOpen = Boolean(openMobileSections[item.label]);
+
+            return (
+              <div key={item.label} className="border-b border-[#b49664]/10 last:border-none py-3.5">
+                <div className="flex justify-between items-center">
+                  {hasChildren ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleMobileSection(item.label)}
+                      className="flex justify-between items-center w-full py-1 text-left bg-transparent border-none cursor-pointer group"
+                    >
+                      <span className="text-[#3d2b00] text-base font-bold uppercase tracking-widest font-['Cormorant_Garamond',_serif] transition-colors duration-200 group-hover:text-[#c4a84f]">
+                        {item.label}
+                      </span>
+                      <span
+                        className={`text-[#8b6914] transition-transform duration-300 p-1 flex items-center justify-center ${
+                          isOpen ? "rotate-180" : ""
+                        }`}
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.href || "#"}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-[#3d2b00] no-underline text-base font-bold uppercase tracking-widest font-['Cormorant_Garamond',_serif] block w-full py-1 transition-colors duration-200 hover:text-[#c4a84f]"
+                    >
+                      {item.label}
+                    </Link>
+                  )}
+                </div>
+
+                {hasChildren && item.children && (
+                  <div
+                    className={`grid transition-all duration-300 ease-in-out ${
+                      isOpen
+                        ? "grid-rows-[1fr] opacity-100 mt-2.5"
+                        : "grid-rows-[0fr] opacity-0 mt-0 pointer-events-none"
+                    }`}
                   >
-                    {item.label}
-                  </Link>
+                    <div className="overflow-hidden">
+                      <div className="flex flex-col gap-3 pl-4 border-l-2 border-[#c4a84f]/25 py-1">
+                        {item.children.map((child) => (
+                          <Link
+                            key={child.label}
+                            href={child.href || "#"}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="text-[#555] no-underline text-[15px] font-['Cormorant_Garamond',_serif] font-medium hover:text-[#c4a84f] transition-colors py-0.5"
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-              {item.children && (
-                <div className="flex flex-col gap-4 pl-4 mt-4 border-l border-[#c4a84f]/20">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.label}
-                      href={child.href || "#"}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="text-[#666] no-underline text-sm font-['Cormorant_Garamond',_serif] hover:text-[#c4a84f] transition-colors"
-                    >
-                      {child.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
           <div className="py-12 text-center text-[10px] tracking-[3px] text-[#c4a84f] font-bold uppercase opacity-50">
             ✦ Bát Tràng Vietnam ✦
           </div>
