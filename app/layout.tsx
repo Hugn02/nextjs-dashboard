@@ -10,6 +10,8 @@ import CartAddedNotification from "@/src/features/cart/components/CartAddedNotif
 import AuthProvider from "@/src/features/auth/components/AuthProvider";
 import { WishlistProvider } from "@/src/features/wishlist/context/WishlistContext";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: {

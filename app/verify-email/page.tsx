@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:3002/auth';
+const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:3002/api/auth';
 
 function VerifyEmailContent() {
     const searchParams = useSearchParams();

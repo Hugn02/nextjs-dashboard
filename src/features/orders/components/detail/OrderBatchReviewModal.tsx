@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { OrderDetail } from "../../types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
 
 const STAR_LABELS: Record<number, string> = {
     5: "Cực kỳ hài lòng",

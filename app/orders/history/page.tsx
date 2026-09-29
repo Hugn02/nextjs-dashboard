@@ -21,7 +21,7 @@ import OrderCancelModal from "@/src/features/orders/components/detail/OrderCance
 import ReturnRequestModal from "@/src/components/ReturnRequestModal";
 import ViewReturnDetailModal from "@/src/components/ViewReturnDetailModal";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
 
 const TABS: TabItem[] = [
     { id: "all", label: "Tất cả" },

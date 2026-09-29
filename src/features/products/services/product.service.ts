@@ -20,7 +20,8 @@ export interface FetchProductsResponse {
     totalCount: number;
 }
 
-const API_URL = `${process.env.NEXT_PUBLIC_PRODUCT_API_URL || "http://localhost:3002/products"}`;
+const API_URL = process.env.NEXT_PUBLIC_PRODUCT_API_URL ||
+    (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/products` : "http://localhost:3002/api/products");
 
 const mapProductData = (p: any): Product => ({
     _id: p._id,

@@ -25,8 +25,8 @@ import ProfileChangePasswordTab from "@/src/features/profile/components/ProfileC
 import ProfileOrdersTab from "@/src/features/profile/components/ProfileOrdersTab";
 import ProfileAvatarPreviewModal from "@/src/features/profile/components/ProfileAvatarPreviewModal";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
-const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:3002/auth";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
+const AUTH_API = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:3002/api/auth";
 
 function ProfilePageContent() {
     const router = useRouter();

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { User } from '@/src/features/auth/types/auth.types';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
 export type { User };
 

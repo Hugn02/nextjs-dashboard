@@ -25,7 +25,7 @@ interface ViewReturnDetailModalProps {
   onCancelSuccess?: () => void;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
 
 const REASON_MAP: Record<string, string> = {
   NUT_VO_VAN_CHUYEN: "Hàng nứt vỡ / hỏng hóc do vận chuyển",

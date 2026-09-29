@@ -20,7 +20,7 @@ import OrderConfirmReceivedModal from "@/src/features/orders/components/detail/O
 import OrderCancelModal from "@/src/features/orders/components/detail/OrderCancelModal";
 import OrderBatchReviewModal from "@/src/features/orders/components/detail/OrderBatchReviewModal";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
 
 export default function OrderDetailPage() {
     const params = useParams();

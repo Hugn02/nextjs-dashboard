@@ -6,6 +6,7 @@ const bundleAnalyzer = withBundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   reactStrictMode: false, // Tắt strict mode để tránh double-mount useEffect trong dev
   images: {
     // Ưu tiên AVIF → WebP → fallback, giúp ảnh nhỏ hơn nhiều

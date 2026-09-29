@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/src/features/auth/hooks/useAuth';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
 interface RequestOptions extends RequestInit {
     token?: string;

@@ -72,7 +72,7 @@ export default function ChatWidget() {
     setMessages((prev) => [...prev, botMsg]);
 
     try {
-      const response = await fetch(process.env.NEXT_PUBLIC_CHAT_API_URL || "http://localhost:3002/chat", {
+      const response = await fetch(process.env.NEXT_PUBLIC_CHAT_API_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/chat` : "http://localhost:3002/api/chat"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),

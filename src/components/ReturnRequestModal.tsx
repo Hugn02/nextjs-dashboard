@@ -25,7 +25,7 @@ interface ReturnRequestModalProps {
   onSuccess: () => void;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
 const MAX_IMAGES = 5;
 const MAX_VIDEO_SIZE_MB = 50;
 const MAX_VIDEO_DURATION_SEC = 60;

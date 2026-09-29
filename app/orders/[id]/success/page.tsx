@@ -53,7 +53,7 @@ export default function OrderSuccessPage() {
     if (!id) return;
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002"}/orders/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api"}/orders/${id}`, {
           credentials: 'include'
         });
         if (!res.ok) {
