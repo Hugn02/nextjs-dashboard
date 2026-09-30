@@ -4,16 +4,6 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function Footer() {
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <footer className="bg-[#1a0d00] text-[#d4b896] pt-[60px] pb-8 border-t-2 border-[#c4a84f]">
       <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr] gap-x-5 gap-y-10">
@@ -161,16 +151,6 @@ export default function Footer() {
         <p className="text-[13px] md:text-[15px] text-[#a08060] m-0">
           Thương hiệu sứ cao cấp số 1 Việt Nam
         </p>
-      </div>
-
-      <div className="fixed bottom-24 right-6 md:bottom-28 md:right-[33px] z-[99]">
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className={`w-[40px] h-[40px] md:w-[46px] md:h-[46px] rounded-full bg-[#c4a84f] text-white border-none cursor-pointer items-center justify-center text-xl shadow-lg transition-all duration-300 hover:bg-[#a8893a] 
-                      ${showScrollTop ? "flex opacity-100" : "hidden opacity-0"}`}
-        >
-          ↑
-        </button>
       </div>
     </footer>
   );
