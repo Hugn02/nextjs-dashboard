@@ -114,15 +114,15 @@ export default function AllCategoriesPage() {
         <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
 
           {/* Thanh Toolbar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-6 mb-8 border-b border-[#f0e8d6]">
-            {/* Đếm số lượng */}
-            <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-sm sm:text-base text-[#7a6244] tracking-wide order-2 sm:order-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 pb-5 mb-8 border-b border-[#f0e8d6]">
+            {/* Desktop: Đếm số lượng (ở bên trái) */}
+            <span className="hidden sm:inline-block font-['Cormorant_Garamond',_Georgia,_serif] text-sm sm:text-base text-[#7a6244] tracking-wide">
               Hiển thị <strong className="text-[#2c1a00] font-semibold">{filteredCategories.length}</strong> loại sản phẩm
             </span>
 
             {/* Tìm kiếm & Sắp xếp */}
-            <div className="flex items-center gap-4 w-full sm:w-auto justify-end order-1 sm:order-2 flex-wrap">
-              {/* Ô tìm kiếm chuẩn hoá SearchBar */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+              {/* Ô tìm kiếm SearchBar */}
               <SearchBar
                 value={searchTerm}
                 onChange={setSearchTerm}
@@ -130,16 +130,22 @@ export default function AllCategoriesPage() {
                 className="w-full sm:w-60"
               />
 
-              {/* Dropdown sắp xếp chuẩn hoá ProductSortDropdown */}
-              <div className="flex items-center gap-2">
-                <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] text-[#888] whitespace-nowrap">
-                  Sắp xếp:
+              {/* Hàng điều khiển phụ Mobile: Đếm số lượng (trái) + Sắp xếp (phải) */}
+              <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                <span className="sm:hidden font-['Cormorant_Garamond',_Georgia,_serif] text-xs text-[#7a6244] tracking-wide">
+                  Hiển thị <strong className="text-[#2c1a00] font-semibold">{filteredCategories.length}</strong> loại sản phẩm
                 </span>
-                <ProductSortDropdown
-                  value={sortBy}
-                  onChange={setSortBy}
-                  options={sortOptions}
-                />
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] text-[#888] whitespace-nowrap">
+                    Sắp xếp:
+                  </span>
+                  <ProductSortDropdown
+                    value={sortBy}
+                    onChange={setSortBy}
+                    options={sortOptions}
+                  />
+                </div>
               </div>
             </div>
           </div>

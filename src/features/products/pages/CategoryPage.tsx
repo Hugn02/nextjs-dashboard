@@ -243,12 +243,12 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                     />
 
                     {/* Toolbar */}
-                    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-[#f0e8d6] pb-4">
-                        <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] text-[#888]">
-                            {loading ? "Đang tải..." : `${totalCount} sản phẩm`}
+                    <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-[#f0e8d6] pb-4">
+                        <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-xs sm:text-[14px] text-[#888]">
+                            {loading ? "Đang tải..." : `Hiển thị ${totalCount} sản phẩm`}
                         </span>
 
-                        <div className="relative flex items-center gap-4">
+                        <div className="relative flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto">
                             {/* Nút bộ lọc & Dropdown */}
                             <ProductFilter
                                 categories={categories}
@@ -265,7 +265,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                             />
 
                             {/* Sắp xếp */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 shrink-0">
                                 <span className="font-['Cormorant_Garamond',_Georgia,_serif] text-[13px] text-[#888]">Sắp xếp:</span>
                                 <ProductSortDropdown
                                     value={sortBy}

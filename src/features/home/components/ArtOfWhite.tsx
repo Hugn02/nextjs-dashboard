@@ -12,19 +12,19 @@ export default function ArtOfWhite() {
 
       <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
         {/* Left Column: Text Content */}
-        <div className="flex flex-col justify-center">
+        <div className="flex flex-col justify-center items-center md:items-start text-center md:text-left">
           {/* Cursive Title */}
-          <ScrollReveal animation="fade-right" duration={800}>
+          <ScrollReveal animation="fade-right" duration={800} className="w-full text-center md:text-left">
             <div className="mb-3">
-              <span className="font-['Alex_Brush',_cursive] text-[36px] sm:text-[48px] md:text-[68px] text-[#4a3f35] leading-none block text-center md:text-left drop-shadow-sm">
+              <span className="font-['Alex_Brush',_cursive] text-[36px] sm:text-[48px] md:text-[68px] text-[#4a3f35] leading-none block drop-shadow-sm">
                 The Art of Fire
               </span>
             </div>
           </ScrollReveal>
 
           {/* Subtitle with Gold Vertical Bar */}
-          <ScrollReveal animation="fade-right" delay={150} duration={800}>
-            <div className="flex gap-3 mb-6 items-stretch justify-center md:justify-start">
+          <ScrollReveal animation="fade-right" delay={150} duration={800} className="w-full flex justify-center md:justify-start">
+            <div className="flex gap-3 mb-6 items-stretch">
               <div className="w-[3px] bg-[#c4a84f] shrink-0" />
               <h3 className="text-[13px] sm:text-[16px] md:text-[18px] lg:text-[20px] font-sans font-bold tracking-[1.5px] sm:tracking-[2px] text-[#2c1a00] uppercase leading-tight">
                 Nghệ thuật men hỏa biến
@@ -33,14 +33,14 @@ export default function ArtOfWhite() {
           </ScrollReveal>
 
           {/* Paragraph and Action Button */}
-          <div className="flex flex-col items-center">
-            <ScrollReveal animation="fade-up" delay={250} duration={800}>
-              <p className="text-center text-[#554433] text-[14px] md:text-[16px] leading-[1.8] mb-8 font-sans max-w-[480px]">
+          <div className="w-full flex flex-col items-center md:items-start">
+            <ScrollReveal animation="fade-up" delay={250} duration={800} className="w-full flex justify-center md:justify-start">
+              <p className="text-center md:text-left text-[#554433] text-[14px] md:text-[16px] leading-[1.8] mb-8 font-sans max-w-[480px]">
                 Men hỏa biến là dòng men được tạo ra bởi sự tương tác hóa học giữa oxit kim loại và men nền trong môi trường nhiệt độ cao. Mỗi sản phẩm là một tác phẩm nghệ thuật độc nhất, không thể sao chép, mang vẻ đẹp của sự ngẫu hứng và biến ảo kỳ diệu từ lửa.
               </p>
             </ScrollReveal>
 
-            <ScrollReveal animation="fade-up" delay={350} duration={800}>
+            <ScrollReveal animation="fade-up" delay={350} duration={800} className="w-full flex justify-center md:justify-start">
               <a
                 href="/collections/men-hoa-bien"
                 className="inline-block bg-[#c4a84f] hover:bg-[#b0923a] text-white font-sans text-[11px] tracking-[2px] font-bold px-9 py-3.5 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
