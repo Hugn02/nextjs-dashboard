@@ -1,6 +1,7 @@
-// Server Component - fetch data ngày trên server, không cần useEffect/useState
+// Server Component - fetch data ngay trên server, không cần useEffect/useState
 import Link from "next/link";
 import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
+import ScrollReveal from "@/src/components/ui/ScrollReveal";
 import { fetchNewsList } from "../../news/services/news.service";
 import { NewsArticle } from "../../news/types/news.type";
 import { formatImageUrl } from "@/src/lib/cloudinary";
@@ -19,16 +20,18 @@ export default async function NewsSection() {
     }
 
     return (
-        <section className="bg-[#f2eee5] py-12 md:py-16 border-t border-[#ede0c4]">
+        <section className="bg-[#f2eee5] py-12 md:py-16 border-t border-[#ede0c4] overflow-hidden">
             <div className="max-w-[1280px] mx-auto px-6">
-                <div className="text-center mb-10">
-                    <p className="text-[13px] sm:text-[15px] tracking-[3px] sm:tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">Tin tức & Sự kiện</p>
-                    <h2 className="text-[clamp(20px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-normal text-[#2c1a00] tracking-[1px] m-0 max-w-3xl mx-auto">Chuyên mục cập nhật các tin tức và sự kiện mới nhất tại Nghệ nhân Bát Tràng</h2>
-                    <div className="w-[60px] h-px bg-gradient-to-r from-transparent via-[#c4a84f] to-transparent mx-auto mt-4" />
-                </div>
+                <ScrollReveal animation="fade-up" duration={800}>
+                    <div className="text-center mb-10">
+                        <p className="text-[13px] sm:text-[15px] tracking-[3px] sm:tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">Tin tức & Sự kiện</p>
+                        <h2 className="text-[clamp(20px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-normal text-[#2c1a00] tracking-[1px] m-0 max-w-3xl mx-auto">Chuyên mục cập nhật các tin tức và sự kiện mới nhất tại Nghệ nhân Bát Tràng</h2>
+                        <div className="w-[60px] h-px bg-gradient-to-r from-transparent via-[#c4a84f] to-transparent mx-auto mt-4" />
+                    </div>
+                </ScrollReveal>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {articles.map((article) => {
+                    {articles.map((article, idx) => {
                         const articleImage = article.thumbnail
                             ? formatImageUrl(article.thumbnail, { width: 600 })
                             : "https://placehold.co/800x500/faf7f2/c4a84f?text=Bat+Trang+Blog";
@@ -38,49 +41,59 @@ export default async function NewsSection() {
                             : null;
 
                         return (
-                            <article key={article.id} className="group flex flex-col overflow-hidden rounded-[3px] border border-[#ede0c4] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(196,168,79,0.08)]">
-                                <div className="p-3 pb-0">
-                                    <Link href={`/news/${article.slug}`} className="relative aspect-[16/10] overflow-hidden bg-slate-50 block rounded-lg">
-                                        <ImageWithFallback
-                                            src={articleImage} 
-                                            alt={article.title} 
-                                            fill 
-                                            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" 
-                                            sizes="(max-width: 768px) 100vw, 33vw"
-                                            fallbackSrc="https://placehold.co/800x500/faf7f2/c4a84f?text=Bat+Trang+Blog"
-                                        />
-                                    </Link>
-                                </div>
-                                <div className="p-6 flex flex-col flex-1">
-                                    <div className="flex items-center gap-3 text-xs text-[#a08060] font-['Cormorant_Garamond',_Georgia,_serif] mb-3">
-                                        {dateStr && <span>{dateStr}</span>}
-                                        {article.author && <><span className="w-1 h-1 bg-[#c4a84f] rounded-full" /><span>Bởi {article.author}</span></>}
-                                    </div>
-                                    <h2 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 mb-3 text-lg font-semibold leading-snug flex-1">
-                                        <Link href={`/news/${article.slug}`} className="text-[#2c1a00] no-underline hover:text-[#c4a84f] transition-colors line-clamp-3">
-                                            {article.title}
-                                        </Link>
-                                    </h2>
-                                    <div className="border-t border-[#f2eee5] pt-4 mt-4">
-                                        <Link href={`/news/${article.slug}`} className="font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] uppercase tracking-widest text-[#2c1a00] font-semibold no-underline hover:text-[#c4a84f] transition-colors flex items-center gap-1.5">
-                                            Đọc tiếp
-                                            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+                            <ScrollReveal
+                                key={article.id}
+                                animation="fade-up"
+                                delay={idx * 120}
+                                duration={800}
+                                className="h-full"
+                            >
+                                <article className="group flex flex-col h-full overflow-hidden rounded-[3px] border border-[#ede0c4] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(196,168,79,0.08)]">
+                                    <div className="p-3 pb-0">
+                                        <Link href={`/news/${article.slug}`} className="relative aspect-[16/10] overflow-hidden bg-slate-50 block rounded-lg">
+                                            <ImageWithFallback
+                                                src={articleImage} 
+                                                alt={article.title} 
+                                                fill 
+                                                className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" 
+                                                sizes="(max-width: 768px) 100vw, 33vw"
+                                                fallbackSrc="https://placehold.co/800x500/faf7f2/c4a84f?text=Bat+Trang+Blog"
+                                            />
                                         </Link>
                                     </div>
-                                </div>
-                            </article>
+                                    <div className="p-6 flex flex-col flex-1">
+                                        <div className="flex items-center gap-3 text-xs text-[#a08060] font-['Cormorant_Garamond',_Georgia,_serif] mb-3">
+                                            {dateStr && <span>{dateStr}</span>}
+                                            {article.author && <><span className="w-1 h-1 bg-[#c4a84f] rounded-full" /><span>Bởi {article.author}</span></>}
+                                        </div>
+                                        <h2 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 mb-3 text-lg font-semibold leading-snug flex-1">
+                                            <Link href={`/news/${article.slug}`} className="text-[#2c1a00] no-underline hover:text-[#c4a84f] transition-colors line-clamp-3">
+                                                {article.title}
+                                            </Link>
+                                        </h2>
+                                        <div className="border-t border-[#f2eee5] pt-4 mt-4">
+                                            <Link href={`/news/${article.slug}`} className="font-['Cormorant_Garamond',_Georgia,_serif] text-[12px] uppercase tracking-widest text-[#2c1a00] font-semibold no-underline hover:text-[#c4a84f] transition-colors flex items-center gap-1.5">
+                                                Đọc tiếp
+                                                <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </article>
+                            </ScrollReveal>
                         );
                     })}
                 </div>
 
-                <div className="mt-12 text-center">
-                    <Link
-                        href="/news"
-                        className="font-['Cormorant_Garamond',_Georgia,_serif] cursor-pointer rounded-[2px] border border-[#c4a84f] bg-transparent px-8 py-3 text-xs uppercase tracking-[2px] text-[#8b6914] transition-all hover:bg-[#c4a84f] hover:text-white no-underline"
-                    >
-                        Xem thêm tin tức
-                    </Link>
-                </div>
+                <ScrollReveal animation="fade-up" delay={300} duration={800}>
+                    <div className="mt-12 text-center">
+                        <Link
+                            href="/news"
+                            className="font-['Cormorant_Garamond',_Georgia,_serif] cursor-pointer rounded-[2px] border border-[#c4a84f] bg-transparent px-8 py-3 text-xs uppercase tracking-[2px] text-[#8b6914] transition-all hover:bg-[#c4a84f] hover:text-white no-underline"
+                        >
+                            Xem thêm tin tức
+                        </Link>
+                    </div>
+                </ScrollReveal>
             </div>
         </section>
     );

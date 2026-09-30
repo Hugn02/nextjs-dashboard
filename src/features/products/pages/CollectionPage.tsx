@@ -200,37 +200,43 @@ export default function CollectionsPage({ slug }: CollectionsPageProps) {
                 }
             `}</style>
 
-            {/* ── Banner ảnh collection ───────────────────────────────────────── */}
-            <div className="relative mt-[120px] h-[420px] w-full overflow-hidden hidden lg:block">
-                <Image
-                    src={collectionBanner}
-                    alt={collectionName}
-                    fill
-                    className="object-cover object-center"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />
+            {/* ── Page Header thanh lịch (Minimal Luxury) ── */}
+            <div className="mt-[88px] md:mt-[120px] bg-[#faf7f2] border-b border-[#ede0c4] py-8 sm:py-10">
+                <div className="mx-auto max-w-[1280px] px-6 text-center">
+                    {/* Breadcrumbs */}
+                    <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-3 text-xs tracking-wider text-[#8b6914] flex items-center justify-center gap-2">
+                        <Link href="/" className="text-[#888] hover:text-[#c4a84f] transition-colors no-underline">
+                            Trang chủ
+                        </Link>
+                        <span className="text-[#ccc]">›</span>
+                        <Link href="/collections" className="text-[#888] hover:text-[#c4a84f] transition-colors no-underline">
+                            Bộ sưu tập
+                        </Link>
+                        <span className="text-[#ccc]">›</span>
+                        <span className="text-[#2c1a00] font-semibold">{collectionName}</span>
+                    </nav>
+
+                    <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-xs sm:text-sm tracking-[3px] text-[#8b6914] uppercase mb-1.5 font-medium">
+                        Bát Tràng • Bộ Sưu Tập
+                    </p>
+
+                    <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 text-[#2c1a00] font-normal uppercase tracking-[2px] sm:tracking-[3px] text-[clamp(24px,3.5vw,36px)]">
+                        {collectionName}
+                    </h1>
+
+                    <div className="w-12 h-px bg-[#c4a84f] mx-auto my-3" />
+
+                    {collection?.description && (
+                        <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-[#6b5840] text-sm sm:text-base italic max-w-xl mx-auto m-0 leading-relaxed font-light">
+                            {collection.description}
+                        </p>
+                    )}
+                </div>
             </div>
 
             {/* ── Main content ─────────────────────────────────────── */}
-            <main className="min-h-[80vh] bg-white pb-20 mt-[120px] lg:mt-0">
+            <main className="min-h-[80vh] bg-white pb-20 pt-6">
                 <div className="mx-auto max-w-[1280px] px-6">
-
-                    {/* Breadcrumb */}
-                    <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-6 border-b border-[#f0e8d6] py-4 text-xs tracking-wider text-[#888]">
-                        <Link href="/" className="text-[#888] no-underline hover:text-[#c4a84f] transition-colors">
-                            Trang chủ
-                        </Link>
-                        <span className="mx-2">›</span>
-                        <span className="text-[#888]">Bộ sưu tập</span>
-                        <span className="mx-2">›</span>
-                        <span className="text-[#2c1a00]">{collectionName}</span>
-                    </nav>
-
-                    {/* Tiêu đề bộ sưu tập */}
-                    <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 mb-8 text-center font-light uppercase tracking-[3px] text-[#2c1a00]" style={{ fontSize: "clamp(22px, 3vw, 32px)" }}>
-                        {collectionName}
-                    </h1>
 
                     {/* Active filter tags */}
                     <ActiveFilters

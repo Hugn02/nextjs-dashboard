@@ -1,6 +1,8 @@
 // Server Component — fetch data ngay trên server, không cần useEffect/useState
 import { formatImageUrl } from "@/src/lib/cloudinary";
 import ImageWithFallback from "@/src/components/ui/ImageWithFallback";
+import ScrollReveal from "@/src/components/ui/ScrollReveal";
+import { getApiBaseUrl } from "@/src/lib/api-config";
 
 interface Category {
   id: string;
@@ -20,8 +22,9 @@ const resolveImageUrl = (image?: string, name?: string) => {
 
 async function fetchCategories(): Promise<Category[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
-      next: { tags: ['categories'] },
+    const baseUrl = getApiBaseUrl();
+    const res = await fetch(`${baseUrl}/categories`, {
+      next: { tags: ['categories'], revalidate: 60 },
     });
     if (!res.ok) return [];
     const response = await res.json();
@@ -44,41 +47,50 @@ export default async function QuickCategories() {
   if (displayCategories.length === 0) return null;
 
   return (
-    <section className="bg-white pt-10 md:pt-[60px] pb-10">
+    <section className="bg-white pt-10 md:pt-[60px] pb-10 overflow-hidden">
       <div className="max-w-[1280px] mx-auto px-6">
-        <div className="text-center mb-10">
-          <p className="text-[13px] sm:text-[15px] tracking-[3px] sm:tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">
-            Khám phá
-          </p>
-          <h2 className="text-[clamp(22px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-light text-[#2c1a00] tracking-[2px] m-0">
-            Bạn đang cần tìm gì?
-          </h2>
-          <div className="w-[60px] h-px bg-gradient-to-r from-transparent via-[#c4a84f] to-transparent mx-auto mt-4" />
-        </div>
+        <ScrollReveal animation="fade-up" duration={800}>
+          <div className="text-center mb-10">
+            <p className="text-[13px] sm:text-[15px] tracking-[3px] sm:tracking-[4px] text-[#8b6914] font-['Cormorant_Garamond',_serif] uppercase mb-2">
+              Khám phá
+            </p>
+            <h2 className="text-[clamp(22px,4vw,42px)] font-['Cormorant_Garamond',_serif] font-light text-[#2c1a00] tracking-[2px] m-0">
+              Bạn đang cần tìm gì?
+            </h2>
+            <div className="w-[60px] h-px bg-gradient-to-r from-transparent via-[#c4a84f] to-transparent mx-auto mt-4" />
+          </div>
+        </ScrollReveal>
 
         <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-          {displayCategories.map((cat) => {
+          {displayCategories.map((cat, idx) => {
             const imgSrc = resolveImageUrl(cat.image, cat.name);
             return (
-              <a
+              <ScrollReveal
                 key={cat.slug}
-                href={`/categories/${cat.slug}`}
-                className="group flex flex-col items-center gap-3 w-[130px] sm:w-[150px] p-4 rounded-xl border border-[#ede0c4] no-underline bg-[#fdfaf4] transition-all duration-300 cursor-pointer hover:bg-[#fff8e8] hover:border-[#c4a84f] hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(196,168,79,0.18)]"
+                animation="fade-up"
+                delay={idx * 70}
+                duration={650}
+                className="w-[130px] sm:w-[150px] flex-shrink-0"
               >
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-[#faf7f2] border border-[#ede0c4]/60 flex-shrink-0 shadow-xs">
-                  <ImageWithFallback
-                    src={imgSrc}
-                    alt={cat.name}
-                    fill
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
-                    sizes="(max-width: 640px) 80px, 96px"
-                    fallbackSrc={`https://placehold.co/200x200/faf7f2/c4a84f.png?text=${encodeURIComponent(cat.name.slice(0, 6))}`}
-                  />
-                </div>
-                <span className="text-[13px] sm:text-[14px] text-[#3d2b00] font-['Cormorant_Garamond',_serif] font-semibold text-center leading-[1.3] line-clamp-2 min-h-[2.4em] flex items-center justify-center">
-                  {cat.name}
-                </span>
-              </a>
+                <a
+                  href={`/categories/${cat.slug}`}
+                  className="group flex flex-col items-center gap-3 w-full p-4 rounded-xl border border-[#ede0c4] no-underline bg-[#fdfaf4] transition-all duration-300 cursor-pointer hover:bg-[#fff8e8] hover:border-[#c4a84f] hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(196,168,79,0.18)]"
+                >
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-[#faf7f2] border border-[#ede0c4]/60 flex-shrink-0 shadow-xs">
+                    <ImageWithFallback
+                      src={imgSrc}
+                      alt={cat.name}
+                      fill
+                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                      sizes="(max-width: 640px) 80px, 96px"
+                      fallbackSrc={`https://placehold.co/200x200/faf7f2/c4a84f.png?text=${encodeURIComponent(cat.name.slice(0, 6))}`}
+                    />
+                  </div>
+                  <span className="text-[13px] sm:text-[14px] text-[#3d2b00] font-['Cormorant_Garamond',_serif] font-semibold text-center leading-[1.3] line-clamp-2 min-h-[2.4em] flex items-center justify-center">
+                    {cat.name}
+                  </span>
+                </a>
+              </ScrollReveal>
             );
           })}
         </div>

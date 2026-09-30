@@ -15,13 +15,14 @@ export interface FetchProductsQuery {
     maxPrice?: number;
 }
 
+import { getApiBaseUrl } from "@/src/lib/api-config";
+
 export interface FetchProductsResponse {
     products: Product[];
     totalCount: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_PRODUCT_API_URL ||
-    (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/products` : "http://localhost:3002/api/products");
+const getProductsApiUrl = () => `${getApiBaseUrl()}/products`;
 
 const mapProductData = (p: any): Product => ({
     _id: p._id,
@@ -72,7 +73,7 @@ export const fetchProducts = async (query: FetchProductsQuery): Promise<FetchPro
     if (query.minPrice !== undefined) params.append('minPrice', String(query.minPrice));
     if (query.maxPrice !== undefined) params.append('maxPrice', String(query.maxPrice));
 
-    const url = `${API_URL}?${params.toString()}`;
+    const url = `${getProductsApiUrl()}?${params.toString()}`;
     console.log("Fetching products from:", url);
 
     const res = await fetch(url, {
@@ -95,7 +96,7 @@ export const fetchProducts = async (query: FetchProductsQuery): Promise<FetchPro
 export const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
     const params = new URLSearchParams();
     params.append('slug', slug);
-    const url = `${API_URL}?${params.toString()}`;
+    const url = `${getProductsApiUrl()}?${params.toString()}`;
     console.log("Fetching product by slug from:", url);
 
     const res = await fetch(url, {

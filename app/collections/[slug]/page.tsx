@@ -3,6 +3,8 @@ import Footer from "@/src/layout/Footer";
 import Navbar from "@/src/layout/Navbar";
 import { Metadata } from "next";
 
+import { getApiBaseUrl } from "@/src/lib/api-config";
+
 interface PageProps {
     params: Promise<{ slug: string }>;
 }
@@ -10,7 +12,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { slug } = await params;
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api'}/collections`);
+        const res = await fetch(`${getApiBaseUrl()}/collections`);
         if (!res.ok) throw new Error();
         const data = await res.json();
         const collections = Array.isArray(data) ? data : (data.data || []);

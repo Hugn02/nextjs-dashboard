@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useRef } from "react";
-import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { OrderHistoryItem } from "@/src/features/orders/types";
+import SearchBar from "@/src/components/ui/SearchBar";
 
 export interface TabItem {
     id: string;
@@ -34,26 +35,12 @@ export default function OrderHistoryTabsFilter({
         <>
             {/* Thanh tìm kiếm đơn hàng (Search Bar) */}
             <div className="mb-6 w-full">
-                <div className="relative w-full">
-                    <Search className="w-4 h-4 text-[#c4a84f] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                        placeholder="Tìm kiếm theo mã đơn hàng hoặc tên sản phẩm..."
-                        className="w-full pl-11 pr-11 py-3 bg-white border border-[#ede0c4] rounded-lg text-sm text-[#2c1a00] placeholder:text-gray-400 focus:outline-none focus:border-[#c4a84f] focus:ring-2 focus:ring-[#c4a84f]/20 transition-all font-sans shadow-sm"
-                    />
-                    {searchQuery && (
-                        <button
-                            type="button"
-                            onClick={() => onSearchChange("")}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer p-1 rounded-full hover:bg-gray-100"
-                            title="Xóa tìm kiếm"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
+                <SearchBar
+                    value={searchQuery}
+                    onChange={onSearchChange}
+                    placeholder="Tìm kiếm theo mã đơn hàng hoặc tên sản phẩm..."
+                    size="lg"
+                />
                 {searchQuery.trim() && (
                     <p className="text-xs text-gray-500 font-sans mt-2">
                         Tìm thấy <span className="font-bold text-[#8b2500]">{filteredCount}</span> đơn hàng phù hợp với từ khóa &ldquo;<span className="italic text-gray-700">{searchQuery}</span>&rdquo;

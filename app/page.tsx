@@ -1,29 +1,32 @@
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import HeroSlider from "@/src/features/home/components/HeroSlider";
 import TrustBar from "@/src/features/home/components/TrustBar";
 import Navbar from "@/src/layout/Navbar";
 import Footer from "@/src/layout/Footer";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
 // Below-fold sections — dynamically imported for code splitting (separate JS chunks)
-const NewsSection = dynamic(
+const NewsSection = dynamicImport(
   () => import("@/src/features/home/components/NewsSection")
 );
-const QuickCategories = dynamic(
+const QuickCategories = dynamicImport(
   () => import("@/src/features/home/components/QuickCategories")
 );
-const ProductSection = dynamic(
+const ProductSection = dynamicImport(
   () => import("@/src/features/products/components/ProductSection")
 );
-const ArtOfWhite = dynamic(
+const ArtOfWhite = dynamicImport(
   () => import("@/src/features/home/components/ArtOfWhite")
 );
-const FeaturedCollections = dynamic(
+const FeaturedCollections = dynamicImport(
   () => import("@/src/features/home/components/FeaturedCollections")
 );
-const ArtisanSection = dynamic(
+const ArtisanSection = dynamicImport(
   () => import("@/src/features/home/components/ArtisanSection")
 );
-const BrandStory = dynamic(
+const BrandStory = dynamicImport(
   () => import("@/src/features/home/components/BrandStory")
 );
 

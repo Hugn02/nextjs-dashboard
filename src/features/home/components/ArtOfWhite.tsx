@@ -1,10 +1,10 @@
-import YouTubeFacade from "@/src/components/YouTubeFacade";
+import ScrollReveal from "@/src/components/ui/ScrollReveal";
 
 const VIDEO_ID = "zznr9ZZWQ48";
 
 export default function ArtOfWhite() {
   return (
-    <section className="bg-[#f2eee5] py-16 md:py-24 px-6 md:px-12 border-t border-[#ede0c4]">
+    <section className="bg-[#f2eee5] py-16 md:py-24 px-6 md:px-12 border-t border-[#ede0c4] overflow-hidden">
       {/* Import the elegant cursive font for this section */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&display=swap');
@@ -14,48 +14,63 @@ export default function ArtOfWhite() {
         {/* Left Column: Text Content */}
         <div className="flex flex-col justify-center">
           {/* Cursive Title */}
-          <div className="mb-3">
-            <span className="font-['Alex_Brush',_cursive] text-[36px] sm:text-[48px] md:text-[68px] text-[#4a3f35] leading-none block text-center md:text-left">
-              The Art of Fire
-            </span>
-          </div>
+          <ScrollReveal animation="fade-right" duration={800}>
+            <div className="mb-3">
+              <span className="font-['Alex_Brush',_cursive] text-[36px] sm:text-[48px] md:text-[68px] text-[#4a3f35] leading-none block text-center md:text-left drop-shadow-sm">
+                The Art of Fire
+              </span>
+            </div>
+          </ScrollReveal>
 
           {/* Subtitle with Gold Vertical Bar */}
-          <div className="flex gap-3 mb-6 items-stretch justify-center md:justify-start">
-            <div className="w-[3px] bg-[#c4a84f] shrink-0" />
-            <h3 className="text-[13px] sm:text-[16px] md:text-[18px] lg:text-[20px] font-sans font-bold tracking-[1.5px] sm:tracking-[2px] text-[#2c1a00] uppercase leading-tight">
-              Nghệ thuật men hỏa biến
-            </h3>
-          </div>
+          <ScrollReveal animation="fade-right" delay={150} duration={800}>
+            <div className="flex gap-3 mb-6 items-stretch justify-center md:justify-start">
+              <div className="w-[3px] bg-[#c4a84f] shrink-0" />
+              <h3 className="text-[13px] sm:text-[16px] md:text-[18px] lg:text-[20px] font-sans font-bold tracking-[1.5px] sm:tracking-[2px] text-[#2c1a00] uppercase leading-tight">
+                Nghệ thuật men hỏa biến
+              </h3>
+            </div>
+          </ScrollReveal>
 
           {/* Paragraph and Action Button */}
           <div className="flex flex-col items-center">
-            <p className="text-center text-[#554433] text-[14px] md:text-[16px] leading-[1.8] mb-8 font-sans max-w-[480px]">
-              Men hỏa biến là dòng men được tạo ra bởi sự tương tác hóa học giữa oxit kim loại và men nền trong môi trường nhiệt độ cao. Mỗi sản phẩm là một tác phẩm nghệ thuật độc nhất, không thể sao chép, mang vẻ đẹp của sự ngẫu hứng và biến ảo kỳ diệu từ lửa.
-            </p>
+            <ScrollReveal animation="fade-up" delay={250} duration={800}>
+              <p className="text-center text-[#554433] text-[14px] md:text-[16px] leading-[1.8] mb-8 font-sans max-w-[480px]">
+                Men hỏa biến là dòng men được tạo ra bởi sự tương tác hóa học giữa oxit kim loại và men nền trong môi trường nhiệt độ cao. Mỗi sản phẩm là một tác phẩm nghệ thuật độc nhất, không thể sao chép, mang vẻ đẹp của sự ngẫu hứng và biến ảo kỳ diệu từ lửa.
+              </p>
+            </ScrollReveal>
 
-            <a
-              href="/collections/men-hoa-bien"
-              className="inline-block bg-[#c4a84f] hover:bg-[#b0923a] text-white font-sans text-[11px] tracking-[2px] font-bold px-9 py-3.5 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
-            >
-              XEM THÊM NGAY
-            </a>
+            <ScrollReveal animation="fade-up" delay={350} duration={800}>
+              <a
+                href="/collections/men-hoa-bien"
+                className="inline-block bg-[#c4a84f] hover:bg-[#b0923a] text-white font-sans text-[11px] tracking-[2px] font-bold px-9 py-3.5 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              >
+                XEM THÊM NGAY
+              </a>
+            </ScrollReveal>
           </div>
         </div>
 
-        {/* Right Column: YouTube Video (Lazy load facade) */}
-        <div className="relative group w-full flex justify-center p-2 sm:p-4 md:p-6">
-          <div className="relative w-full max-w-[560px]">
-            {/* Decorative gold accent frame */}
-            <div className="absolute -inset-3 sm:-inset-4 border border-[#c4a84f] rounded-[2px] opacity-40 pointer-events-none" />
-            <div className="relative w-full aspect-video rounded-[2px] shadow-[12px_18px_35px_rgba(44,26,0,0.35)] overflow-hidden z-10">
-              <YouTubeFacade
-                videoId={VIDEO_ID}
-                title="Nghệ thuật men hỏa biến - Bát Tràng Vietnam"
-              />
+        {/* Right Column: Clean YouTube Video with animation & hover effects */}
+        <ScrollReveal animation="fade-left" delay={200} duration={900}>
+          <div className="relative group w-full flex justify-center p-2 sm:p-4 md:p-6">
+            <div className="relative w-full max-w-[560px]">
+              {/* Decorative gold accent frame */}
+              <div className="absolute -inset-3 sm:-inset-4 border border-[#c4a84f] rounded-[2px] opacity-40 group-hover:opacity-75 transition-all duration-500 pointer-events-none" />
+              <div className="relative w-full aspect-video rounded-[2px] shadow-[12px_18px_35px_rgba(44,26,0,0.35)] overflow-hidden z-10 transition-transform duration-500 group-hover:scale-[1.01]">
+                <iframe
+                  className="w-full h-full rounded-[2px]"
+                  src={`https://www.youtube-nocookie.com/embed/${VIDEO_ID}?rel=0`}
+                  title="Nghệ thuật men hỏa biến - Bát Tràng Vietnam"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
       </div>
     </section>
   );

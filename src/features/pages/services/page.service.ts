@@ -1,11 +1,12 @@
 import { SitePage } from '../types/page.type';
+import { getApiBaseUrl } from '@/src/lib/api-config';
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api'}/pages`;
+const getPagesApiUrl = () => `${getApiBaseUrl()}/pages`;
 
 export async function fetchPageByKey(key: string): Promise<SitePage> {
     try {
-        const res = await fetch(`${API_URL}/${key}`, {
-            next: { tags: ['pages'] },
+        const res = await fetch(`${getPagesApiUrl()}/${key}`, {
+            next: { tags: ['pages'], revalidate: 60 },
         });
 
         if (!res.ok) {

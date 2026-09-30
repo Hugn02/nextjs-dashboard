@@ -4,6 +4,9 @@ import Navbar from '@/src/layout/Navbar';
 import { fetchPageByKey } from '@/src/features/pages/services/page.service';
 import { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 60;
+
 export async function generateMetadata(): Promise<Metadata> {
     try {
         const page = await fetchPageByKey('about');

@@ -4,6 +4,8 @@ import { fetchProductBySlug } from "@/src/features/products/services/product.ser
 import Footer from "@/src/layout/Footer";
 import Navbar from "@/src/layout/Navbar";
 
+import { getApiBaseUrl } from "@/src/lib/api-config";
+
 interface PageProps {
     params: Promise<{ slug: string }>;
 }
@@ -62,7 +64,7 @@ export default async function Page({ params }: PageProps) {
     try {
         product = await fetchProductBySlug(slug);
         if (product) {
-            const reviewsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api"}/reviews?product=${product.id}`, {
+            const reviewsRes = await fetch(`${getApiBaseUrl()}/reviews?product=${product.id}`, {
                 next: { revalidate: 3600 },
             });
             if (reviewsRes.ok) {

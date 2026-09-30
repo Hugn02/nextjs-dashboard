@@ -3,6 +3,8 @@ import CategoryPage from "@/src/features/products/pages/CategoryPage";
 import Footer from "@/src/layout/Footer";
 import Navbar from "@/src/layout/Navbar";
 
+import { getApiBaseUrl } from "@/src/lib/api-config";
+
 interface PageProps {
     params: Promise<{ slug: string }>;
 }
@@ -16,7 +18,7 @@ interface Category {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { slug } = await params;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
+    const apiUrl = getApiBaseUrl();
     const fallbackName = slug.replace(/-/g, " ");
 
     try {

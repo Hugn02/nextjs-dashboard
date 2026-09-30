@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import Image from 'next/image';
 import { fetchProducts } from '../services/product.service';
 import { Product } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
@@ -114,7 +113,6 @@ export default function AllProductsPage() {
     };
 
     const hasMore = products.length < totalCount;
-    const bannerImage = "/assets/category3.png";
 
     const clearAllFilters = () => {
         setSelectedCategory(null);
@@ -136,34 +134,36 @@ export default function AllProductsPage() {
                 }
             `}</style>
 
-            {/* Banner */}
-            <div className="relative mt-[120px] h-[360px] w-full overflow-hidden hidden lg:block">
-                <Image
-                    src={bannerImage}
-                    alt="Tất cả sản phẩm"
-                    fill
-                    className="object-cover object-center"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/40" />
-            </div>
-
-            <main className="min-h-[80vh] bg-white pb-20 mt-[120px] lg:mt-0">
-                <div className="mx-auto max-w-[1280px] px-6">
-
-                    {/* Breadcrumb */}
-                    <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-6 border-b border-[#f0e8d6] py-4 text-xs tracking-wider text-[#888]">
-                        <Link href="/" className="text-[#888] no-underline">Trang chủ</Link>
-                        <span className="mx-2">›</span>
-                        <span className="text-[#888]">Sản phẩm</span>
-                        <span className="mx-2">›</span>
+            {/* Header thanh lịch đồng bộ (Minimal Luxury) */}
+            <div className="mt-[88px] md:mt-[120px] bg-[#faf7f2] border-b border-[#ede0c4] py-8 sm:py-12">
+                <div className="mx-auto max-w-[1280px] px-6 text-center">
+                    {/* Breadcrumbs */}
+                    <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-3 text-xs tracking-wider text-[#8b6914] flex items-center justify-center gap-2">
+                        <Link href="/" className="text-[#888] hover:text-[#c4a84f] transition-colors no-underline">
+                            Trang chủ
+                        </Link>
+                        <span className="text-[#ccc]">›</span>
                         <span className="text-[#2c1a00] font-semibold">Tất cả sản phẩm</span>
                     </nav>
 
-                    {/* Tiêu đề */}
-                    <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 mb-8 text-center font-light uppercase tracking-[3px] text-[#2c1a00]" style={{ fontSize: "clamp(22px, 3vw, 32px)" }}>
-                        Sản phẩm của chúng tôi
+                    <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-xs sm:text-sm tracking-[3px] text-[#8b6914] uppercase mb-2 font-medium">
+                        Bát Tràng • Kiệt Tác Thủ Công
+                    </p>
+
+                    <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] m-0 text-[#2c1a00] font-normal uppercase tracking-[2px] sm:tracking-[4px] text-[clamp(24px,3.5vw,38px)]">
+                        Tất Cả Sản Phẩm Gốm Sứ
                     </h1>
+
+                    <div className="w-14 h-px bg-[#c4a84f] mx-auto my-3" />
+
+                    <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-[#6b5840] text-sm sm:text-base italic max-w-2xl mx-auto m-0 leading-relaxed font-light">
+                        Tuyển tập tác phẩm gốm sứ nghệ nhân tinh xảo, gìn giữ tinh hoa văn hóa truyền thống và nâng tầm không gian sống của bạn.
+                    </p>
+                </div>
+            </div>
+
+            <main className="min-h-[80vh] bg-white py-8 sm:py-12">
+                <div className="mx-auto max-w-[1280px] px-6">
 
                     {/* Active filter tags */}
                     <ActiveFilters

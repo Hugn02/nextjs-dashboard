@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
+import { getApiBaseUrl } from "@/src/lib/api-config";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
-  const productApiUrl = process.env.NEXT_PUBLIC_PRODUCT_API_URL || "http://localhost:3002/api/products";
+  const apiUrl = getApiBaseUrl();
 
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -15,6 +15,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${siteUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/business`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
@@ -36,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic Product routes
   let productRoutes: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch(`${productApiUrl}?limit=1000`, {
+    const res = await fetch(`${apiUrl}/products?limit=1000`, {
       next: { revalidate: 3600 },
     });
     if (res.ok) {

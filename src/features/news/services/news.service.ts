@@ -1,6 +1,7 @@
 import { NewsArticle } from '../types/news.type';
+import { getApiBaseUrl } from '@/src/lib/api-config';
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api"}/news`;
+const getNewsApiUrl = () => `${getApiBaseUrl()}/news`;
 
 export interface FetchNewsQuery {
     isPublished?: boolean;
@@ -22,8 +23,8 @@ export async function fetchNewsList(query: FetchNewsQuery = {}): Promise<NewsArt
         params.append('isPublished', 'true');
     }
 
-    const res = await fetch(`${API_URL}?${params.toString()}`, {
-        next: { tags: ['news'] }
+    const res = await fetch(`${getNewsApiUrl()}?${params.toString()}`, {
+        next: { tags: ['news'], revalidate: 60 }
     });
 
     if (!res.ok) {
@@ -37,7 +38,7 @@ export async function fetchNewsList(query: FetchNewsQuery = {}): Promise<NewsArt
 }
 
 export async function fetchNewsBySlug(slug: string): Promise<NewsArticle> {
-    const res = await fetch(`${API_URL}/slug/${slug}`, {
+    const res = await fetch(`${getNewsApiUrl()}/slug/${slug}`, {
         next: { tags: ['news'] }
     });
 
