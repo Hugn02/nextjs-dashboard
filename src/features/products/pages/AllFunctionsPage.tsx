@@ -89,7 +89,7 @@ export default function AllFunctionsPage() {
               Trang chủ
             </Link>
             <span className="text-[#ccc]">›</span>
-            <span className="text-[#2c1a00] font-semibold">Công năng</span>
+            <span className="text-[#2c1a00] font-semibold">Chức năng</span>
           </nav>
 
           <p className="font-['Cormorant_Garamond',_Georgia,_serif] text-xs sm:text-sm tracking-[3px] text-[#8b6914] uppercase mb-2 font-medium">

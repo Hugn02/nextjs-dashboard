@@ -137,7 +137,7 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
                 limit: LIMIT,
                 page: nextPage,
                 status: 'active',
-                });
+            });
             setProducts(prev => [...prev, ...fetchedProducts]);
             setPage(nextPage);
         } catch (err) {
@@ -201,7 +201,7 @@ export default function FunctionPage({ slug }: FunctionPageProps) {
                     <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-3 text-xs tracking-wider text-[#8b6914] flex items-center justify-center gap-2">
                         <Link href="/" className="text-[#888] hover:text-[#c4a84f] transition-colors no-underline">Trang chủ</Link>
                         <span className="text-[#ccc]">›</span>
-                        <Link href="/functions" className="text-[#888] hover:text-[#c4a84f] transition-colors no-underline">Công năng</Link>
+                        <Link href="/functions" className="text-[#888] hover:text-[#c4a84f] transition-colors no-underline">Chức năng</Link>
                         <span className="text-[#ccc]">›</span>
                         <span className="text-[#2c1a00] font-semibold">{functionName}</span>
                     </nav>

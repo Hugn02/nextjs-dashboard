@@ -202,7 +202,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                     <nav className="font-['Cormorant_Garamond',_Georgia,_serif] mb-3 text-xs tracking-wider text-[#8b6914] flex items-center justify-center gap-2">
                         <Link href="/" className="text-[#888] hover:text-[#c4a84f] transition-colors no-underline">Trang chủ</Link>
                         <span className="text-[#ccc]">›</span>
-                        <Link href="/categories" className="text-[#888] hover:text-[#c4a84f] transition-colors no-underline">Danh mục</Link>
+                        <Link href="/categories" className="text-[#888] hover:text-[#c4a84f] transition-colors no-underline">Loại sản phẩm</Link>
                         <span className="text-[#ccc]">›</span>
                         <span className="text-[#2c1a00] font-semibold">{categoryName}</span>
                     </nav>
