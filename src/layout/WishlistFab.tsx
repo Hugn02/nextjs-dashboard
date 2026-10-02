@@ -48,7 +48,7 @@ export default function WishlistFab() {
 
       {/* Badge số lượng */}
       {wishlistCount > 0 && (
-        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-sm border border-white leading-none">
+        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-sm border border-white leading-none font-sans">
           {wishlistCount > 99 ? "99+" : wishlistCount}
         </span>
       )}

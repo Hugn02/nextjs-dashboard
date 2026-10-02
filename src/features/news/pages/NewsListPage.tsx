@@ -60,9 +60,6 @@ export default function NewsListPage() {
 
     return (
         <>
-            <style jsx global>{`
-                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap');
-            `}</style>
 
             <main className="min-h-[80vh] bg-[#faf7f2] pb-24 mt-[88px] md:mt-[120px]">
                 {/* Breadcrumbs */}

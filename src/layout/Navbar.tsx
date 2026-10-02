@@ -293,7 +293,7 @@ export default function Navbar() {
                 </svg>
               )}
               {activeModal !== "cart" && cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-[#c4a84f] text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-bold">
+                <span className="absolute -top-1.5 -right-2 bg-[#c4a84f] text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-bold font-sans">
                   {cartCount}
                 </span>
               )}

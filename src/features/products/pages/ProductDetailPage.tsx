@@ -301,9 +301,6 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
 
     return (
         <>
-            <style jsx global>{`
-                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
-            `}</style>
 
             {/* Toast Notification */}
             {toastMessage && (

@@ -94,7 +94,6 @@ export default function NewsDetailPage({ slug }: Props) {
     return (
         <>
             <style jsx global>{`
-                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&display=swap');
                 .article-body-content p {
                     margin-bottom: 1.5rem;
                     line-height: 1.8;

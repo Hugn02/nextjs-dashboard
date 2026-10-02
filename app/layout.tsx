@@ -42,6 +42,8 @@ export const metadata: Metadata = {
 const cormorant = Cormorant_Garamond({
   subsets: ["vietnamese", "latin"],
   weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
   display: "swap",
 });
 
@@ -87,7 +89,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="vi" className={cormorant.className}>
+    <html lang="vi" className={`${cormorant.variable} ${cormorant.className}`}>
       <head>
         <script
           type="application/ld+json"

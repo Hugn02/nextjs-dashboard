@@ -124,7 +124,6 @@ export default function AllProductsPage() {
     return (
         <>
             <style jsx global>{`
-                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap');
                 .filter-accordion-content {
                     animation: filterFadeIn 0.18s ease-out;
                 }

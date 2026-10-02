@@ -77,9 +77,6 @@ export default function AllCategoriesPage() {
 
   return (
     <>
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap');
-      `}</style>
 
       {/* Header thanh lịch (Minimal Luxury) */}
       <div className="mt-[88px] md:mt-[120px] bg-[#faf7f2] border-b border-[#ede0c4] py-8 sm:py-12">

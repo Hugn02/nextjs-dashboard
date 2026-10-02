@@ -37,7 +37,6 @@ export default function BusinessPage({ page }: Props) {
     return (
         <>
             <style jsx global>{`
-                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&display=swap');
                 .business-content {
                     display: flow-root !important;
                 }
